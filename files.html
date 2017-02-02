@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Pollen Manager</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/css/codemirror.css">
+    <link rel="stylesheet" href="/css/main.css">
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        @(xexpr->string breadcrumb)
+      </div>
+      <div class="folders">
+        @(if (not (empty? folders)) "<h3>Folders</h3>" "")
+        @(if (empty? folders)
+        ""
+        (xexpr->string folders))
+      </div>
+      <div class="files">
+        @(if (not (empty? files)) "<h3>Files</h3>" "")
+        @(if (empty? files)
+        ""
+        (xexpr->string files))
+      </div>
+    </div>
+    <script src="/js/codemirror.js"></script>
+    <script src="/js/pollen.js"></script>
+    <script src="/js/main.js"></script>
+  </body>
+</html>
