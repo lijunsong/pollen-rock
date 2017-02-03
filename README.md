@@ -42,8 +42,8 @@ Vim, Emacs, Sublime Text, etc.).
 
 ## Project Management
 
-Pollen-Rock also provides simple interface to add, rename, delete
-files in your pollen projects
+Pollen-Rock is also going to provide a simple interface to add, rename,
+delete files in your pollen projects
 
 # Usage
 

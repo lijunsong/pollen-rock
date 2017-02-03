@@ -9,11 +9,11 @@ function save(editor) {
   // TODO: since server is stateless, post won't know whether server
   // has saved the file correctly.
   var post_data = {
-    cmd : 'autosave',
+    type : 'autosave',
     text : text,
     resource : file
   };
-  $.post("/.json", post_data, function(status) {
+  $.post("/api", post_data, function(status) {
     $("#savestatus").text(status);
   }).fail(function(status) {
     $("#savestatus").text(status.statusText);
@@ -28,7 +28,8 @@ $(document).ready(function () {
     autofocus: true,
     mode: 'pollen',
     lineWrapping: true,
-    lineNumbers: true
+    lineNumbers: true,
+    matchBrackets: true
   });
 
   pollenEditor.addKeyMap({

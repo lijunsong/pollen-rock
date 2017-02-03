@@ -1,6 +1,7 @@
 #lang racket
 
 (require racket/runtime-path)
+(require "util.rkt")
 
 (provide (all-defined-out))
 
@@ -14,4 +15,4 @@
 (define query-edit-name "edit")
 (define/contract (url-mark-edit url)
   (-> string? string?)
-  (string-append url "?edit"))
+  (append-path "/edit" url))
