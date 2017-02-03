@@ -83,6 +83,7 @@
 ;; add webroot to serve users' own static files
 (serve/servlet server-dispatch
                #:port 8000
+               #:listen-ip "0.0.0.0"
                #:launch-browser? #f
                #:servlet-regexp #rx""
                #:extra-files-paths (list webroot runtimeroot))
