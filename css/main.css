@@ -1,8 +1,12 @@
-.container {
+#container {
     width: 60%;
     margin: 0 auto;
     font-family: "source code pro", sans-serif;
     font-size: 16px;
+}
+
+.wrapper {
+    margin-bottom: 5rem;
 }
 
 .collection {
@@ -38,10 +42,6 @@
     font-family: "source code pro", sans-serif;
     height: auto;
     line-height: 1.5rem;
-}
-
-.wrapper {
-    margin-bottom: 5rem;
 }
 
 .header {

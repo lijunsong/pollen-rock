@@ -116,6 +116,12 @@ function initEditorEventHandler(editor)
   });
 }
 
+function initEditorStyle(editor)
+{
+  var width = editor.defaultCharWidth()*80;
+  $("#container").css("width", width+'px');
+}
+
 $(document).ready(function () {
   // setup nofify position
   initNotify();
@@ -125,6 +131,7 @@ $(document).ready(function () {
 
   initEditorKey(pollenEditor);
   initEditorEventHandler(pollenEditor);
+  initEditorStyle(pollenEditor);
 
   setInterval(function() {
     save(pollenEditor);
