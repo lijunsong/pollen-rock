@@ -19,23 +19,24 @@ typeset.
 
 To help you compose, the editor
 
-- [ ] provides a distraction-free mode
+- [x] provides a distraction-free mode (Cmd-Enter)
 - [x] saves the file automatically for you
-- [ ] provides a simple way to insert your command char (e.g. lozenge)
+- [x] inserts CommandChar using `@` (and two CmdChar inserts `@`)
 
 To help you typeset, the editor
 
 - [x] provides useful syntax highlight for pollen files
 - [ ] auto-completes your tag functions
-- [ ] warns unbalanced braces
+- [x] warns unbalanced braces
 - [ ] warns runtime errors in your document
 - [ ] warns undefined tag functions
 - [ ] Inlines Racket document
 - [ ] provides file preview in Real-time
 
-*Note:* [x] means the feature has been implemented.
+*Note:*
+- [x] means the feature has been implemented.
 
-These useful features are possible because the back-end of Pollen-Rock
+These useful warnings are possible because the back-end of Pollen-Rock
 is written in Racket. It understands your configuration file
 `pollen.rkt`, and serves you better than tranditional editors (like
 Vim, Emacs, Sublime Text, etc.).

@@ -68,6 +68,9 @@ function initEditor(id)
     matchBrackets: true
   });
 
+  pollenEditor.commandChar = '◊';
+
+  window.eee = pollenEditor;
   return pollenEditor;
 }
 
@@ -88,9 +91,18 @@ function initEditorKey(editor)
   var fullscreen = initFullscreen();
 
   var keyMaps = [
-    defineKey('Shift-2', function(cm) {
-      cm.replaceSelection('◊');
-    }, "Insert Lozenge"),
+    defineKey('Shift-2', function(e) {
+      var pos = e.getCursor();
+      if (pos.ch == 0)
+        e.replaceSelection(editor.commandChar);
+      else {
+        var lastPos = CodeMirror.Pos(pos.line, pos.ch-1);
+        if (e.getRange(lastPos, pos) == editor.commandChar)
+          e.replaceRange('@', lastPos, pos);
+        else
+          e.replaceSelection(editor.commandChar);
+      }
+    }, "Insert Command Char or @"),
 
     defineKey('Cmd-Enter', function() {
       if (fullscreen) {
