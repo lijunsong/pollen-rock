@@ -78,3 +78,15 @@
 .breadcrumb-item:last-child {
     color: #888;
 }
+
+.hide {
+    display: none;
+}
+
+.right {
+    float: right;
+}
+
+.left {
+    float: left;
+}

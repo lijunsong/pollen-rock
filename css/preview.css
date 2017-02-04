@@ -1,0 +1,10 @@
+#preview {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 50%;
+    z-index: 999;
+    border: 1px solid #EEE;
+    background: #FFF;
+}

@@ -7,8 +7,7 @@ function save(editor)
   $("#savestatus").text('saving');
   var text = editor.getValue();
   var file = $("#editor").attr("data");
-  // TODO: since server is stateless, post won't know whether server
-  // has saved the file correctly.
+
   var post_data = {
     type : 'autosave',
     text : text,
@@ -18,6 +17,22 @@ function save(editor)
     $("#savestatus").text(status);
   }).fail(function(status) {
     $("#savestatus").text(status.statusText);
+  });
+}
+
+function render(editor, resource) {
+  if (! resource) {
+    resource = $("#editor").attr("data");
+  }
+  var post_data = {
+    type : 'render',
+    resource : resource
+  };
+  $.post("/api", post_data, function(status) {
+    $("#preview").attr('src', status);
+    //$.notify(status);
+  }).fail(function(status) {
+    $.notify(status.statusText);
   });
 }
 
@@ -111,6 +126,14 @@ function initEditorKey(editor)
         $.notify("Your Browser Doesn't Support Fullscreen");
       }
     }, "Enter Fullscreen"),
+
+    defineKey('Shift-Ctrl-P', function() {
+      var view = $("#view");
+      view.toggleClass("hide");
+      if (! view.hasClass("hide")) {
+        render(editor);
+      }
+    }, "Open/Close Previse Window")
   ];
 
   for (var i = 0; i < keyMaps.length; i++) {
@@ -126,12 +149,22 @@ function initEditorEventHandler(editor)
   editor.on("change", function(obj) {
     $("#savestatus").empty();
   });
+
+  setInterval(function() {
+    save(editor);
+  }, 2000);
 }
 
 function initEditorStyle(editor)
 {
   var width = editor.defaultCharWidth()*80;
-  $("#container").css("width", width+'px');
+  $("#container").css("max-width", width+'px');
+}
+
+// talk to server to get pollen config for this file
+function initEditorPollenConfig(editor)
+{
+
 }
 
 $(document).ready(function () {
@@ -140,12 +173,9 @@ $(document).ready(function () {
 
   // setup editor
   var pollenEditor = initEditor("compose");
-
   initEditorKey(pollenEditor);
   initEditorEventHandler(pollenEditor);
   initEditorStyle(pollenEditor);
+  initEditorPollenConfig(pollenEditor);
 
-  setInterval(function() {
-    save(pollenEditor);
-  }, 2000);
 });
