@@ -20,11 +20,11 @@
       <div class="wrapper">
         <div class="header">
           @(xexpr->string breadcrumb)
-          <span id="savestatus"></span>
         </div>
         <div id="editor" data="@|resource|">
           <textarea name="compose" id="compose">@|content|</textarea>
         </div>
+        <div class="status"><span id="savestatus"></span></div>
       </div>
     </div>
       <div id="view" class="hide">
