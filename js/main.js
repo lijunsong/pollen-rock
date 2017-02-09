@@ -128,10 +128,13 @@ function initEditorKey(editor)
     }, "Enter Fullscreen"),
 
     defineKey('Shift-Ctrl-P', function() {
-      var view = $("#view");
-      view.toggleClass("hide");
-      if (! view.hasClass("hide")) {
+      var leftside = $("#view");
+      leftside.toggleClass("hide");
+      if (! leftside.hasClass("hide")) {
+        $("#container").addClass("side-right");
         render(editor);
+      } else {
+        $("#container").removeClass("side-right");
       }
     }, "Open/Close Previse Window")
   ];

@@ -1,9 +1,18 @@
-#preview {
-    position: fixed;
+.side-right {
+    position: absolute;
+    top: 0px;
+    left: 50%;
+    width: 49.5%;
+}
+.side-left {
+    position: absolute;
     top: 0px;
     left: 0px;
+    width: 49.5%;
+}
+#preview {
+    position: fixed;
     height: 100%;
-    width: 50%;
     z-index: 999;
     border: 1px solid #EEE;
     background: #FFF;
