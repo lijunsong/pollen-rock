@@ -5,15 +5,15 @@
 ;;; Attributes for common requests:
 ;;;
 ;;;   "type" the type of this API request.
-;;;   "type" := autosave
+;;;   "type" := save | render | config
 ;;;
-;;; Attributes for autosave
+;;; Attributes for save
 ;;;
 ;;;   "text"     : text to save
 ;;;   "resource" : resource (an absolute path) to save into
 ;;;
 ;;; Examples:
-;;; - autosave: {type : "autosave",
+;;; - save: {type : "save",
 ;;;              resource : "/dir1/dir2/hello.html.pm",
 ;;;              text : "#lang pollen\n..."}
 
@@ -22,44 +22,57 @@
 
 (require pollen/render) ;; handle render
 (require pollen/file)   ;; handle render
+(require json)
 
 (require "config.rkt")
 (require "util.rkt")
 (require "http-util.rkt")
 
-(provide (combine-out api-post-handler))
+(provide api-post-handler)
 
 ;;; Structs for request APIs
 (define (assert-resource resource)
   (unless (resource? resource)
     (error "Not a Resource: ~a" resource)))
 
-(struct Autosave (resource text)
+;; request to save resource
+(struct Save (resource text)
         #:transparent
         #:guard (lambda (f t tmp)
                   (assert-resource f)
                   (values f t)))
 
+;; request to render the given resource
 (struct Render (resource)
         #:transparent
         #:guard (lambda (f tmp)
                   (assert-resource f)
                   (values f)))
 
+;; request pollen config of the given resource
+(struct Config (resource)
+        #:transparent
+        #:guard (lambda (f tmp)
+                  (assert-resource f)
+                  (values f)))
+
 ;;; Main handler for POST api request
-;; TODO: To autosave a big file on a slow disk will cause problem.
+;; TODO: To save a big file on a slow disk will cause problem.
 ;;       It seems what we need here is a producer-consumer queue.
 (define/contract (api-post-handler req)
   (-> request? response?)
   (match (request-api-type req)
-    ["autosave"
-     (let ((autosave (request->autosave req)))
-       (let ((saved? (handle-autosave autosave)))
+    ["save"
+     (let ((save (request->save req)))
+       (let ((saved? (handle-save save)))
          (response/text
           (if saved? #"saved" #"error occurs. Manually save your text"))))]
     ["render"
-     (let* ((render (request->render req)))
+     (let ((render (request->render req)))
        (handle-render render))]
+    ["config"
+     (let ((config (request->config req)))
+       (handle-config config)]
     [x
      (response/xexpr
       `(html (head) (p ,(format "unknown POST command: ~a" x))))]))
@@ -87,17 +100,17 @@
         (error "Incomplete request for ~a: ~a" strut req)
         (apply strut xs))))
 
-;;; Autosave
-(define (request->autosave req)
-  (request->api-struct req Autosave 'resource 'text))
+;;; Save
+(define (request->save req)
+  (request->api-struct req Save 'resource 'text))
 
-(define (handle-autosave autosave)
-  (define filepath (append-path webroot (Autosave-resource autosave)))
+(define (handle-save save)
+  (define filepath (append-path webroot (Save-resource save)))
   (cond [(not (file-exists? filepath)) #f]
         [else
          (call-with-output-file* filepath
            (lambda (out)
-             (display (Autosave-text autosave) out))
+             (display (Save-text save) out))
            #:mode 'text
            #:exists 'must-truncate)]))
 
@@ -119,3 +132,34 @@
   (response/text answer))
 
 ;;; PollenConfig
+(define (request->config req)
+  (request->api-struct req Config 'resource))
+
+(define config-ids
+  '(command-char render-cache-active compile-cache-active))
+
+(define config-setup:ids
+  (map (lambda (id)
+         (string->symbol
+          (string-append "setup:" (symbol->string id))))
+       config-ids))
+
+;; TODO: front end need to pass in current resource
+(define (handle-config config)
+  (define resource (Config-resource config))
+  (define spacen (make-base-namespace))
+  (eval '(require pollen/setup) spacen)
+  (eval '(require (submod "pollen.rkt" setup)) spacen)
+      ;; get config info from pollen setup
+  (define vs
+    (map (lambda (n setup:n)
+           (let [(v (eval `(,setup:n) spacen))]
+             (cons n
+                   (if (char? v) (string v)
+                       v))))
+         config-ids config-setup:ids))
+  (let* [(hash (make-immutable-hasheq vs))
+         (v (hash-set "rendered-resource"
+                      (resource->output-path resource)
+                      hash))]
+    (xexpr/text (jsexpr->bytes v))))
