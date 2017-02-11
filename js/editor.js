@@ -109,7 +109,7 @@ $(function() {
       this.editor = CodeMirror.fromTextArea(area, {
         autofocus: true,
         matchBrackets: true,
-        lineWrapper: true,
+        lineWrapping: true,
         mode: 'pollen',
         lineNumbers: 'true'
       });
@@ -192,10 +192,14 @@ $(function() {
 
     toRight : function() {
       this.view.addClass("side-right");
+      // editor's size change would misplace the cursor.
+      this.editor.refresh();
     },
 
     toCenter : function() {
       this.view.removeClass("side-right");
+      // editor's size change would misplace the cursor.
+      this.editor.refresh();
     }
   };
 
