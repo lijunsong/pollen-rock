@@ -8,6 +8,10 @@ $(function() {
       this["pollenConfig"] = config;
     },
 
+    initPollenTags : function(tags) {
+      this["pollenTags"] = tags;
+    },
+
     saveRequest : function(text, resource) {
       return {
         type : 'save',
@@ -52,7 +56,8 @@ $(function() {
     },
 
     initRest : function(jsconfig) {
-      model.initPollenConfig(jsconfig);
+      model.initPollenConfig(jsconfig["config"]);
+      model.initPollenTags(jsconfig["tags"]);
       editorview.init();
       preview.init();
       saveStatusView.init();
@@ -91,11 +96,14 @@ $(function() {
     },
 
     getPollenConfig : function(name) {
-      return model.pollenConfig.config[name];
+      // XXX: it's probably better to let server
+      // decide the logic.
+      var val = model.pollenConfig[name];
+      return val || model.pollenConfig['default-'+name];
     },
 
     getPollenTag : function(name) {
-      return model.pollenConfig.tags[name];
+      return model.pollenTags[name];
     }
   };
 
@@ -117,6 +125,7 @@ $(function() {
       this.initKeyMaps();
       this.initEditorStyle();
 
+      this.editor.refresh();
       return this.editor;
     },
 
