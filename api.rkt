@@ -56,6 +56,13 @@
                   (assert-resource f)
                   (values f)))
 
+;; request user-defined tag information
+(struct Tag (resource) #:transparent)
+;; server uses this struct to organize info
+;; if variable is char or string, val is the value, otherwise is #f
+(struct VariableTag (name val) #:transparent)
+(struct ProcedureTag (name arity keywords) #:transparent)
+
 ;;; Main handler for POST api request
 ;; TODO: To save a big file on a slow disk will cause problem.
 ;;       It seems what we need here is a producer-consumer queue.
@@ -135,39 +142,73 @@
 (define (request->config req)
   (request->api-struct req Config 'resource))
 
-(define config-ids
-  '(command-char render-cache-active compile-cache-active))
 
-(define config-setup:ids
-  (map (lambda (id)
-         (string->symbol
-          (string-append "setup:" (symbol->string id))))
-       config-ids))
+(define/contract (extract-module-info modules)
+  (-> (listof (or/c string? symbol? list?))
+      (listof (or/c VariableTag?
+                    ProcedureTag?)))
+  (define unknown-val "unknown")
+  (define ns (make-base-empty-namespace))
+  (parameterize ([current-namespace ns])
+    (for ([m modules])
+         (namespace-require m)))
+  (define ids (namespace-mapped-symbols ns))
+  (define vals  (map (lambda (s)
+                       (namespace-variable-value
+                        s #t (lambda() unknown-val) ns))
+                     ids))
+  (map (lambda (name v)
+         (if (procedure? v)
+             (let ([arity (procedure-arity v)])
+               (define-values (_ kws) (procedure-keywords v))
+               (ProcedureTag
+                name
+                (if (arity-at-least? arity)
+                    (arity-at-least-value arity)
+                    arity)
+                kws))
+             (VariableTag name (cond [(string? v) v]
+                                     [(char? v) (string v)]
+                                     [(symbol? v) (symbol->string v)]
+                                     [else unknown-val]))))
+       ids
+       vals))
 
 ;; to load user's pollen.rkt, either define
 ;; `current-load-relative-directory`, or sevlet defines
 ;; `current-directory` to user's working directory.
 (define (handle-config config)
   (define resource (Config-resource config))
-  (define spacen (make-base-namespace))
-  (eval '(require pollen/setup) spacen)
-  ;(eval `(current-load-relative-directory ,webroot) spacen)
-  (eval `(require (submod "pollen.rkt" setup)) spacen)
+  (define pollen-config
+    (extract-module-info
+     '(pollen/setup (submod "pollen.rkt" setup))))
+  (define vars (filter VariableTag? pollen-config))
+  (define pair (map (lambda (var)
+                      (cons (VariableTag-name var)
+                            (VariableTag-val  var))) vars))
+  (define config-hash (hash-set* (make-immutable-hasheq pair)
+                                'rendered-resource (resource->output-path resource)
+                                'resource          resource))
+  (define pollen-tags
+    (extract-module-info '("pollen.rkt")))
+  (define tag-pair (map (lambda (v)
+                          (cond [(VariableTag? v)
+                                 (cons (VariableTag-name v) (VariableTag-val v))]
+                                [(ProcedureTag? v)
+                                 (cons (ProcedureTag-name v)
+                                       (make-immutable-hasheq
+                                        (list (cons 'arity (ProcedureTag-arity v))
+                                              (cons 'keywords (ProcedureTag-keywords v)))))]
+                                [else (error "handle config request error: unknown tag type")]))
+                        pollen-tags))
+  (define tag-hash (make-immutable-hasheq tag-pair))
+  (define ans-hash (make-immutable-hasheq
+                    (list (cons 'config config-hash)
+                          (cons 'tags tag-hash))))
+  (response/text (jsexpr->bytes ans-hash)))
 
-      ;; get config info from pollen setup
-  (define vs
-    (map (lambda (n setup:n)
-           (let [(v (eval `(,setup:n) spacen))]
-             (cons n
-                   (if (char? v) (string v)
-                       v))))
-         config-ids config-setup:ids))
-  (let* [(hash (make-immutable-hasheq vs))
-         (v (hash-set hash
-                      'rendered-resource
-                      (resource->output-path resource)))]
-    (response/text (jsexpr->bytes v))))
-
+;(current-directory "/Users/ljs/workspace/pollen-test")
+;(handle-config (Config "/drawing.html.pm"))
 #|
 (define webroot "/Users/ljs/workspace/pollen-test")
 (define pname (append-path webroot "pollen.rkt"))

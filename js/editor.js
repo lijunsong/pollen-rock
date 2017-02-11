@@ -90,8 +90,12 @@ $(function() {
       });
     },
 
-    getPollenConfig : function(id) {
-      return model.pollenConfig[id];
+    getPollenConfig : function(name) {
+      return model.pollenConfig.config[name];
+    },
+
+    getPollenTag : function(name) {
+      return model.pollenConfig.tags[name];
     }
   };
 
