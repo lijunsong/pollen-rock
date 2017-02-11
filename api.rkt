@@ -72,7 +72,7 @@
        (handle-render render))]
     ["config"
      (let ((config (request->config req)))
-       (handle-config config)]
+       (handle-config config))]
     [x
      (response/xexpr
       `(html (head) (p ,(format "unknown POST command: ~a" x))))]))
@@ -144,12 +144,16 @@
           (string-append "setup:" (symbol->string id))))
        config-ids))
 
-;; TODO: front end need to pass in current resource
+;; to load user's pollen.rkt, either define
+;; `current-load-relative-directory`, or sevlet defines
+;; `current-directory` to user's working directory.
 (define (handle-config config)
   (define resource (Config-resource config))
   (define spacen (make-base-namespace))
   (eval '(require pollen/setup) spacen)
-  (eval '(require (submod "pollen.rkt" setup)) spacen)
+  ;(eval `(current-load-relative-directory ,webroot) spacen)
+  (eval `(require (submod "pollen.rkt" setup)) spacen)
+
       ;; get config info from pollen setup
   (define vs
     (map (lambda (n setup:n)
@@ -159,7 +163,26 @@
                        v))))
          config-ids config-setup:ids))
   (let* [(hash (make-immutable-hasheq vs))
-         (v (hash-set "rendered-resource"
-                      (resource->output-path resource)
-                      hash))]
-    (xexpr/text (jsexpr->bytes v))))
+         (v (hash-set hash
+                      'rendered-resource
+                      (resource->output-path resource)))]
+    (response/text (jsexpr->bytes v))))
+
+#|
+(define webroot "/Users/ljs/workspace/pollen-test")
+(define pname (append-path webroot "pollen.rkt"))
+(define spacen (make-base-namespace))
+
+;(eval '(load "/Users/ljs/workspace/pollen-test/pollen.rkt") spacen)
+(eval `(begin
+         (current-load-relative-directory "/Users/ljs/workspace/pollen-test")
+         (require (submod "pollen.rkt" setup))
+         ;(require pollen/setup)
+         ;(setup:command-char)
+         (identifier-binding #'command-charx)
+         ;(dynamic-require '(submod "pollen.rkt" setup) 'command-char)
+         )
+      spacen)
+
+;(eval `(namespace-require (require (file ,pname))) spacen)
+|#

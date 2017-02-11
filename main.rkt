@@ -72,4 +72,5 @@
                #:listen-ip "0.0.0.0"
                #:launch-browser? #f
                #:servlet-regexp #rx""
-               #:extra-files-paths (list webroot runtimeroot))
+               #:extra-files-paths (list webroot runtimeroot)
+               #:servlet-current-directory webroot)

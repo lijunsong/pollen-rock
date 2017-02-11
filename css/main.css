@@ -1,7 +1,20 @@
-#container {
+* {
+    font-family: "source sans pro", "source code pro", "ubuntu", sans-serif;
+}
+
+.container {
+    max-width: 768px;
+    margin: 0 auto;
+    font-size: 16px;
+}
+
+.folders, .files {
+    margin-bottom: 3rem;
+}
+
+#editorwrapper {
     width: 60%;
     margin: 0 auto;
-    font-family: "source code pro", sans-serif;
     font-size: 16px;
 }
 

@@ -1,10 +1,13 @@
 $(function() {
+  "use strict";
+
   var server_api = "/api";
 
   var model = {
-    init : function() {
-
+    initPollenConfig : function(config) {
+      this["pollenConfig"] = config;
     },
+
     saveRequest : function(text, resource) {
       return {
         type : 'save',
@@ -18,9 +21,10 @@ $(function() {
         resource : resource
       };
     },
-    pollenConfigRequest : function() {
+    pollenConfigRequest : function(resource) {
       return {
-        type : 'pollenConfig'
+        type : 'config',
+        resource : resource
       };
     }
   };
@@ -29,22 +33,33 @@ $(function() {
   // ctrl is the bridge between the model and views //
   ////////////////////////////////////////////////////
   var ctrl = {
+    // ctrl will request user's pollen config before initializing the
+    // rest
     init : function() {
-      model.init();
+      var resource = $("#editor").attr("data");
+
+      var initRequest = model.pollenConfigRequest(resource);
+
+      $.post(server_api, initRequest, function(config) {
+        // continue init
+        var jsconfig = JSON.parse(config);
+        jsconfig["resource"] = resource;
+        ctrl.initRest(jsconfig);
+        $.notify("Ready to Rock.");
+      }).fail(function(status) {
+        $.notify(status.statusText);
+      });
+    },
+
+    initRest : function(jsconfig) {
+      model.initPollenConfig(jsconfig);
       editorview.init();
       preview.init();
       saveStatusView.init();
 
-      this.initPollenConfig();
       setInterval(function() {
-        this.save();
+        ctrl.save();
       }, 2000);
-    },
-
-    initPollenConfig : function() {
-      this.pollenConfig = {};
-      // TODO: send request to server
-      this.pollenConfig["commandChar"] = "◊";
     },
 
     save : function() {
@@ -54,7 +69,7 @@ $(function() {
       }
       editor.curGen = editor.changeGeneration();
       saveStatusView.saving();
-      var resource = editor.resource;
+      var resource = this.getPollenConfig("resource");
       var text = editor.getValue();
       var request = model.saveRequest(text, resource);
       $.post(server_api, request, function(status) {
@@ -64,14 +79,19 @@ $(function() {
       });
     },
 
-    render : function() {
-      var resource = this.pollenConfig["resource"];
+    renderPreview : function() {
+      var resource = this.getPollenConfig("resource");
       var request = model.renderRequest(resource);
+      var renderedResource = this.getPollenConfig("rendered-resource");
       $.post(server_api, request, function(status) {
-        preview.reload(resource);
+        preview.reload(renderedResource);
       }).fail(function(status) {
         $.notify("server error");
       });
+    },
+
+    getPollenConfig : function(id) {
+      return model.pollenConfig[id];
     }
   };
 
@@ -80,7 +100,8 @@ $(function() {
   ////////////////////////////
   var editorview = {
     init : function() {
-      var area = $("#editor");
+      this.view = $("#editorwrapper");
+      var area = document.getElementById("compose");
       this.editor = CodeMirror.fromTextArea(area, {
         autofocus: true,
         matchBrackets: true,
@@ -90,8 +111,14 @@ $(function() {
       });
       this.fullscreen = this.initFullscreen();
       this.initKeyMaps();
+      this.initEditorStyle();
 
       return this.editor;
+    },
+
+    initEditorStyle : function() {
+      var width = this.editor.defaultCharWidth()*80;
+      this.view.css("max-width", width+'px');
     },
 
     initFullscreen : function() {
@@ -109,6 +136,7 @@ $(function() {
     initKeyMaps: function() {
       // return an object containing doc that be used to
       // build up keyMap hint later.
+      var view = this;
       function defineKey(key, func, doc) {
         return {
           key: key,
@@ -117,23 +145,24 @@ $(function() {
         };
       }
 
+      var commandChar = ctrl.getPollenConfig("command-char");
       var keyMaps = [
         defineKey('Shift-2', function(e) {
           var pos = e.getCursor();
           if (pos.ch == 0)
-            e.replaceSelection(this.editor.commandChar);
+            e.replaceSelection(commandChar);
           else {
             var lastPos = CodeMirror.Pos(pos.line, pos.ch-1);
-            if (e.getRange(lastPos, pos) == this.editor.commandChar)
+            if (e.getRange(lastPos, pos) == commandChar)
               e.replaceRange('@', lastPos, pos);
             else
-              e.replaceSelection(this.editor.commandChar);
+              e.replaceSelection(commandChar);
           }
         }, "Insert Command Char or @"),
 
         defineKey('Cmd-Enter', function() {
-          if (this.fullscreen) {
-            this.fullscreen();
+          if (view.fullscreen) {
+            view.fullscreen();
           } else {
             $.notify("Your Browser Doesn't Support Fullscreen");
           }
@@ -142,9 +171,10 @@ $(function() {
         defineKey('Shift-Ctrl-P', function() {
           preview.toggleHide();
           if (preview.visible) {
-            this.toRightView();
+            ctrl.renderPreview();
+            view.toRight();
           } else {
-            this.toCenterView();
+            view.toCenter();
           }
         }, "Open/Close Preview Window")
       ];
@@ -154,8 +184,15 @@ $(function() {
         m[keyMaps[i].key] = keyMaps[i].func;
         this.editor.addKeyMap(m);
       }
-    }
+    },
 
+    toRight : function() {
+      this.view.addClass("side-right");
+    },
+
+    toCenter : function() {
+      this.view.removeClass("side-right");
+    }
   };
 
   var saveStatusView = {
@@ -186,20 +223,23 @@ $(function() {
   ///////////////////
   var preview = {
     init : function() {
-      this.dom = $("#view");
-      if (! this.dom.addClass("hide"))
-        this.dom.addClass("hide");
-      this.visible = this.dom.hasClass("hide");
+      var wrapper = $("#previewwrapper");
+      this.wrapper = wrapper;
+      this.frame = $("#preview");
+      if (! wrapper.addClass("hide"))
+        wrapper.addClass("hide");
+      this.visible = ! wrapper.hasClass("hide");
     },
 
     toggleHide: function() {
-      this.dom.toggleClass("hide");
-      this.visible = this.dom.hasClass("hide");
+      this.wrapper.toggleClass("hide");
+      this.visible = ! this.wrapper.hasClass("hide");
     },
 
     reload: function(src) {
-      this.dom.attr('src', src);
+      this.frame.attr('src', src);
     }
   };
 
+  ctrl.init();
 }());
