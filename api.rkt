@@ -111,15 +111,16 @@
 (define (request->save req)
   (request->api-struct req Save 'resource 'text))
 
+;; save file in idemptent way
 (define (handle-save save)
   (define filepath (append-path webroot (Save-resource save)))
   (cond [(not (file-exists? filepath)) #f]
         [else
-         (call-with-output-file* filepath
-           (lambda (out)
-             (display (Save-text save) out))
-           #:mode 'text
-           #:exists 'must-truncate)]))
+         (call-with-atomic-output-file filepath
+           (lambda (out path)
+             (display (Save-text save) out)
+             #t))]))
+
 
 ;;; Render
 (define (request->render req)
