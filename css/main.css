@@ -1,5 +1,5 @@
 * {
-    font-family: "source sans pro", "source code pro", "ubuntu", sans-serif;
+    font-family: "menlo", "consolas", "source sans pro", "source code pro", "ubuntu", sans-serif;
 }
 
 body {
@@ -55,7 +55,6 @@ body {
 }
 
 .CodeMirror {
-    font-family: "source code pro", sans-serif;
     height: auto;
     line-height: 1.5rem;
 }
@@ -105,4 +104,12 @@ body {
 
 .left {
     float: left;
+}
+
+.CodeMirror-cursor {
+  border-left: 2px solid #333;
+}
+
+.CodeMirror-matchingbracket {
+  background-color: #eaffea;
 }
