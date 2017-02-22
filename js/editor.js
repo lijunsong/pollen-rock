@@ -262,7 +262,12 @@ $(function() {
     },
 
     reload: function(src) {
-      this.frame.attr('src', src);
+      if (this.frame.attr('src')) {
+        var doc = this.frame.contents()[0];
+        doc.location.reload(true);
+      } else {
+        this.frame.attr('src', src);
+      }
     }
   };
 
