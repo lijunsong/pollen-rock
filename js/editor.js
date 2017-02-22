@@ -49,9 +49,9 @@ $(function() {
         var jsconfig = JSON.parse(config);
         jsconfig["resource"] = resource;
         ctrl.initRest(jsconfig);
-        $.notify("Ready to Rock.");
+        $.notify("Ready to Rock!");
       }).fail(function(status) {
-        $.notify(status.statusText);
+        $.notify(status.statusText, 'error');
       });
     },
 
@@ -61,6 +61,7 @@ $(function() {
       editorview.init();
       preview.init();
       saveStatusView.init();
+      notifyView.init();
 
       setInterval(function() {
         ctrl.save();
@@ -91,7 +92,7 @@ $(function() {
       $.post(server_api, request, function(status) {
         preview.reload(renderedResource);
       }).fail(function(status) {
-        $.notify("server error");
+        $.notify("server error", 'error');
       });
     },
 
@@ -124,9 +125,16 @@ $(function() {
       this.fullscreen = this.initFullscreen();
       this.initKeyMaps();
       this.initEditorStyle();
+      this.initEventHandlers();
 
       this.editor.refresh();
       return this.editor;
+    },
+
+    initEventHandlers : function() {
+      this.editor.on("change", function(obj) {
+        saveStatusView.empty();
+      });
     },
 
     initEditorStyle : function() {
@@ -255,6 +263,20 @@ $(function() {
 
     reload: function(src) {
       this.frame.attr('src', src);
+    }
+  };
+
+  var notifyView = {
+    init : function() {
+      $.notify.addStyle('simple', {
+        html: '<div class="notify"><span data-notify-text/></div>'
+      });
+
+      $.notify.defaults({
+        globalPosition: 'top center',
+        className: 'info',
+        style: 'simple'
+      });
     }
   };
 

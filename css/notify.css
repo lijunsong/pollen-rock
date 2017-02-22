@@ -1,0 +1,16 @@
+.notifyjs-simple-base {
+    padding: 0.5rem 1.5rem 0.5rem 1.5rem;
+    border-radius: 3px;
+}
+
+.notifyjs-simple-info {
+    background-color: #DFF0D8;
+    color: #468847;
+    border: 1px #468847 solid;
+}
+
+.notifyjs-simple-error {
+    background-color: #FFE2E2;
+    color: #EF3434;
+    border: 1px #EF3434 solid;
+}
