@@ -67,10 +67,17 @@
 
 ;; add runtimeroot to serve pollen-rock's static files when indexing.
 ;; add webroot to serve users' own static files
-(serve/servlet server-dispatch
-               #:port 8000
-               #:listen-ip "0.0.0.0"
-               #:launch-browser? #f
-               #:servlet-regexp #rx""
-               #:extra-files-paths (list webroot runtimeroot)
-               #:servlet-current-directory webroot)
+(define (start-server [port 8000])
+  (serve/servlet server-dispatch
+                 #:port port
+                 #:listen-ip "0.0.0.0"
+                 #:launch-browser? #f
+                 #:servlet-regexp #rx""
+                 #:extra-files-paths (list webroot runtimeroot)
+                 #:servlet-current-directory webroot))
+
+(module+ main
+  (start-server))
+
+(module+ raco
+  (start-server))
