@@ -1,5 +1,12 @@
-* {
+html, .CodeMirror {
     font-family: "Source Sans Pro", sans-serif;
+    font-size: 16px;
+}
+
+@media (min-width: 767px) {
+html, .CodeMirror {
+    font-size: 18px;
+}
 }
 
 body {
@@ -18,37 +25,7 @@ body {
 
 #editorwrapper {
     margin: 0 auto;
-    font-size: 16px;
 }
-
-.wrapper {
-    margin-bottom: 5rem;
-}
-
-.collection {
-    display: block;
-    list-style: none;
-}
-
-.collection-item {
-    line-height: 3rem;
-    border-bottom: 1px solid #AAA;
-}
-
-.collection-item:hover, .collection-item:hover a {
-    background: #f4faff;
-}
-
-.collection-item a {
-    color: #555;
-    text-decoration: none;
-}
-
-.collection-item a:hover {
-    color: #000;
-    text-decoration: none;
-}
-
 
 #editor {
     border: 1px solid #EEE;
@@ -67,10 +44,12 @@ body {
 .breadcrumb-list {
     display: inline;
 }
+
 #savestatus {
     float: right;
     color: #AAA;
 }
+
 .breadcrumb-item {
     text-decoration: none;
     color: #EEE;

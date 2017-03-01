@@ -1,5 +1,12 @@
-* {
+html {
     font-family: "Source Code Pro", sans-serif;
+    font-size: 16px;
+}
+
+@media only screen and (max-width: 767px) {
+html{
+    font-size: 80%;
+}
 }
 
 body {
@@ -9,7 +16,6 @@ body {
 .container {
     max-width: 768px;
     margin: 0 auto;
-    font-size: 16px;
 }
 
 .folders, .files {
