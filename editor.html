@@ -15,9 +15,17 @@
     <link rel="stylesheet" href="/css/editor.css">
     <link rel="stylesheet" href="/css/preview.css">
     <link rel="stylesheet" href="/css/notify.css">
+    <link rel="stylesheet" href="/css/loader.css">
   </head>
 
   <body>
+    <div id="loaderwrapper">
+      <div id="loader">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+      </div>
+    </div>
     <div id="editorwrapper">
       <div class="header">
         @(xexpr->string breadcrumb)

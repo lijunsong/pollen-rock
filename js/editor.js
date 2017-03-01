@@ -44,12 +44,14 @@ $(function() {
 
       var initRequest = model.pollenConfigRequest(resource);
 
+      loaderView.init();
       $.post(server_api, initRequest, function(config) {
         // continue init
         var jsconfig = JSON.parse(config);
         jsconfig["resource"] = resource;
         ctrl.initRest(jsconfig);
         $.notify("Ready to Rock!");
+        loaderView.hide();
       }).fail(function(status) {
         $.notify(status.statusText, 'error');
       });
@@ -282,6 +284,15 @@ $(function() {
         className: 'info',
         style: 'simple'
       });
+    }
+  };
+
+  var loaderView = {
+    init : function() {
+      this.loader = $("#loaderwrapper");
+    },
+    hide : function() {
+      this.loader.addClass("hide");
     }
   };
 
