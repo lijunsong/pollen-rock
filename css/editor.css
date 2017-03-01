@@ -1,45 +1,37 @@
-#container {
-    width: 60%;
-    margin: 0 auto;
-    font-family: "source code pro", sans-serif;
+html, .CodeMirror {
+    font-family: "Source Sans Pro", sans-serif;
     font-size: 16px;
 }
 
-.wrapper {
-    margin-bottom: 5rem;
+@media (min-width: 767px) {
+html, .CodeMirror {
+    font-size: 18px;
+}
 }
 
-.collection {
-    display: block;
-    list-style: none;
+body {
+    background-color: #fafbfc;
 }
 
-.collection-item {
-    line-height: 3rem;
-    border-bottom: 1px solid #AAA;
+.container {
+    max-width: 768px;
+    margin: 0 auto;
+    font-size: 16px;
 }
 
-.collection-item:hover, .collection-item:hover a {
-    background: #f4faff;
+.folders, .files {
+    margin-bottom: 3rem;
 }
 
-.collection-item a {
-    color: #555;
-    text-decoration: none;
+#editorwrapper {
+    margin: 0 auto;
 }
-
-.collection-item a:hover {
-    color: #000;
-    text-decoration: none;
-}
-
 
 #editor {
     border: 1px solid #EEE;
 }
 
 .CodeMirror {
-    font-family: "source code pro", sans-serif;
     height: auto;
     line-height: 1.5rem;
 }
@@ -52,10 +44,12 @@
 .breadcrumb-list {
     display: inline;
 }
+
 #savestatus {
     float: right;
     color: #AAA;
 }
+
 .breadcrumb-item {
     text-decoration: none;
     color: #EEE;
@@ -77,4 +71,24 @@
 
 .breadcrumb-item:last-child {
     color: #888;
+}
+
+.hide {
+    display: none;
+}
+
+.right {
+    float: right;
+}
+
+.left {
+    float: left;
+}
+
+.CodeMirror-cursor {
+  border-left: 2px solid #333;
+}
+
+.CodeMirror-matchingbracket {
+  background-color: #eaffea;
 }

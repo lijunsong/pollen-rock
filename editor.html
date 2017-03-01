@@ -9,26 +9,38 @@
 
     <script src="/js/jquery-3.1.1.min.js"></script>
     <script src="/js/notify.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
 
     <link rel="stylesheet" href="/css/codemirror.css">
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/editor.css">
+    <link rel="stylesheet" href="/css/preview.css">
+    <link rel="stylesheet" href="/css/notify.css">
+    <link rel="stylesheet" href="/css/loader.css">
   </head>
 
   <body>
-    <div id="container">
-      <div class="wrapper">
-        <div class="header">
-          @(xexpr->string breadcrumb)
-          <span id="savestatus"></span>
-        </div>
-        <div id="editor" data="@|resource|">
-          <textarea name="compose" id="compose">@|content|</textarea>
-        </div>
+    <div id="loaderwrapper">
+      <div id="loader">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
       </div>
     </div>
-    <script src="/js/main.js"></script>
+    <div id="editorwrapper">
+      <div class="header">
+        @(xexpr->string breadcrumb)
+      </div>
+      <div id="editor" data="@|resource|">
+        <textarea name="compose" id="compose">@|content|</textarea>
+      </div>
+      <div class="status"><span id="savestatus"></span></div>
+    </div>
+    <div id="previewwrapper" class="hide">
+      <iframe id="preview" class="side-left"></iframe>
+    </div>
     <script src="/js/codemirror.js"></script>
     <script src="/js/matchbrackets.js"></script>
     <script src="/js/pollen.js"></script>
+    <script src="/js/editor.js"></script>
   </body>
 </html>

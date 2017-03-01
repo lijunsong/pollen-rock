@@ -1,8 +1,9 @@
 #lang racket
 
 (require rackunit)
-(provide (all-defined-out))
+(require (prefix-in pollen: pollen/file))
 
+(provide (all-defined-out))
 
 (define (append-path . args)
   (define (to_string p)
@@ -20,7 +21,12 @@
 ;; prefix /
 (define/contract (resource? r)
   (-> string? boolean?)
-  (and (string? r) (string-prefix? r "/")))
+  (string-prefix? r "/"))
+
+;; assemble url component into a resource
+(define/contract (string-list->resource lst)
+  (-> (listof string?) resource?)
+  (string-append "/" (string-join lst "/")))
 
 ;; input: /a/b/c
 ;; output: ("/a" "/a/b" "/a/b/c")
@@ -40,3 +46,12 @@
 (check-equal? (resource->breadcrumb-url "/") (list))
 (check-equal? (resource->breadcrumb-url "/a") (list "/a"))
 (check-equal? (resource->breadcrumb-url "/a/b/c") (list "/a" "/a/b" "/a/b/c"))
+
+
+(define/contract (resource->output-path resource)
+  (-> resource? string?)
+  (path->string (pollen:->output-path resource)))
+
+(define/contract (is-pollen-source? resource)
+  (-> resource? boolean?)
+  (not (string=? (resource->output-path resource) resource)))

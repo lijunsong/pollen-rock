@@ -1,0 +1,79 @@
+html {
+    font-family: "Source Code Pro", sans-serif;
+    font-size: 16px;
+}
+
+@media only screen and (max-width: 767px) {
+html{
+    font-size: 80%;
+}
+}
+
+body {
+    background-color: #fafbfc;
+}
+
+.container {
+    max-width: 768px;
+    margin: 0 auto;
+}
+
+.folders, .files {
+    margin-bottom: 3rem;
+}
+
+.collection {
+    display: block;
+    list-style: none;
+}
+
+.collection-item {
+    line-height: 3rem;
+    border-bottom: 1px solid #AAA;
+}
+
+.collection-item:hover, .collection-item:hover a {
+    background: #f4faff;
+}
+
+.collection-item a {
+    color: #555;
+    text-decoration: none;
+}
+
+.collection-item a:hover {
+    color: #000;
+    text-decoration: none;
+}
+
+.header {
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+}
+
+.breadcrumb-list {
+    display: inline;
+}
+
+.breadcrumb-item {
+    text-decoration: none;
+    color: #EEE;
+}
+
+.breadcrumb-item:hover {
+    color: #000;
+}
+
+.breadcrumb-item:first-child:before {
+    content: "";
+    margin: 0px;
+}
+
+.breadcrumb-item::before {
+    content: "/";
+    margin: 0 10px;
+}
+
+.breadcrumb-item:last-child {
+    color: #888;
+}
