@@ -1,0 +1,115 @@
+* {
+    font-family: "Source Sans Pro", sans-serif;
+}
+
+body {
+    background-color: #fafbfc;
+}
+
+.container {
+    max-width: 768px;
+    margin: 0 auto;
+    font-size: 16px;
+}
+
+.folders, .files {
+    margin-bottom: 3rem;
+}
+
+#editorwrapper {
+    margin: 0 auto;
+    font-size: 16px;
+}
+
+.wrapper {
+    margin-bottom: 5rem;
+}
+
+.collection {
+    display: block;
+    list-style: none;
+}
+
+.collection-item {
+    line-height: 3rem;
+    border-bottom: 1px solid #AAA;
+}
+
+.collection-item:hover, .collection-item:hover a {
+    background: #f4faff;
+}
+
+.collection-item a {
+    color: #555;
+    text-decoration: none;
+}
+
+.collection-item a:hover {
+    color: #000;
+    text-decoration: none;
+}
+
+
+#editor {
+    border: 1px solid #EEE;
+}
+
+.CodeMirror {
+    height: auto;
+    line-height: 1.5rem;
+}
+
+.header {
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+}
+
+.breadcrumb-list {
+    display: inline;
+}
+#savestatus {
+    float: right;
+    color: #AAA;
+}
+.breadcrumb-item {
+    text-decoration: none;
+    color: #EEE;
+}
+
+.breadcrumb-item:hover {
+    color: #000;
+}
+
+.breadcrumb-item:first-child:before {
+    content: "";
+    margin: 0px;
+}
+
+.breadcrumb-item::before {
+    content: "/";
+    margin: 0 10px;
+}
+
+.breadcrumb-item:last-child {
+    color: #888;
+}
+
+.hide {
+    display: none;
+}
+
+.right {
+    float: right;
+}
+
+.left {
+    float: left;
+}
+
+.CodeMirror-cursor {
+  border-left: 2px solid #333;
+}
+
+.CodeMirror-matchingbracket {
+  background-color: #eaffea;
+}

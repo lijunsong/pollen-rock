@@ -1,5 +1,5 @@
 * {
-    font-family: "menlo", "consolas", "source sans pro", "source code pro", "ubuntu", sans-serif;
+    font-family: "Source Code Pro", sans-serif;
 }
 
 body {
@@ -14,15 +14,6 @@ body {
 
 .folders, .files {
     margin-bottom: 3rem;
-}
-
-#editorwrapper {
-    margin: 0 auto;
-    font-size: 16px;
-}
-
-.wrapper {
-    margin-bottom: 5rem;
 }
 
 .collection {
@@ -49,16 +40,6 @@ body {
     text-decoration: none;
 }
 
-
-#editor {
-    border: 1px solid #EEE;
-}
-
-.CodeMirror {
-    height: auto;
-    line-height: 1.5rem;
-}
-
 .header {
     margin-bottom: 2rem;
     margin-top: 2rem;
@@ -67,10 +48,7 @@ body {
 .breadcrumb-list {
     display: inline;
 }
-#savestatus {
-    float: right;
-    color: #AAA;
-}
+
 .breadcrumb-item {
     text-decoration: none;
     color: #EEE;
@@ -92,24 +70,4 @@ body {
 
 .breadcrumb-item:last-child {
     color: #888;
-}
-
-.hide {
-    display: none;
-}
-
-.right {
-    float: right;
-}
-
-.left {
-    float: left;
-}
-
-.CodeMirror-cursor {
-  border-left: 2px solid #333;
-}
-
-.CodeMirror-matchingbracket {
-  background-color: #eaffea;
 }
