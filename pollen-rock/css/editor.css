@@ -4,90 +4,79 @@ html, .CodeMirror {
 }
 
 @media (min-width: 767px) {
-html, .CodeMirror {
-    font-size: 18px;
-}
-}
-
-body {
-    background-color: #fafbfc;
+    html, .CodeMirror {
+        font-size: 18px;
+    }
 }
 
-.container {
-    max-width: 768px;
-    margin: 0 auto;
-    font-size: 16px;
-}
-
-.folders, .files {
-    margin-bottom: 3rem;
-}
-
-#editorwrapper {
-    margin: 0 auto;
-}
-
-#editor {
-    border: 1px solid #EEE;
-}
-
+/* Editor */
 .CodeMirror {
     height: auto;
-    line-height: 1.5rem;
 }
-
-.header {
-    margin-bottom: 2rem;
-    margin-top: 2rem;
-}
-
-.breadcrumb-list {
-    display: inline;
-}
-
-#savestatus {
-    float: right;
-    color: #AAA;
-}
-
-.breadcrumb-item {
-    text-decoration: none;
-    color: #EEE;
-}
-
-.breadcrumb-item:hover {
-    color: #000;
-}
-
-.breadcrumb-item:first-child:before {
-    content: "";
-    margin: 0px;
-}
-
-.breadcrumb-item::before {
-    content: "/";
-    margin: 0 10px;
-}
-
-.breadcrumb-item:last-child {
-    color: #888;
-}
-
-.hide {
-    display: none;
-}
-
-.right {
-    float: right;
-}
-
-.left {
-    float: left;
+#editor {
+    margin: 5rem 0;
 }
 
 .CodeMirror-cursor {
   border-left: 2px solid #333;
 }
+
+/* Bottom */
+#editor-panel {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    height: 1.5rem;
+    width: 100%;
+    font-size: 0.7rem;
+    padding: 0 4px;
+    z-index: 201;
+}
+
+.small-btn {
+    padding: 0 4px;
+    border-radius: 3px;
+    border: 1px solid;
+}
+
+.panel-item {
+    margin-right: 0.5rem;
+}
+
+.panel-left {
+    flex: 1;
+}
+
+/* NOTIFICATION */
+.toast {
+    font-size: 0.9rem;
+}
+.toast-info {
+    background-color: #DFF0D8;
+    color: #468847;
+}
+
+.toast-error {
+    background-color: #FFE2E2;
+    color: #EF3434;
+}
+
+#loader {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+}
+
+/* COLORS */
+.panel-bg {
+    background-color: #424242;
+    color: #eceff1;
+}
+.panel-btn-color {
+    background-color: #212121;
+    border: #212121;
+}
+
 
 .CodeMirror-matchingbracket {
   background-color: #eaffea;

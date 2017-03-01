@@ -1,4 +1,4 @@
-$(function() {
+$(document).ready(function() {
   "use strict";
 
   var server_api = "/api";
@@ -40,30 +40,33 @@ $(function() {
     // ctrl will request user's pollen config before initializing the
     // rest
     init : function() {
+
       var resource = $("#editor").attr("data");
-
       var initRequest = model.pollenConfigRequest(resource);
-
       loaderView.init();
+      loaderView.show();
       $.post(server_api, initRequest, function(config) {
         // continue init
         var jsconfig = JSON.parse(config);
         jsconfig["resource"] = resource;
-        ctrl.initRest(jsconfig);
-        $.notify("Ready to Rock!");
-        loaderView.hide();
-      }).fail(function(status) {
-        $.notify(status.statusText, 'error');
-      });
-    },
+        model.initPollenConfig(jsconfig["config"]);
+        model.initPollenTags(jsconfig["tags"]);
 
-    initRest : function(jsconfig) {
-      model.initPollenConfig(jsconfig["config"]);
-      model.initPollenTags(jsconfig["tags"]);
-      editorview.init();
+        editorView.init(function(name) {
+          return ctrl.getPollenConfig(name);
+        });
+
+        notifyView.info("Ready to Rock!");
+      }).fail(function(status) {
+        notifyView.error(status.statusText);
+      }).always(function() {
+        loaderView.hide();
+      });
+
+      materializeView.init();
       preview.init();
       saveStatusView.init();
-      notifyView.init();
+      panelView.init();
 
       setInterval(function() {
         ctrl.save();
@@ -71,7 +74,7 @@ $(function() {
     },
 
     save : function() {
-      var editor = editorview.editor;
+      var editor = editorView.editor;
       if (editor.isClean(editor.curGen)) {
         return;
       }
@@ -94,7 +97,7 @@ $(function() {
       $.post(server_api, request, function(status) {
         preview.reload(renderedResource);
       }).fail(function(status) {
-        $.notify("server error", 'error');
+        notifyView.error("server error");
       });
     },
 
@@ -113,35 +116,34 @@ $(function() {
   ////////////////////////////
   // create editor instance //
   ////////////////////////////
-  var editorview = {
-    init : function() {
-      this.view = $("#editorwrapper");
+  var editorView = {
+    init : function(getPollenConfig) {
+      this.view = $("#editor-wrapper");
       var area = document.getElementById("compose");
       this.editor = CodeMirror.fromTextArea(area, {
         autofocus: true,
         matchBrackets: true,
         lineWrapping: true,
-        mode: 'pollen',
-        lineNumbers: 'true'
+        mode: 'pollen'
       });
       this.fullscreen = this.initFullscreen();
-      this.initKeyMaps();
-      this.initEditorStyle();
+      this.initKeyMaps(getPollenConfig);
       this.initEventHandlers();
 
-      this.editor.refresh();
+      // ready to show
+      this.view.removeClass("hide");
+      this.refresh();
       return this.editor;
+    },
+
+    refresh : function() {
+      this.editor.refresh();
     },
 
     initEventHandlers : function() {
       this.editor.on("change", function(obj) {
         saveStatusView.empty();
       });
-    },
-
-    initEditorStyle : function() {
-      var width = this.editor.defaultCharWidth()*80;
-      this.view.css("max-width", width+'px');
     },
 
     initFullscreen : function() {
@@ -156,7 +158,7 @@ $(function() {
       return false;
     },
 
-    initKeyMaps: function() {
+    initKeyMaps: function(getPollenConfig) {
       // return an object containing doc that be used to
       // build up keyMap hint later.
       var view = this;
@@ -168,7 +170,7 @@ $(function() {
         };
       }
 
-      var commandChar = ctrl.getPollenConfig("command-char");
+      var commandChar = getPollenConfig("command-char");
       var keyMaps = [
         defineKey('Shift-2', function(e) {
           var pos = e.getCursor();
@@ -187,7 +189,7 @@ $(function() {
           if (view.fullscreen) {
             view.fullscreen();
           } else {
-            $.notify("Your Browser Doesn't Support Fullscreen");
+            notifyView.error("Your Browser Doesn't Support Fullscreen");
           }
         }, "Enter Fullscreen"),
 
@@ -207,24 +209,28 @@ $(function() {
         m[keyMaps[i].key] = keyMaps[i].func;
         this.editor.addKeyMap(m);
       }
+
+      keymapView.init();
+      keymapView.render(keyMaps);
     },
 
     toRight : function() {
       this.view.addClass("side-right");
       // editor's size change would misplace the cursor.
-      this.editor.refresh();
+      this.refresh();
     },
 
     toCenter : function() {
       this.view.removeClass("side-right");
       // editor's size change would misplace the cursor.
-      this.editor.refresh();
+      this.refresh();
     }
   };
 
   var saveStatusView = {
     init : function() {
       this.view = $("#savestatus");
+      this.empty();
     },
 
     saved : function() {
@@ -236,11 +242,11 @@ $(function() {
     },
 
     empty : function() {
-      this.view.empty();
+      this.view.text('');
     },
 
     error : function(text) {
-      $.notify(text);
+      notifyView.error("Failed to save.");
     }
 
   };
@@ -274,27 +280,66 @@ $(function() {
   };
 
   var notifyView = {
-    init : function() {
-      $.notify.addStyle('simple', {
-        html: '<div class="notify"><span data-notify-text/></div>'
-      });
-
-      $.notify.defaults({
-        globalPosition: 'top center',
-        className: 'info',
-        style: 'simple'
-      });
+    info : function(msg) {
+      Materialize.toast(msg, 4000, 'toast-info');
+    },
+    error : function(msg) {
+      Materialize.toast(msg, 4000, 'toast-error');
     }
   };
 
   var loaderView = {
     init : function() {
-      this.loader = $("#loaderwrapper");
+      this.loader = $("#loader");
     },
     hide : function() {
-      this.loader.addClass("hide");
+      this.loader.removeClass("active");
+    },
+    show : function() {
+      this.loader.addClass("active");
+    }
+  };
+
+  var keymapView = {
+    init: function() {
+      this.rowTemplate = $('script[data-template="keymap-row"]').html();
+      this.modal = $("#keymap-settings");
+      this.tableBody = $("#keymap-body");
+    },
+
+    open: function() {
+      this.modal.modal("open");
+    },
+
+    render: function(keymaps) {
+      var template = this.rowTemplate;
+      var body = this.tableBody;
+      keymaps.forEach(function (km) {
+        var row = template
+            .replace(/{{keystroke}}/g, km.key)
+            .replace(/{{command}}/g, km.doc);
+        body.append(row);
+      });
+    }
+  };
+
+  var materializeView = {
+    init: function() {
+      $(".modal").modal();
+    }
+  };
+
+  var panelView = {
+    init: function() {
+      this.panel = $("#editor-panel");
+    },
+    hide: function() {
+      this.panel.addClass("hide");
+    },
+    show: function() {
+      this.panel.removeClass("hide");
     }
   };
 
   ctrl.init();
-}());
+});

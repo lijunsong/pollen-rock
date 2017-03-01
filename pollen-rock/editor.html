@@ -7,40 +7,74 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <script src="/js/jquery-3.1.1.min.js"></script>
-    <script src="/js/notify.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
-
+    <link rel="stylesheet" href="/css/materialize.min.css">
     <link rel="stylesheet" href="/css/codemirror.css">
     <link rel="stylesheet" href="/css/editor.css">
-    <link rel="stylesheet" href="/css/preview.css">
-    <link rel="stylesheet" href="/css/notify.css">
-    <link rel="stylesheet" href="/css/loader.css">
   </head>
 
   <body>
-    <div id="loaderwrapper">
-      <div id="loader">
-        <div class="bounce1"></div>
-        <div class="bounce2"></div>
-        <div class="bounce3"></div>
+    <div class="container">
+      <div id="editor-wrapper" class="row hide">
+        <div class="col s12 m8 offset-m2">
+          <div id="editor" data="@|resource|">
+            <textarea name="compose" id="compose">@|content|</textarea>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="editorwrapper">
-      <div class="header">
-        @(xexpr->string breadcrumb)
+
+    <div id="editor-panel" class="panel-bg valign-wrapper">
+      <div class="panel-left">
+        <span class="panel-item">@|resource|</span>
+        <button id="render" class="small-btn panel-btn-color panel-item">Preview</button>
+        <button id="console" class="small-btn panel-btn-color panel-item">Console</button>
       </div>
-      <div id="editor" data="@|resource|">
-        <textarea name="compose" id="compose">@|content|</textarea>
+      <div class="panel-right">
+        <span id="savestatus" class="panel-item">saved</span>
+        <button id="keymaps" data-target="keymap-settings" class="small-btn panel-btn-color panel-item">Keymaps</button>
       </div>
-      <div class="status"><span id="savestatus"></span></div>
     </div>
-    <div id="previewwrapper" class="hide">
-      <iframe id="preview" class="side-left"></iframe>
+
+    <div id="keymap-settings" class="modal">
+      <div class="modal-content">
+        <h3>Keymaps</h3>
+        <div class="divider"></div>
+        <table class="bordered">
+          <thread>
+            <tr>
+              <th>Keystroke</th>
+              <th>Command</th>
+            </tr>
+          </thread>
+          <tbody id="keymap-body">
+          </tbody>
+        </table>
+      </div>
     </div>
+    <div id="loader" class="preloader-wrapper small active">
+      <div class="spinner-layer spinner-green-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div><div class="gap-patch">
+          <div class="circle"></div>
+        </div><div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+    <script type="text/template" data-template="keymap-row">
+      <tr>
+        <td>{{keystroke}}</td>
+        <td>{{command}}</td>
+      </tr>
+    </script>
+    <script src="/js/jquery-3.1.1.min.js"></script>
+    <script src="/js/materialize.min.js"></script>
     <script src="/js/codemirror.js"></script>
     <script src="/js/matchbrackets.js"></script>
     <script src="/js/pollen.js"></script>
     <script src="/js/editor.js"></script>
+    <script src="/js/notify.js"></script>
   </body>
 </html>
