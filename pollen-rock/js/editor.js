@@ -1,3 +1,6 @@
+// This is an application using a self-made Model-Control-View
+// principle.
+
 $(document).ready(function() {
   "use strict";
 
@@ -44,7 +47,6 @@ $(document).ready(function() {
       var resource = $("#editor").attr("data");
       var initRequest = model.pollenConfigRequest(resource);
       loaderView.init();
-      loaderView.show();
       $.post(server_api, initRequest, function(config) {
         // continue init
         var jsconfig = JSON.parse(config);
@@ -73,6 +75,7 @@ $(document).ready(function() {
       preview.init();
       saveStatusView.init();
       panelView.init();
+      this.initAutoReload();
     },
 
     save : function() {
@@ -104,6 +107,22 @@ $(document).ready(function() {
       }).always(function() {
         preview.hideLoader();
       });
+    },
+
+    initAutoReload : function() {
+      setInterval(function() {
+        if (preview.visible) {
+          // auto-reload will save the current generation.
+          // and check the generation before rendering.
+          // XXX: this solution works but is not perfect. Need a method
+          // to work with auto-save.
+          var editor = editorView.editor;
+          if (editor.isClean(editor.renderedGen))
+            return;
+          editor.renderedGen = editor.changeGeneration();
+          ctrl.renderPreview();
+        }
+      }, 5000);
     },
 
     getPollenConfig : function(name) {
@@ -157,7 +176,9 @@ $(document).ready(function() {
                "webkitRequestFullscreen", "msRequestFullscreen"];
       for (var i = 0; i < f.length; i++) {
         if (f[i] in document.documentElement) {
-          return function() {document.documentElement[f[i]]();};
+          return function() {
+            document.documentElement[f[i]]();
+          };
         }
       }
       return false;
@@ -289,6 +310,7 @@ $(document).ready(function() {
       }
     }
   };
+
   var changePreviewLayout = function() {
     preview.toggleHide();
     if (preview.visible) {
@@ -311,6 +333,7 @@ $(document).ready(function() {
   var loaderView = {
     init : function() {
       this.loader = $("#loader");
+      this.show();
     },
     hide : function() {
       this.loader.addClass("hide");
