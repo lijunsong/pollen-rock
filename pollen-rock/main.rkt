@@ -14,6 +14,7 @@
 (require "util.rkt")
 (require "api.rkt")
 (require "http-util.rkt")
+(require racket/cmdline)
 
 ;;; Debug use
 (define (print-request req)
@@ -65,11 +66,24 @@
    [("api") #:method "post" api-post-handler]
    [((string-arg) ...) index-handler]))
 
+(define server-port (make-parameter 8000))
+
 ;; add runtimeroot to serve pollen-rock's static files when indexing.
 ;; add webroot to serve users' own static files
-(define (start-server [port 8000])
+(define (start-server)
+  (parse-command-line
+   "pollen-rock"
+   (current-command-line-arguments)
+   `((once-each
+      [("-p" "--port")
+       ,(lambda (flag port)
+          (server-port (string->number port)))
+       (,(format "server's port (default ~a)" (server-port))
+        "port")]))
+   (lambda (f) (void))
+   '())
   (serve/servlet server-dispatch
-                 #:port port
+                 #:port (server-port)
                  #:listen-ip "0.0.0.0"
                  #:launch-browser? #f
                  #:servlet-regexp #rx""
