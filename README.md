@@ -30,13 +30,13 @@ To help you typeset, the editor
 - [x] warns unbalanced braces
 - [ ] warns runtime errors in your document
 - [ ] warns undefined tag functions
-- [ ] Inlines Racket document
-- [ ] provides file preview in Real-time
+- [ ] inlines Racket document
+- [x] provides preview and auto-reloads the preview when file changes
 
 *Note:*
 - [x] means the feature has been implemented.
 
-These useful warnings are possible because the back-end of Pollen-Rock
+These useful features are possible because the back-end of Pollen-Rock
 is written in Racket. It understands your configuration file
 `pollen.rkt`, and serves you better than tranditional editors (like
 Vim, Emacs, Sublime Text, etc.).
@@ -46,8 +46,14 @@ Vim, Emacs, Sublime Text, etc.).
 Pollen-Rock is also going to provide a simple interface to add, rename,
 delete files in your pollen projects
 
+# Installation
+```
+raco pkg install pollen-rock
+```
+
 # Usage
 
-1. Run `racket /path/to/pollen-rock/main.rkt` in your pollen project root
-directory.
+1. Run `raco pollen-rock` in your pollen project root directory.
 2. Start your work in your browser
+
+`raco pollen-rock -h` shows available options.
