@@ -7,40 +7,76 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <script src="/js/jquery-3.1.1.min.js"></script>
-    <script src="/js/notify.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
-
+    <link rel="stylesheet" href="/css/materialize.min.css">
     <link rel="stylesheet" href="/css/codemirror.css">
     <link rel="stylesheet" href="/css/editor.css">
-    <link rel="stylesheet" href="/css/preview.css">
-    <link rel="stylesheet" href="/css/notify.css">
-    <link rel="stylesheet" href="/css/loader.css">
   </head>
 
   <body>
-    <div id="loaderwrapper">
-      <div id="loader">
-        <div class="bounce1"></div>
-        <div class="bounce2"></div>
-        <div class="bounce3"></div>
+    <div class="row">
+      <div id="preview-wrapper" class="div col s12 m6 hide">
+        <div id="preview-loader" class="progress">
+          <div class="indeterminate"></div>
+        </div>
+        <iframe id="preview-frame"></iframe>
       </div>
     </div>
-    <div id="editorwrapper">
-      <div class="header">
-        @(xexpr->string breadcrumb)
+
+    <div class="row">
+      <div id="loader" class="progress">
+        <div class="indeterminate"></div>
       </div>
-      <div id="editor" data="@|resource|">
-        <textarea name="compose" id="compose">@|content|</textarea>
+      <div id="editor-wrapper" class="col s12 m6 push-m3 hide">
+        <div id="editor" data="@|resource|">
+          <textarea name="compose" id="compose">@|content|</textarea>
+        </div>
       </div>
-      <div class="status"><span id="savestatus"></span></div>
     </div>
-    <div id="previewwrapper" class="hide">
-      <iframe id="preview" class="side-left"></iframe>
+
+
+
+    <div id="editor-panel" class="panel-bg valign-wrapper">
+      <div class="panel-left">
+        <span class="panel-item">@|resource|</span>
+        <button id="previewBtn" class="small-btn panel-btn-color panel-item">Preview</button>
+        <!--<button id="consoleBtn" class="small-btn panel-btn-color panel-item">Console</button>-->
+      </div>
+      <div class="panel-right">
+        <span id="savestatus" class="panel-item">saved</span>
+        <button id="keymapsBtn" data-target="keymap-settings" class="small-btn panel-btn-color panel-item">Keymaps</button>
+      </div>
     </div>
+
+    <div id="keymap-settings" class="modal">
+      <div class="modal-content">
+        <h3>Keymaps</h3>
+        <div class="divider"></div>
+        <table class="bordered">
+          <thread>
+            <tr>
+              <th>Keystroke</th>
+              <th>Command</th>
+            </tr>
+          </thread>
+          <tbody id="keymap-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script type="text/template" data-template="keymap-row">
+      <tr>
+        <td>{{keystroke}}</td>
+        <td>{{command}}</td>
+      </tr>
+    </script>
+    <script src="/js/jquery-3.1.1.min.js"></script>
+    <script src="/js/materialize.min.js"></script>
     <script src="/js/codemirror.js"></script>
     <script src="/js/matchbrackets.js"></script>
     <script src="/js/pollen.js"></script>
     <script src="/js/editor.js"></script>
+    <script src="/js/notify.js"></script>
   </body>
 </html>

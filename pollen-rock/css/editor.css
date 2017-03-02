@@ -4,90 +4,95 @@ html, .CodeMirror {
 }
 
 @media (min-width: 767px) {
-html, .CodeMirror {
-    font-size: 18px;
-}
-}
-
-body {
-    background-color: #fafbfc;
+    html, .CodeMirror {
+        font-size: 18px;
+    }
 }
 
-.container {
-    max-width: 768px;
-    margin: 0 auto;
-    font-size: 16px;
-}
-
-.folders, .files {
-    margin-bottom: 3rem;
-}
-
-#editorwrapper {
-    margin: 0 auto;
-}
-
-#editor {
-    border: 1px solid #EEE;
-}
-
+/* Editor */
 .CodeMirror {
     height: auto;
-    line-height: 1.5rem;
 }
-
-.header {
-    margin-bottom: 2rem;
-    margin-top: 2rem;
-}
-
-.breadcrumb-list {
-    display: inline;
-}
-
-#savestatus {
-    float: right;
-    color: #AAA;
-}
-
-.breadcrumb-item {
-    text-decoration: none;
-    color: #EEE;
-}
-
-.breadcrumb-item:hover {
-    color: #000;
-}
-
-.breadcrumb-item:first-child:before {
-    content: "";
-    margin: 0px;
-}
-
-.breadcrumb-item::before {
-    content: "/";
-    margin: 0 10px;
-}
-
-.breadcrumb-item:last-child {
-    color: #888;
-}
-
-.hide {
-    display: none;
-}
-
-.right {
-    float: right;
-}
-
-.left {
-    float: left;
+#editor {
+    margin: 2rem 0;
 }
 
 .CodeMirror-cursor {
   border-left: 2px solid #333;
 }
+
+/* Preview */
+#preview-wrapper {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 200;
+}
+#preview-frame {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #EEE;
+    background: #FFF;
+}
+
+/* Bottom */
+#editor-panel {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    height: 1.5rem;
+    width: 100%;
+    font-size: 0.7rem;
+    padding: 0 4px;
+    z-index: 201;
+}
+
+.small-btn {
+    padding: 0 4px;
+    border-radius: 3px;
+    border: 1px solid;
+}
+
+.panel-item {
+    margin-right: 0.5rem;
+}
+
+.panel-left {
+    flex: 1;
+}
+
+/* NOTIFICATION */
+.toast {
+    font-size: 0.9rem;
+}
+.toast-info {
+    background-color: #DFF0D8;
+    color: #468847;
+}
+
+.toast-error {
+    background-color: #FFE2E2;
+    color: #EF3434;
+}
+
+#loader, #preview-loader {
+    top: 0;
+    margin-top: 0;
+    padding-top: 0;
+    z-index: 201;
+}
+
+/* COLORS */
+.panel-bg {
+    background-color: #424242;
+    color: #eceff1;
+}
+.panel-btn-color {
+    background-color: #212121;
+    border: #212121;
+}
+
 
 .CodeMirror-matchingbracket {
   background-color: #eaffea;
