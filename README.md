@@ -8,8 +8,8 @@ back-end server to improve UX of pollen editing.
 
 ## Note
 
-This project is still in its prototyping phase. It's not ready for
-serious use yet.
+This project is still at its early development stage. I'd
+appreciate any feedback and suggestions.
 
 ## Editor
 
@@ -19,12 +19,13 @@ typeset.
 
 To help you compose, the editor
 
-- [x] provides a distraction-free mode (Cmd-Enter)
+- [x] provides a distraction-free mode
 - [x] saves the file automatically for you
-- [x] inserts CommandChar using `@` (and two CmdChar inserts `@`)
+- [x] inserts CommandChar using `@`
 
 To help you typeset, the editor
 
+- [x] detects project settings (e.g. CommandChar)
 - [x] provides useful syntax highlight for pollen files
 - [ ] auto-completes your tag functions
 - [x] warns unbalanced braces
