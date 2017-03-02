@@ -14,25 +14,37 @@
   </head>
 
   <body>
-    <div class="container">
-      <div id="editor-wrapper" class="row hide">
-        <div class="col s12 m8 offset-m2">
-          <div id="editor" data="@|resource|">
-            <textarea name="compose" id="compose">@|content|</textarea>
-          </div>
+    <div class="row">
+      <div id="preview-wrapper" class="div col s12 m6 hide">
+        <div id="preview-loader" class="progress">
+          <div class="indeterminate"></div>
+        </div>
+        <iframe id="preview-frame"></iframe>
+      </div>
+    </div>
+
+    <div class="row">
+      <div id="loader" class="progress">
+        <div class="indeterminate"></div>
+      </div>
+      <div id="editor-wrapper" class="col s12 m6 push-m3 hide">
+        <div id="editor" data="@|resource|">
+          <textarea name="compose" id="compose">@|content|</textarea>
         </div>
       </div>
     </div>
 
+
+
     <div id="editor-panel" class="panel-bg valign-wrapper">
       <div class="panel-left">
         <span class="panel-item">@|resource|</span>
-        <button id="render" class="small-btn panel-btn-color panel-item">Preview</button>
-        <button id="console" class="small-btn panel-btn-color panel-item">Console</button>
+        <button id="previewBtn" class="small-btn panel-btn-color panel-item">Preview</button>
+        <button id="consoleBtn" class="small-btn panel-btn-color panel-item">Console</button>
       </div>
       <div class="panel-right">
         <span id="savestatus" class="panel-item">saved</span>
-        <button id="keymaps" data-target="keymap-settings" class="small-btn panel-btn-color panel-item">Keymaps</button>
+        <button id="keymapsBtn" data-target="keymap-settings" class="small-btn panel-btn-color panel-item">Keymaps</button>
       </div>
     </div>
 
@@ -52,17 +64,7 @@
         </table>
       </div>
     </div>
-    <div id="loader" class="preloader-wrapper small active">
-      <div class="spinner-layer spinner-green-only">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
-      </div>
-    </div>
+
     <script type="text/template" data-template="keymap-row">
       <tr>
         <td>{{keystroke}}</td>

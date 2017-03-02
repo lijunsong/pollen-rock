@@ -14,11 +14,26 @@ html, .CodeMirror {
     height: auto;
 }
 #editor {
-    margin: 5rem 0;
+    margin: 2rem 0;
 }
 
 .CodeMirror-cursor {
   border-left: 2px solid #333;
+}
+
+/* Preview */
+#preview-wrapper {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 200;
+}
+#preview-frame {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #EEE;
+    background: #FFF;
 }
 
 /* Bottom */
@@ -61,10 +76,11 @@ html, .CodeMirror {
     color: #EF3434;
 }
 
-#loader {
-    position: absolute;
-    top: 7px;
-    left: 7px;
+#loader, #preview-loader {
+    top: 0;
+    margin-top: 0;
+    padding-top: 0;
+    z-index: 201;
 }
 
 /* COLORS */

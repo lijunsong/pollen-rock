@@ -56,6 +56,12 @@ $(document).ready(function() {
           return ctrl.getPollenConfig(name);
         });
 
+        // Editor is initialized. Now it's safe to start
+        // auto saving.
+        setInterval(function() {
+          ctrl.save();
+        }, 2000);
+
         notifyView.info("Ready to Rock!");
       }).fail(function(status) {
         notifyView.error(status.statusText);
@@ -67,10 +73,6 @@ $(document).ready(function() {
       preview.init();
       saveStatusView.init();
       panelView.init();
-
-      setInterval(function() {
-        ctrl.save();
-      }, 2000);
     },
 
     save : function() {
@@ -94,10 +96,13 @@ $(document).ready(function() {
       var resource = this.getPollenConfig("resource");
       var request = model.renderRequest(resource);
       var renderedResource = this.getPollenConfig("rendered-resource");
+      preview.showLoader();
       $.post(server_api, request, function(status) {
         preview.reload(renderedResource);
       }).fail(function(status) {
         notifyView.error("server error");
+      }).always(function() {
+        preview.hideLoader();
       });
     },
 
@@ -193,15 +198,9 @@ $(document).ready(function() {
           }
         }, "Enter Fullscreen"),
 
-        defineKey('Shift-Ctrl-P', function() {
-          preview.toggleHide();
-          if (preview.visible) {
-            ctrl.renderPreview();
-            view.toRight();
-          } else {
-            view.toCenter();
-          }
-        }, "Open/Close Preview Window")
+        defineKey('Shift-Ctrl-P',
+                  changePreviewLayout,
+                  "Open/Close Preview Window"),
       ];
 
       for (var i = 0; i < keyMaps.length; i++) {
@@ -215,13 +214,15 @@ $(document).ready(function() {
     },
 
     toRight : function() {
-      this.view.addClass("side-right");
+      this.view.removeClass("push-m3");
+      this.view.addClass("push-m6");
       // editor's size change would misplace the cursor.
       this.refresh();
     },
 
     toCenter : function() {
-      this.view.removeClass("side-right");
+      this.view.removeClass("push-m6");
+      this.view.addClass("push-m3");
       // editor's size change would misplace the cursor.
       this.refresh();
     }
@@ -256,17 +257,27 @@ $(document).ready(function() {
   ///////////////////
   var preview = {
     init : function() {
-      var wrapper = $("#previewwrapper");
+      var wrapper = $("#preview-wrapper");
       this.wrapper = wrapper;
-      this.frame = $("#preview");
-      if (! wrapper.addClass("hide"))
+      this.frame = $("#preview-frame");
+      this.loader = $("#preview-loader");
+      if (! wrapper.hasClass("hide"))
         wrapper.addClass("hide");
       this.visible = ! wrapper.hasClass("hide");
+      $('#previewBtn').click(changePreviewLayout);
     },
 
     toggleHide: function() {
       this.wrapper.toggleClass("hide");
       this.visible = ! this.wrapper.hasClass("hide");
+    },
+
+    showLoader: function() {
+      this.loader.removeClass("hide");
+    },
+
+    hideLoader: function() {
+      this.loader.addClass("hide");
     },
 
     reload: function(src) {
@@ -276,6 +287,15 @@ $(document).ready(function() {
       } else {
         this.frame.attr('src', src);
       }
+    }
+  };
+  var changePreviewLayout = function() {
+    preview.toggleHide();
+    if (preview.visible) {
+      editorView.toRight();
+      ctrl.renderPreview();
+    } else {
+      editorView.toCenter();
     }
   };
 
@@ -293,10 +313,10 @@ $(document).ready(function() {
       this.loader = $("#loader");
     },
     hide : function() {
-      this.loader.removeClass("active");
+      this.loader.addClass("hide");
     },
     show : function() {
-      this.loader.addClass("active");
+      this.loader.removeClass("hide");
     }
   };
 
@@ -342,4 +362,5 @@ $(document).ready(function() {
   };
 
   ctrl.init();
+
 });
