@@ -5,17 +5,25 @@
 ;;; Attributes for common requests:
 ;;;
 ;;;   "type" the type of this API request.
-;;;   "type" := save | render | config
+;;;   "type" := save | render | config | shell
 ;;;
 ;;; Attributes for save
-;;;
 ;;;   "text"     : text to save
 ;;;   "resource" : resource (an absolute path) to save into
 ;;;
+;;; Attributes for shell
+;;;   "kind" := run | fetch-output |
+;;;
+;;;
 ;;; Examples:
 ;;; - save: {type : "save",
-;;;              resource : "/dir1/dir2/hello.html.pm",
-;;;              text : "#lang pollen\n..."}
+;;;          resource : "/dir1/dir2/hello.html.pm",
+;;;          text : "#lang pollen\n..."}
+#|
+
+This file defines protocols between clients and server
+
+|#
 
 (require web-server/http)
 (require web-server/http/bindings)
@@ -56,6 +64,9 @@
                   (assert-resource f)
                   (values f)))
 
+;; request to run a shell command
+(struct Shell (cmd) #:transparent)
+
 ;; request user-defined tag information
 (struct Tag (resource) #:transparent)
 ;; server uses this struct to organize info
@@ -80,6 +91,9 @@
     ["config"
      (let ((config (request->config req)))
        (handle-config config))]
+    ["shell"
+     (let ((shell (request->shell req)))
+       (handle-shell shell))]
     [x
      (response/xexpr
       `(html (head) (p ,(format "unknown POST command: ~a" x))))]))
@@ -208,23 +222,12 @@
                           (cons 'tags tag-hash))))
   (response/text (jsexpr->bytes ans-hash)))
 
-;(current-directory "/Users/ljs/workspace/pollen-test")
-;(handle-config (Config "/drawing.html.pm"))
-#|
-(define webroot "/Users/ljs/workspace/pollen-test")
-(define pname (append-path webroot "pollen.rkt"))
-(define spacen (make-base-namespace))
 
-;(eval '(load "/Users/ljs/workspace/pollen-test/pollen.rkt") spacen)
-(eval `(begin
-         (current-load-relative-directory "/Users/ljs/workspace/pollen-test")
-         (require (submod "pollen.rkt" setup))
-         ;(require pollen/setup)
-         ;(setup:command-char)
-         (identifier-binding #'command-charx)
-         ;(dynamic-require '(submod "pollen.rkt" setup) 'command-char)
-         )
-      spacen)
+;;; Shell Command
+(define (request->shell req)
+  (request->api-struct req Shell 'cmd))
 
-;(eval `(namespace-require (require (file ,pname))) spacen)
-|#
+(define (handle-shell shell)
+  (define cmd (Shell-cmd shell))
+  (display "received\n")
+  (response/text (with-output-to-string (lambda () (system cmd)))))

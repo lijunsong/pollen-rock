@@ -64,6 +64,44 @@ html, .CodeMirror {
     flex: 1;
 }
 
+/* Shell */
+#shell-wrapper {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 0;
+    width: 100%;
+    z-index: 201;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    font-size: 0.7rem;
+}
+
+#shell-output-wrapper {
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+#shell-input {
+    font-family: monospace;
+    font-size: 0.7rem;
+    border: none;
+    height: 1.5rem;
+    padding: 0;
+    margin: 0;
+    display: inline;
+}
+#shell-input:focus {
+    border: none;
+    box-shadow: none;
+}
+.shell-prompt {
+    margin-right: 0.5rem;
+}
+#shell-clean {
+    cursor: pointer;
+    cursor: hand;
+}
+
 /* NOTIFICATION */
 .toast {
     font-size: 0.9rem;
@@ -95,7 +133,19 @@ html, .CodeMirror {
     border: #212121;
 }
 
+#shell-wrapper {
+    background-color: #263238;
+    color: #EEE;
+}
+
+#shell-input:focus + label {
+    color: #EEE;
+}
 
 .CodeMirror-matchingbracket {
   background-color: #eaffea;
+}
+
+.CodeMirror-empty {
+  color: #CCC;
 }

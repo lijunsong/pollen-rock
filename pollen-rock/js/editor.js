@@ -33,6 +33,12 @@ $(document).ready(function() {
         type : 'config',
         resource : resource
       };
+    },
+    shellRequest : function(cmd) {
+      return {
+        type : 'shell',
+        cmd  : cmd
+      };
     }
   };
 
@@ -76,6 +82,7 @@ $(document).ready(function() {
       saveStatusView.init();
       panelView.init();
       this.initAutoReload();
+      shellView.init();
     },
 
     save : function() {
@@ -384,6 +391,53 @@ $(document).ready(function() {
     }
   };
 
+  var shellView = {
+    init : function() {
+      this.view = $("#shell-wrapper");
+      this.outputTemplate = $('script[data-template="shell-output"]').html();
+      this.outputWrapper = $('#shell-output-wrapper');
+
+      //this.view.addClass("hide");
+      $("#shellBtn").click(function() {
+        shellView.view.toggleClass("hide");
+      });
+
+      $("#shell-clean").click(function() {
+        shellView.outputWrapper.empty();
+      });
+
+      $("#shell-input").keypress(function(e) {
+        if (e.which == 10 || e.which == 13) {
+          var input = this;
+          var originValue = input.value;
+          var req = model.shellRequest(originValue);
+          input.value = '';
+          $.post(server_api, req, function(result) {
+            var tmp = shellView.outputTemplate
+                .replace(/{{input}}/, originValue)
+                .replace(/{{output}}/, result);
+            shellView.outputWrapper.append(tmp);
+          }).fail(function(status) {
+            var tmp = shellView.outputTemplate
+                .replace(/{{input}}/, originValue)
+                .replace(/{{output}}/, status.statusText);
+            shellView.outputWrapper.append(tmp);
+          }).always(function() {
+            shellView.outputWrapper.scrollTop(shellView.outputWrapper[0].scrollHeight);
+          });
+        }
+      });
+    }
+  };
+
   ctrl.init();
 
+  $("#shellBtn").click(function() {
+    var req = model.shellRequest("sleep 100 && ls");
+    $.post(server_api, req, function(result) {
+      console.log(result);
+    }).fail(function() {
+      console.log("failed");
+    });
+  });
 });
