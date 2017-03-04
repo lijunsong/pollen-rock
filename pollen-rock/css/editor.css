@@ -9,12 +9,17 @@ html, .CodeMirror {
     }
 }
 
+.noscroll {
+    overflow: hidden;
+}
+
 /* Editor */
 .CodeMirror {
     height: auto;
 }
-#editor {
-    margin: 2rem 0;
+#editor-wrapper {
+    height: 100%;
+    margin-bottom: 5rem;
 }
 
 .CodeMirror-cursor {
@@ -75,9 +80,13 @@ html, .CodeMirror {
     padding-bottom: 0;
     font-size: 0.7rem;
 }
-
+#shell-output-header {
+    height: 1.5rem;
+    font-size: 0.7rem;
+}
 #shell-output-wrapper {
     max-height: 50vh;
+    min-height: 10vh;
     overflow-y: auto;
 }
 
@@ -100,6 +109,12 @@ html, .CodeMirror {
 #shell-clean {
     cursor: pointer;
     cursor: hand;
+}
+
+/* MODAL */
+#tab-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #EEE;
 }
 
 /* NOTIFICATION */
@@ -125,17 +140,22 @@ html, .CodeMirror {
 
 /* COLORS */
 .panel-bg {
-    background-color: #424242;
+    background-color: #616161;
     color: #eceff1;
+    border-top: 1px solid #757575;
 }
 .panel-btn-color {
-    background-color: #212121;
-    border: #212121;
+    background-color: #424242;
+    border: none;
 }
 
 #shell-wrapper {
-    background-color: #263238;
+    background-color: #616161;
     color: #EEE;
+}
+
+#shell-output-header {
+    border-bottom: 1px solid #757575;
 }
 
 #shell-input:focus + label {

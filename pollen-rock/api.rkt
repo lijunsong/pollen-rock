@@ -229,5 +229,4 @@ This file defines protocols between clients and server
 
 (define (handle-shell shell)
   (define cmd (Shell-cmd shell))
-  (display "received\n")
   (response/text (with-output-to-string (lambda () (system cmd)))))

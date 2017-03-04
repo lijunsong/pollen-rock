@@ -133,6 +133,4 @@ CodeMirror.defineMode("pollen", function() {
 
 });
 
-CodeMirror.defineMIME("text/x-diff", "diff");
-
 });

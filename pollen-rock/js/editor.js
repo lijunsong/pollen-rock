@@ -50,7 +50,7 @@ $(document).ready(function() {
     // rest
     init : function() {
 
-      var resource = $("#editor").attr("data");
+      var resource = $("#editor-data").attr("data");
       var initRequest = model.pollenConfigRequest(resource);
       loaderView.init();
       $.post(server_api, initRequest, function(config) {
@@ -64,12 +64,6 @@ $(document).ready(function() {
           return ctrl.getPollenConfig(name);
         });
 
-        // Editor is initialized. Now it's safe to start
-        // auto saving.
-        setInterval(function() {
-          ctrl.save();
-        }, 2000);
-
         notifyView.info("Ready to Rock!");
       }).fail(function(status) {
         notifyView.error(status.statusText);
@@ -81,7 +75,6 @@ $(document).ready(function() {
       preview.init();
       saveStatusView.init();
       panelView.init();
-      this.initAutoReload();
       shellView.init();
     },
 
@@ -114,22 +107,6 @@ $(document).ready(function() {
       }).always(function() {
         preview.hideLoader();
       });
-    },
-
-    initAutoReload : function() {
-      setInterval(function() {
-        if (preview.visible) {
-          // auto-reload will save the current generation.
-          // and check the generation before rendering.
-          // XXX: this solution works but is not perfect. Need a method
-          // to work with auto-save.
-          var editor = editorView.editor;
-          if (editor.isClean(editor.renderedGen))
-            return;
-          editor.renderedGen = editor.changeGeneration();
-          ctrl.renderPreview();
-        }
-      }, 5000);
     },
 
     getPollenConfig : function(name) {
@@ -172,8 +149,26 @@ $(document).ready(function() {
     },
 
     initEventHandlers : function() {
+      var scheduledSave;
+      // on change event
       this.editor.on("change", function(obj) {
         saveStatusView.empty();
+        // clean scheduled save task
+        if (scheduledSave) {
+          clearTimeout(scheduledSave);
+        }
+        // save the document 2 seconds after this typing
+        // and render the document only when the syntax is correct
+        scheduledSave = setTimeout(function() {
+          // TODO: fix the order.
+          ctrl.save();
+          if (editorView.syntaxCheck()) {
+            setTimeout(function(){
+              if (preview.visible)
+                ctrl.renderPreview();
+            }, 500);
+          }
+        }, 2000);
       });
     },
 
@@ -253,6 +248,23 @@ $(document).ready(function() {
       this.view.addClass("push-m3");
       // editor's size change would misplace the cursor.
       this.refresh();
+    },
+
+    // make the editor not scrollable
+    freezeScroll : function() {
+      $("body").addClass("noscroll");
+    },
+
+    // make the editor scrollable again
+    releaseScroll : function() {
+      $("body").removeClass("noscroll");
+    },
+
+    // TODO: editor mode should return such a check function
+    syntaxCheck : function() {
+      var lastLine = this.editor.doc.lastLine();
+      var state = this.editor.getStateAfter(lastLine, true);
+      return state.braceStack.length == 0;
     }
   };
 
@@ -293,6 +305,14 @@ $(document).ready(function() {
         wrapper.addClass("hide");
       this.visible = ! wrapper.hasClass("hide");
       $('#previewBtn').click(changePreviewLayout);
+      // Because preview is in fixed position, scroll inside preview
+      // will scroll its underlying layer as well. Handle this problem
+      wrapper.mouseenter(function(){
+        editorView.freezeScroll();
+      });
+      wrapper.mouseleave(function(){
+        editorView.releaseScroll();
+      });
     },
 
     toggleHide: function() {
@@ -375,7 +395,12 @@ $(document).ready(function() {
 
   var materializeView = {
     init: function() {
-      $(".modal").modal();
+      $(".modal").modal({
+        ready: function() {
+          $("#tab-header li:first-child a").click();
+        }
+      }
+      );
     }
   };
 
@@ -397,13 +422,20 @@ $(document).ready(function() {
       this.outputTemplate = $('script[data-template="shell-output"]').html();
       this.outputWrapper = $('#shell-output-wrapper');
 
-      //this.view.addClass("hide");
+      this.view.addClass("hide");
       $("#shellBtn").click(function() {
         shellView.view.toggleClass("hide");
       });
 
       $("#shell-clean").click(function() {
         shellView.outputWrapper.empty();
+      });
+
+      this.outputWrapper.mouseenter(function(){
+        editorView.freezeScroll();
+      });
+      this.outputWrapper.mouseleave(function() {
+        editorView.releaseScroll();
       });
 
       $("#shell-input").keypress(function(e) {
@@ -432,12 +464,4 @@ $(document).ready(function() {
 
   ctrl.init();
 
-  $("#shellBtn").click(function() {
-    var req = model.shellRequest("sleep 100 && ls");
-    $.post(server_api, req, function(result) {
-      console.log(result);
-    }).fail(function() {
-      console.log("failed");
-    });
-  });
 });
