@@ -164,9 +164,11 @@ This file defines protocols between clients and server
                     ProcedureTag?)))
   (define unknown-val "unknown")
   (define ns (make-base-empty-namespace))
-  (parameterize ([current-namespace ns])
-    (for ([m modules])
-         (namespace-require m)))
+  (for ([m modules])
+    (with-handlers
+        ([exn:fail? (lambda _ (void))])
+      (parameterize ([current-namespace ns])
+        (namespace-require m))))
   (define ids (namespace-mapped-symbols ns))
   (define vals  (map (lambda (s)
                        (namespace-variable-value
