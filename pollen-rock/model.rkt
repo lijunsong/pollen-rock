@@ -11,7 +11,7 @@
 (struct file (name resource directory? ptype)
         #:transparent
         #:guard (lambda (name res dir? ptype tmp)
-                  (unless (resource? res)
+                  (unless (absolute-path? res)
                     (error 'file (format "resource is not absolute path: ~a" res)))
                   (values name res dir? ptype)))
 
