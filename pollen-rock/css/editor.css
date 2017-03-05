@@ -7,13 +7,16 @@ html, .CodeMirror {
     overflow: hidden;
 }
 
-/* Editor */
-.CodeMirror {
-    height: 90vh;
+#upper-wrapper {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 1.5rem;
 }
-#editor-wrapper {
+/* Editor */
+#editor-row, #editor-wrapper, #editor-data, .CodeMirror {
     height: 100%;
-    margin-bottom: 5rem;
 }
 
 .CodeMirror-cursor {
@@ -21,6 +24,9 @@ html, .CodeMirror {
 }
 
 /* Preview */
+#preview-row {
+    margin: 0;
+}
 #preview-wrapper {
     position: fixed;
     left: 0;

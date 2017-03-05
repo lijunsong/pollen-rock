@@ -14,27 +14,28 @@
   </head>
 
   <body class="noscroll">
-    <div id="loader" class="progress">
-      <div class="indeterminate"></div>
-    </div>
-
-    <div class="row">
-      <div id="preview-wrapper" class="col s12 m6 hide">
-        <div id="preview-loader" class="progress">
-          <div class="indeterminate"></div>
-        </div>
-        <iframe id="preview-frame"></iframe>
+    <div id="upper-wrapper">
+      <div id="loader" class="progress">
+        <div class="indeterminate"></div>
       </div>
-    </div>
 
-    <div class="row">
-      <div id="editor-wrapper" class="col s12 m6 push-m3 hide">
-        <div id="editor-data" data="@|resource|">
-          <textarea name="compose" id="compose" placeholder="Ready to rock!">@|content|</textarea>
+      <div id="preview-row" class="row">
+        <div id="preview-wrapper" class="col s12 m6 hide">
+          <div id="preview-loader" class="progress">
+            <div class="indeterminate"></div>
+          </div>
+          <iframe id="preview-frame"></iframe>
         </div>
       </div>
-    </div>
 
+      <div id="editor-row" class="row">
+        <div id="editor-wrapper" class="col s12 m6 push-m3 hide">
+          <div id="editor-data" data="@|resource|">
+            <textarea name="compose" id="compose" placeholder="Ready to rock!">@|content|</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="editor-panel" class="panel-bg valign-wrapper">
       <div class="panel-left">
         <span class="panel-item hide-on-small-only">@|resource|</span>
