@@ -48,9 +48,8 @@ html, .CodeMirror {
     position: fixed;
     left: 0;
     bottom: 0;
-    height: 1.5rem;
+    height: 2rem;
     width: 100%;
-    font-size: 0.7rem;
     padding: 0 4px;
     z-index: 201;
 }
@@ -72,29 +71,28 @@ html, .CodeMirror {
 /* Shell */
 #shell-wrapper {
     position: fixed;
-    bottom: 1.5rem;
+    bottom: 2rem;
     left: 0;
     width: 100%;
     z-index: 201;
     margin-bottom: 0;
     padding-bottom: 0;
-    font-size: 0.7rem;
 }
 #shell-output-header {
-    height: 1.5rem;
-    font-size: 0.7rem;
+    height: 2rem;
 }
 #shell-output-wrapper {
     max-height: 50vh;
     min-height: 10vh;
     overflow-y: auto;
+    line-height: 1.2;
+    font-size: 0.7rem;
 }
 
 #shell-input {
     font-family: monospace;
-    font-size: 0.7rem;
     border: none;
-    height: 1.5rem;
+    height: 2rem;
     padding: 0;
     margin: 0;
     display: inline;

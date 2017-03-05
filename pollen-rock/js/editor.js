@@ -7,6 +7,13 @@ $(document).ready(function() {
   var server_api = "/api";
 
   var model = {
+    init : function() {
+      // when multiple rendering requests on the fly, the first response will
+      // hide others' preview loader. This variable records on-the-fly
+      // rendering requests.
+      this.renderOnTheFly = 0;
+    },
+
     initPollenConfig : function(config) {
       this["pollenConfig"] = config;
     },
@@ -49,7 +56,10 @@ $(document).ready(function() {
     // ctrl will request user's pollen config before initializing the
     // rest
     init : function() {
+      // initialize model
+      model.init();
 
+      // initialize Views.
       var resource = $("#editor-data").attr("data");
       var initRequest = model.pollenConfigRequest(resource);
       loaderView.init();
@@ -78,7 +88,8 @@ $(document).ready(function() {
       shellView.init();
     },
 
-    save : function() {
+    // save optionally accepts two callback functions that taking no arguments
+    save : function(succCallback, failCallback) {
       var editor = editorView.editor;
       if (editor.isClean(editor.curGen)) {
         return;
@@ -90,8 +101,12 @@ $(document).ready(function() {
       var request = model.saveRequest(text, resource);
       $.post(server_api, request, function(status) {
         saveStatusView.saved();
+        if (succCallback)
+          succCallback();
       }).fail(function(status) {
         saveStatusView.error();
+        if (failCallback)
+          failCallback();
       });
     },
 
@@ -100,12 +115,15 @@ $(document).ready(function() {
       var request = model.renderRequest(resource);
       var renderedResource = this.getPollenConfig("rendered-resource");
       preview.showLoader();
+      model.renderOnTheFly += 1;
       $.post(server_api, request, function(status) {
         preview.reload(renderedResource);
       }).fail(function(status) {
-        notifyView.error("server error");
+        notifyView.error("Preview reload failed.");
       }).always(function() {
-        preview.hideLoader();
+        model.renderOnTheFly -= 1;
+        if (model.renderOnTheFly == 0)
+          preview.hideLoader();
       });
     },
 
@@ -157,17 +175,14 @@ $(document).ready(function() {
         if (scheduledSave) {
           clearTimeout(scheduledSave);
         }
-        // save the document 2 seconds after this typing
+        // save the document 2 seconds after typing
         // and render the document only when the syntax is correct
         scheduledSave = setTimeout(function() {
-          // TODO: fix the order.
-          ctrl.save();
-          if (editorView.syntaxCheck()) {
-            setTimeout(function(){
-              if (preview.visible)
-                ctrl.renderPreview();
-            }, 500);
-          }
+          ctrl.save(function(){
+            if (preview.visible && editorView.syntaxCheck()) {
+              ctrl.renderPreview();
+            }
+          });
         }, 2000);
       });
     },

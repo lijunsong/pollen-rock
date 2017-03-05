@@ -106,20 +106,14 @@ This file defines protocols between clients and server
 (define/contract (request-extract-binding req ids)
   (-> request? (listof symbol?) (listof any/c))
   (define bindings (request-bindings req))
-  (if (andmap (lambda (id)
-                (exists-binding? id bindings))
-              ids)
-      (map (lambda (id)
-             (extract-binding/single id bindings))
-           ids)
-      '()))
+  (for/list ([id ids])
+    (if (exists-binding? id bindings)
+        (extract-binding/single id bindings)
+        (error 'request-extract-binding "missing ~a in request" id))))
 
 ;; TODO: failure should be sent to client
 (define (request->api-struct req strut . fields)
-  (let ((xs (request-extract-binding req fields)))
-    (if (empty? xs)
-        (error "Incomplete request for ~a: ~a" strut req)
-        (apply strut xs))))
+  (apply strut (request-extract-binding req fields)))
 
 ;;; Save
 (define (request->save req)
@@ -231,4 +225,9 @@ This file defines protocols between clients and server
 
 (define (handle-shell shell)
   (define cmd (Shell-cmd shell))
-  (response/text (with-output-to-string (lambda () (system cmd)))))
+  (response/text
+   (call-with-output-bytes
+    (lambda (p)
+      (parameterize ([current-output-port p]
+                     [current-error-port p])
+        (system cmd))))))
