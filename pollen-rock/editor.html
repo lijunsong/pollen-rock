@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/css/editor.css">
   </head>
 
-  <body>
+  <body class="noscroll">
     <div id="loader" class="progress">
       <div class="indeterminate"></div>
     </div>
@@ -37,13 +37,13 @@
 
     <div id="editor-panel" class="panel-bg valign-wrapper">
       <div class="panel-left">
-        <span class="panel-item">@|resource|</span>
-        <button id="previewBtn" class="small-btn panel-btn-color panel-item">Preview</button>
-        <button id="shellBtn" class="small-btn panel-btn-color panel-item">Shell</button>
+        <span class="panel-item hide-on-small-only">@|resource|</span>
+        <span id="previewBtn" class="small-btn panel-btn-color panel-item">Preview</span>
+        <span id="shellBtn" class="small-btn panel-btn-color panel-item">Shell</span>
       </div>
       <div class="panel-right">
         <span id="savestatus" class="panel-item">saved</span>
-        <button id="keymapsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Help</button>
+        <span id="keymapsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Help</span>
       </div>
     </div>
 

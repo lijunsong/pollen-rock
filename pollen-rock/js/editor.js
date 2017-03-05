@@ -150,6 +150,7 @@ $(document).ready(function() {
         autofocus: true,
         matchBrackets: true,
         lineWrapping: true,
+        scrollbarStyle: "null",
         mode: 'pollen'
       });
       this.fullscreen = this.initFullscreen();
@@ -265,16 +266,6 @@ $(document).ready(function() {
       this.refresh();
     },
 
-    // make the editor not scrollable
-    freezeScroll : function() {
-      $("body").addClass("noscroll");
-    },
-
-    // make the editor scrollable again
-    releaseScroll : function() {
-      $("body").removeClass("noscroll");
-    },
-
     // TODO: editor mode should return such a check function
     syntaxCheck : function() {
       var lastLine = this.editor.doc.lastLine();
@@ -320,27 +311,22 @@ $(document).ready(function() {
         wrapper.addClass("hide");
       this.visible = ! wrapper.hasClass("hide");
       $('#previewBtn').click(changePreviewLayout);
-      // Because preview is in fixed position, scroll inside preview
-      // will scroll its underlying layer as well. Handle this problem
-      wrapper.mouseenter(function(){
-        editorView.freezeScroll();
-      });
-      wrapper.mouseleave(function(){
-        editorView.releaseScroll();
-      });
     },
 
     toggleHide: function() {
       this.wrapper.toggleClass("hide");
       this.visible = ! this.wrapper.hasClass("hide");
+      if (! this.visible) {
+        this.frame.attr('src', '');
+      }
     },
 
     showLoader: function() {
-      this.loader.removeClass("hide");
+      this.loader.css('visibility', 'visible');
     },
 
     hideLoader: function() {
-      this.loader.addClass("hide");
+      this.loader.css('visibility', 'hidden');
     },
 
     reload: function(src) {
@@ -444,13 +430,6 @@ $(document).ready(function() {
 
       $("#shell-clean").click(function() {
         shellView.outputWrapper.empty();
-      });
-
-      this.outputWrapper.mouseenter(function(){
-        editorView.freezeScroll();
-      });
-      this.outputWrapper.mouseleave(function() {
-        editorView.releaseScroll();
       });
 
       $("#shell-input").keypress(function(e) {
