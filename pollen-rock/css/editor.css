@@ -1,20 +1,22 @@
 html, .CodeMirror {
     font-family: "Source Sans Pro", sans-serif;
-    font-size: 16px;
+    font-size: 20px;
 }
 
-@media (min-width: 767px) {
-    html, .CodeMirror {
-        font-size: 18px;
-    }
+.noscroll {
+    overflow: hidden;
 }
 
+#upper-wrapper {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 1.5rem;
+}
 /* Editor */
-.CodeMirror {
-    height: auto;
-}
-#editor {
-    margin: 2rem 0;
+#editor-row, #editor-wrapper, #editor-data, .CodeMirror {
+    height: 100%;
 }
 
 .CodeMirror-cursor {
@@ -22,14 +24,15 @@ html, .CodeMirror {
 }
 
 /* Preview */
+#preview-row {
+    margin: 0;
+}
 #preview-wrapper {
     position: fixed;
     left: 0;
     top: 0;
     height: 100%;
     z-index: 200;
-    -webkit-overflow-scrolling: touch;
-    overflow-y: scroll;
 }
 #preview-frame {
     width: 100%;
@@ -45,12 +48,14 @@ html, .CodeMirror {
     bottom: 0;
     height: 1.5rem;
     width: 100%;
-    font-size: 0.7rem;
     padding: 0 4px;
     z-index: 201;
+    font-size: 16px;
 }
 
 .small-btn {
+    cursor: pointer;
+    cursor: hand;
     padding: 0 4px;
     border-radius: 3px;
     border: 1px solid;
@@ -62,6 +67,52 @@ html, .CodeMirror {
 
 .panel-left {
     flex: 1;
+}
+
+/* Shell */
+#shell-wrapper {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 0;
+    width: 100%;
+    z-index: 201;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+#shell-wrapper * {
+    font-size: 16px;
+}
+#shell-output-header {
+    height: 1.5rem;
+}
+#shell-output-wrapper {
+    max-height: 50vh;
+    min-height: 10vh;
+    overflow-y: auto;
+    line-height: 1.2;
+    font-size: 0.7rem;
+}
+
+#shell-input {
+    font-family: monospace;
+    border: none;
+    height: 1.5rem;
+    padding: 0;
+    margin: 0;
+    display: inline;
+}
+#shell-input:focus {
+    border: none;
+    box-shadow: none;
+}
+.shell-prompt {
+    margin-right: 0.5rem;
+}
+
+/* MODAL */
+#tab-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #EEE;
 }
 
 /* NOTIFICATION */
@@ -80,22 +131,73 @@ html, .CodeMirror {
 
 #loader, #preview-loader {
     top: 0;
-    margin-top: 0;
-    padding-top: 0;
+    margin: 0;
+    padding: 0;
     z-index: 201;
 }
 
 /* COLORS */
 .panel-bg {
-    background-color: #424242;
+    background-color: #616161;
     color: #eceff1;
+    border-top: 1px solid #757575;
 }
 .panel-btn-color {
+    background-color: #424242;
+    border: none;
+}
+.panel-btn-color:hover {
     background-color: #212121;
-    border: #212121;
+    border: none;
 }
 
+#shell-wrapper {
+    background-color: #616161;
+    color: #EEE;
+}
+
+#shell-output-header {
+    border-bottom: 1px solid #757575;
+}
+
+#shell-input:focus + label {
+    color: #EEE;
+}
 
 .CodeMirror-matchingbracket {
   background-color: #eaffea;
+}
+
+.CodeMirror-empty {
+  color: #CCC;
+}
+
+@media only screen and (max-width: 450px) {
+#preview-wrapper {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+}
+#shell-wrapper {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+}
+}
+
+@media only screen and (min-width: 600px) {
+html, .CodeMirror {
+    font-size: 21px;
+}
+
+}
+
+@media only screen and (min-width: 768px) {
+html, .CodeMirror {
+    font-size: 22px;
+}
+}
+
+@media only screen and (min-width: 992px) {
+html, .CodeMirror {
+    font-size: 23px;
+}
 }

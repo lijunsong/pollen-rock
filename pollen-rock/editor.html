@@ -13,56 +13,77 @@
     <link rel="stylesheet" href="/css/editor.css">
   </head>
 
-  <body>
-    <div class="row">
-      <div id="preview-wrapper" class="div col s12 m6 hide">
-        <div id="preview-loader" class="progress">
-          <div class="indeterminate"></div>
-        </div>
-        <iframe id="preview-frame"></iframe>
-      </div>
-    </div>
-
-    <div class="row">
+  <body class="noscroll">
+    <div id="upper-wrapper">
       <div id="loader" class="progress">
         <div class="indeterminate"></div>
       </div>
-      <div id="editor-wrapper" class="col s12 m6 push-m3 hide">
-        <div id="editor" data="@|resource|">
-          <textarea name="compose" id="compose">@|content|</textarea>
+
+      <div id="preview-row" class="row">
+        <div id="preview-wrapper" class="col s12 m6 hide">
+          <div id="preview-loader" class="progress">
+            <div class="indeterminate"></div>
+          </div>
+          <iframe id="preview-frame"></iframe>
+        </div>
+      </div>
+
+      <div id="editor-row" class="row">
+        <div id="editor-wrapper" class="col s12 m6 push-m3 hide">
+          <div id="editor-data" data="@|resource|">
+            <textarea name="compose" id="compose" placeholder="Ready to rock!">@|content|</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="editor-panel" class="panel-bg valign-wrapper">
+      <div class="panel-left">
+        <span class="panel-item hide-on-small-only">@|resource|</span>
+        <span id="previewBtn" class="small-btn panel-btn-color panel-item">Preview</span>
+        <span id="shellBtn" class="small-btn panel-btn-color panel-item">Shell</span>
+      </div>
+      <div class="panel-right">
+        <span id="savestatus" class="panel-item">saved</span>
+        <span id="keymapsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Help</span>
+      </div>
+    </div>
+
+    <div id="editor-settings" class="modal">
+      <div class="modal-content">
+        <div class="row">
+          <div class="col s12">
+            <ul id="tab-header" class="tabs">
+              <li class="tab"><a href="#keymaps-tab">Keymaps</a></li>
+              <li class="tab"><a href="#bug-tab">Issues</a></li>
+            </ul>
+          </div>
+
+          <div id="keymaps-tab" class="col s12">
+            <table class="bordered">
+              <thread>
+                <tr>
+                  <th>Keystroke</th>
+                  <th>Command</th>
+                </tr>
+              </thread>
+              <tbody id="keymap-body">
+              </tbody>
+            </table>
+          </div>
+
+          <div id="bug-tab" class="col s12">
+            <p>Please report issues (and suggest features) on <a target="_blank" href="https://github.com/lijunsong/pollen-rock/issues">Github</a>.</p>
+          </div>
         </div>
       </div>
     </div>
 
-
-
-    <div id="editor-panel" class="panel-bg valign-wrapper">
-      <div class="panel-left">
-        <span class="panel-item">@|resource|</span>
-        <button id="previewBtn" class="small-btn panel-btn-color panel-item">Preview</button>
-        <!--<button id="consoleBtn" class="small-btn panel-btn-color panel-item">Console</button>-->
-      </div>
-      <div class="panel-right">
-        <span id="savestatus" class="panel-item">saved</span>
-        <button id="keymapsBtn" data-target="keymap-settings" class="small-btn panel-btn-color panel-item">Keymaps</button>
-      </div>
-    </div>
-
-    <div id="keymap-settings" class="modal">
-      <div class="modal-content">
-        <h3>Keymaps</h3>
-        <div class="divider"></div>
-        <table class="bordered">
-          <thread>
-            <tr>
-              <th>Keystroke</th>
-              <th>Command</th>
-            </tr>
-          </thread>
-          <tbody id="keymap-body">
-          </tbody>
-        </table>
-      </div>
+    <div id="shell-wrapper" class="row hoverable hide">
+      <div id="shell-output-header" class="col s12 valign-wrapper"><span class="panel-left">Terminal</span><span id="shell-clean" class="small-btn panel-btn-color">clean</span></div>
+        <div id="shell-output-wrapper" class="col s12"></div>
+        <div class="col s12 valign-wrapper">
+          <span class="shell-prompt">&#36;</span><input id="shell-input" type="text" autocomplete="off">
+        </div>
     </div>
 
     <script type="text/template" data-template="keymap-row">
@@ -71,9 +92,17 @@
         <td>{{command}}</td>
       </tr>
     </script>
+    <script type="text/template" data-template="shell-output">
+      <pre>&#36; {{input}}</pre>
+      <div class="shell-output">
+        <pre>{{output}}</pre>
+      </div>
+      <div class="divider"></div>
+    </script>
     <script src="/js/jquery-3.1.1.min.js"></script>
     <script src="/js/materialize.min.js"></script>
     <script src="/js/codemirror.js"></script>
+    <script src="/js/placeholder.js"></script>
     <script src="/js/matchbrackets.js"></script>
     <script src="/js/pollen.js"></script>
     <script src="/js/editor.js"></script>

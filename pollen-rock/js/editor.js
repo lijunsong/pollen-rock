@@ -7,6 +7,13 @@ $(document).ready(function() {
   var server_api = "/api";
 
   var model = {
+    init : function() {
+      // when multiple rendering requests on the fly, the first response will
+      // hide others' preview loader. This variable records on-the-fly
+      // rendering requests.
+      this.renderOnTheFly = 0;
+    },
+
     initPollenConfig : function(config) {
       this["pollenConfig"] = config;
     },
@@ -33,6 +40,12 @@ $(document).ready(function() {
         type : 'config',
         resource : resource
       };
+    },
+    shellRequest : function(cmd) {
+      return {
+        type : 'shell',
+        cmd  : cmd
+      };
     }
   };
 
@@ -43,8 +56,11 @@ $(document).ready(function() {
     // ctrl will request user's pollen config before initializing the
     // rest
     init : function() {
+      // initialize model
+      model.init();
 
-      var resource = $("#editor").attr("data");
+      // initialize Views.
+      var resource = $("#editor-data").attr("data");
       var initRequest = model.pollenConfigRequest(resource);
       loaderView.init();
       $.post(server_api, initRequest, function(config) {
@@ -58,12 +74,6 @@ $(document).ready(function() {
           return ctrl.getPollenConfig(name);
         });
 
-        // Editor is initialized. Now it's safe to start
-        // auto saving.
-        setInterval(function() {
-          ctrl.save();
-        }, 2000);
-
         notifyView.info("Ready to Rock!");
       }).fail(function(status) {
         notifyView.error(status.statusText);
@@ -75,10 +85,11 @@ $(document).ready(function() {
       preview.init();
       saveStatusView.init();
       panelView.init();
-      this.initAutoReload();
+      shellView.init();
     },
 
-    save : function() {
+    // save optionally accepts two callback functions that taking no arguments
+    save : function(succCallback, failCallback) {
       var editor = editorView.editor;
       if (editor.isClean(editor.curGen)) {
         return;
@@ -90,8 +101,12 @@ $(document).ready(function() {
       var request = model.saveRequest(text, resource);
       $.post(server_api, request, function(status) {
         saveStatusView.saved();
+        if (succCallback)
+          succCallback();
       }).fail(function(status) {
         saveStatusView.error();
+        if (failCallback)
+          failCallback();
       });
     },
 
@@ -100,29 +115,16 @@ $(document).ready(function() {
       var request = model.renderRequest(resource);
       var renderedResource = this.getPollenConfig("rendered-resource");
       preview.showLoader();
+      model.renderOnTheFly += 1;
       $.post(server_api, request, function(status) {
         preview.reload(renderedResource);
       }).fail(function(status) {
-        notifyView.error("server error");
+        notifyView.error("Preview reload failed.");
       }).always(function() {
-        preview.hideLoader();
+        model.renderOnTheFly -= 1;
+        if (model.renderOnTheFly == 0)
+          preview.hideLoader();
       });
-    },
-
-    initAutoReload : function() {
-      setInterval(function() {
-        if (preview.visible) {
-          // auto-reload will save the current generation.
-          // and check the generation before rendering.
-          // XXX: this solution works but is not perfect. Need a method
-          // to work with auto-save.
-          var editor = editorView.editor;
-          if (editor.isClean(editor.renderedGen))
-            return;
-          editor.renderedGen = editor.changeGeneration();
-          ctrl.renderPreview();
-        }
-      }, 5000);
     },
 
     getPollenConfig : function(name) {
@@ -148,6 +150,7 @@ $(document).ready(function() {
         autofocus: true,
         matchBrackets: true,
         lineWrapping: true,
+        scrollbarStyle: "null",
         mode: 'pollen'
       });
       this.fullscreen = this.initFullscreen();
@@ -165,8 +168,23 @@ $(document).ready(function() {
     },
 
     initEventHandlers : function() {
+      var scheduledSave;
+      // on change event
       this.editor.on("change", function(obj) {
         saveStatusView.empty();
+        // clean scheduled save task
+        if (scheduledSave) {
+          clearTimeout(scheduledSave);
+        }
+        // save the document 2 seconds after typing
+        // and render the document only when the syntax is correct
+        scheduledSave = setTimeout(function() {
+          ctrl.save(function(){
+            if (preview.visible && editorView.syntaxCheck()) {
+              ctrl.renderPreview();
+            }
+          });
+        }, 2000);
       });
     },
 
@@ -246,6 +264,13 @@ $(document).ready(function() {
       this.view.addClass("push-m3");
       // editor's size change would misplace the cursor.
       this.refresh();
+    },
+
+    // TODO: editor mode should return such a check function
+    syntaxCheck : function() {
+      var lastLine = this.editor.doc.lastLine();
+      var state = this.editor.getStateAfter(lastLine, true);
+      return state.braceStack.length == 0;
     }
   };
 
@@ -291,14 +316,17 @@ $(document).ready(function() {
     toggleHide: function() {
       this.wrapper.toggleClass("hide");
       this.visible = ! this.wrapper.hasClass("hide");
+      if (! this.visible) {
+        this.frame.attr('src', '');
+      }
     },
 
     showLoader: function() {
-      this.loader.removeClass("hide");
+      this.loader.css('visibility', 'visible');
     },
 
     hideLoader: function() {
-      this.loader.addClass("hide");
+      this.loader.css('visibility', 'hidden');
     },
 
     reload: function(src) {
@@ -368,7 +396,12 @@ $(document).ready(function() {
 
   var materializeView = {
     init: function() {
-      $(".modal").modal();
+      $(".modal").modal({
+        ready: function() {
+          $("#tab-header li:first-child a").click();
+        }
+      }
+      );
     }
   };
 
@@ -381,6 +414,45 @@ $(document).ready(function() {
     },
     show: function() {
       this.panel.removeClass("hide");
+    }
+  };
+
+  var shellView = {
+    init : function() {
+      this.view = $("#shell-wrapper");
+      this.outputTemplate = $('script[data-template="shell-output"]').html();
+      this.outputWrapper = $('#shell-output-wrapper');
+
+      this.view.addClass("hide");
+      $("#shellBtn").click(function() {
+        shellView.view.toggleClass("hide");
+      });
+
+      $("#shell-clean").click(function() {
+        shellView.outputWrapper.empty();
+      });
+
+      $("#shell-input").keypress(function(e) {
+        if (e.which == 10 || e.which == 13) {
+          var input = this;
+          var originValue = input.value;
+          var req = model.shellRequest(originValue);
+          input.value = '';
+          $.post(server_api, req, function(result) {
+            var tmp = shellView.outputTemplate
+                .replace(/{{input}}/, originValue)
+                .replace(/{{output}}/, result);
+            shellView.outputWrapper.append(tmp);
+          }).fail(function(status) {
+            var tmp = shellView.outputTemplate
+                .replace(/{{input}}/, originValue)
+                .replace(/{{output}}/, status.statusText);
+            shellView.outputWrapper.append(tmp);
+          }).always(function() {
+            shellView.outputWrapper.scrollTop(shellView.outputWrapper[0].scrollHeight);
+          });
+        }
+      });
     }
   };
 

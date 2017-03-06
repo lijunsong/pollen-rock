@@ -1,15 +1,15 @@
-# pollen-rock
+# Pollen-Rock
 
-A Project Management Tool For Pollen Publishing System.
+A Pollen Server and an In-Browser Editor For Pollen Publishing System.
 
-Pollen Rock aims to be a simple yet powerful tool to manage your
+Pollen-Rock aims to be a simple yet powerful tool to manage your
 pollen projects. Essentially, it offers a front-end editor and a
 back-end server to improve UX of pollen editing.
 
 ## Note
 
-This project is still at its early development stage. I'd
-appreciate any feedback and suggestions.
+This project is still at its early development stage. Feedback and
+suggestions are welcome.
 
 ## Editor
 
@@ -22,39 +22,67 @@ To help you compose, the editor
 - [x] provides a distraction-free mode
 - [x] saves the file automatically for you
 - [x] inserts CommandChar using `@`
+- [x] provides useful syntax highlight for pollen files
 
 To help you typeset, the editor
 
 - [x] detects project settings (e.g. CommandChar)
-- [x] provides useful syntax highlight for pollen files
 - [ ] auto-completes your tag functions
 - [x] warns unbalanced braces
 - [ ] warns runtime errors in your document
 - [ ] warns undefined tag functions
 - [ ] inlines Racket document
-- [x] provides preview and auto-reloads the preview when file changes
+- [x] provides document preview
+- [x] reloads preview during editing
+
+Also, the server
+
+- [ ] watches file changes and reload your preview page if you choose
+  to use your own editor.
 
 *Note:*
 - [x] means the feature has been implemented.
 
-These useful features are possible because the back-end of Pollen-Rock
-is written in Racket. It understands your configuration file
-`pollen.rkt`, and serves you better than tranditional editors (like
-Vim, Emacs, Sublime Text, etc.).
+These useful features are made possible because the back-end of
+Pollen-Rock is written in Racket. It understands your configuration
+file `pollen.rkt`, and serves you better than tranditional editors
+(like Vim, Emacs, Sublime Text, etc.).
 
 ## Project Management
 
-Pollen-Rock is also going to provide a simple interface to add, rename,
-delete files in your pollen projects
+In the editor, you can run shell command. This means that you can
+manage your Pollen projects directly from the editor, which makes
+Pollen-Rock suitable to run as a service on your home server (if you
+have any).
 
-# Installation
+Pollen-Rock is also going to provide a simple interface to add, rename,
+delete files in your pollen projects.
+
+## Installation
 ```
 raco pkg install pollen-rock
 ```
 
-# Usage
+## Usage
 
 1. Run `raco pollen-rock` in your pollen project root directory.
 2. Start your work in your browser
 
 `raco pollen-rock -h` shows available options.
+
+# ChangeLog
+## 0.2.0 (03/06/2017)
+Features
+
+- add the ability to run shell command in editor
+- add a placeholder in editor for an empty article body
+- add buttons "shell" and "help"
+
+Enhancement and Bugfix
+
+- Improve autosave: it takes place only when users stop typing
+- Improve Preview: Preview rendering interacts nicely with autosave.
+- Redefine layout to remove two adjacent scrollbars on Windows
+- Redefine layout to display a clean layout on mobile
+- Improve scrolling: scolling in Preview doesn't affect other
+  components now.
