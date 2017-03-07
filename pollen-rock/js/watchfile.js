@@ -91,13 +91,15 @@ $(document).ready(function() {
     },
     reload: function(src) {
       loaderView.show();
+      this.frame.on('load', function(){
+        loaderView.hide();
+      });
       if (this.frame.attr('src')) {
         var doc = this.frame.contents()[0];
         doc.location.reload(true);
       } else {
         this.frame.attr('src', src);
       }
-      loaderView.hide();
     }
   };
 
