@@ -16,6 +16,12 @@
 (require "http-util.rkt")
 (require racket/cmdline)
 
+(define server-port (make-parameter 8000))
+
+;; preview only indicates that no editor functionality is needed
+(define preview-only (make-parameter #f))
+
+
 ;;; Debug use
 (define (print-request req)
   (let ((uri (request-uri req)))
@@ -60,13 +66,16 @@
   (define content (file->bytes filepath))
   (response/text (include-template "editor.html")))
 
+(define (watchfile-handler req url)
+  (define resource (string-list->resource url))
+  (response/text (include-template "watchfile.html")))
+
 (define-values (server-dispatch url)
   (dispatch-rules
    [("edit" (string-arg) ...) edit-handler]
    [("api") #:method "post" api-post-handler]
+   [("watchfile" (string-arg) ...) watchfile-handler]
    [((string-arg) ...) index-handler]))
-
-(define server-port (make-parameter 8000))
 
 ;; add runtimeroot to serve pollen-rock's static files when indexing.
 ;; add webroot to serve users' own static files
@@ -78,8 +87,12 @@
       [("-p" "--port")
        ,(lambda (flag port)
           (server-port (string->number port)))
-       (,(format "server's port (default ~a)" (server-port))
-        "port")]))
+       (,(format "set server's port (default ~a)" (server-port))
+        "port")]
+      [("-u" "--preview-only")
+       ,(lambda (flag)
+          (preview-only #t))
+       (,(format "auto render and reload pages when file changes. (default ~a)" (preview-only)))]))
    (lambda (f) (void))
    '())
   (serve/servlet server-dispatch

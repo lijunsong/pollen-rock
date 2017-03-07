@@ -1,0 +1,18 @@
+#preview-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#preview-data {
+    height: 100%;
+    width: 100%;
+}
+
+#preview-frame {
+    height: 100vh;
+    width: 100vw;
+    border: none;
+}

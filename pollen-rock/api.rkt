@@ -12,7 +12,7 @@
 ;;;   "resource" : resource (an absolute path) to save into
 ;;;
 ;;; Attributes for shell
-;;;   "kind" := run | fetch-output |
+;;;   "cmd": command to run
 ;;;
 ;;;
 ;;; Examples:
@@ -35,6 +35,7 @@ This file defines protocols between clients and server
 (require "config.rkt")
 (require "util.rkt")
 (require "http-util.rkt")
+(require "fs-watch.rkt")
 
 (provide api-post-handler)
 
@@ -67,6 +68,15 @@ This file defines protocols between clients and server
 ;; request to run a shell command
 (struct Shell (cmd) #:transparent)
 
+;; request to watch file changes
+;; seconds is the last modify seconds that the frontend knows about
+;; this file
+(struct WatchFile (resource seconds)
+        #:transparent
+        #:guard (lambda (f s tmp)
+                  (assert-resource f)
+                  (values f (string->number s))))
+
 ;; request user-defined tag information
 (struct Tag (resource) #:transparent)
 ;; server uses this struct to organize info
@@ -94,6 +104,9 @@ This file defines protocols between clients and server
     ["shell"
      (let ((shell (request->shell req)))
        (handle-shell shell))]
+    ["watchfile"
+     (let ((wf (request->watchfile req)))
+       (handle-watchfile wf))]
     [x
      (response/xexpr
       `(html (head) (p ,(format "unknown POST command: ~a" x))))]))
@@ -231,3 +244,21 @@ This file defines protocols between clients and server
       (parameterize ([current-output-port p]
                      [current-error-port p])
         (system cmd))))))
+
+;;; WatchFile request
+(define (request->watchfile req)
+  (request->api-struct req WatchFile 'resource 'seconds))
+
+(define (handle-watchfile wf)
+  (define resource (WatchFile-resource wf))
+  (define filepath (append-path webroot resource))
+  (define last-seen-seconds (WatchFile-seconds wf))
+  ;; TODO: send back file system's most recent modify seconds
+  (define ans
+    (make-hasheq `((rendered-resource . ,(resource->output-path resource))
+                   (seconds . 0))))
+  (println ans)
+  (define (handler _ last-mod)
+    (hash-set! ans 'seconds last-mod))
+  (when (file-watch filepath handler last-seen-seconds)
+    (response/text (jsexpr->bytes ans))))
