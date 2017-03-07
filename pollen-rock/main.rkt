@@ -60,14 +60,14 @@
            (next-dispatcher))]))
 
 (define (edit-handler req trimmed-url)
-  (define resource (string-list->resource trimmed-url))
+  (define resource (path-elements->resource trimmed-url))
   (define breadcrumb (xexpr/resource->breadcrumb resource))
   (define filepath (append-path webroot resource))
   (define content (file->bytes filepath))
   (response/text (include-template "editor.html")))
 
 (define (watchfile-handler req url)
-  (define resource (string-list->resource url))
+  (define resource (path-elements->resource url))
   (response/text (include-template "watchfile.html")))
 
 (define-values (server-dispatch url)

@@ -12,7 +12,7 @@
   (-> request? resource?)
   (define uri (request-uri req))
   (define string-list (map path/param-path (url-path uri)))
-  (string-list->resource string-list))
+  (path-elements->resource string-list))
 
 ;; construct a response contains only text
 ;; example: (response/text "1" "2" "3")

@@ -33,7 +33,7 @@
   (map path->string (rest (explode-path r))))
 
 ;; assemble url component into a resource
-(define/contract (string-list->resource lst)
+(define/contract (path-elements->resource lst)
   (-> (listof string?) resource?)
   (string-append "/" (string-join lst "/")))
 
@@ -46,7 +46,7 @@
   (define components (map ->string (rest (explode-path resource))))
   (define accumulated (for/list ([i (in-range 1 (+ 1 (length components)))])
                         (take components i)))
-  (map string-list->resource accumulated))
+  (map path-elements->resource accumulated))
 
 
 (define/contract (resource->output-path resource)
@@ -67,6 +67,21 @@
   (check-equal? (resource->path-elements "/1") '("1"))
   (check-equal? (resource->path-elements "/1/2/3/") '("1" "2" "3"))
   (check-equal? (resource->path-elements "/1/2/3") '("1" "2" "3"))
+
+  (check-equal? (path-elements->resource '()) "/")
+  (check-equal? (path-elements->resource '("1")) "/1")
+  (check-equal? (path-elements->resource '("1" "2")) "/1/2")
+
+  (check-equal? (resource->output-path "/1.html.pp") "/1.html")
+  (check-equal? (resource->output-path "/1.html.pmd") "/1.html")
+  (check-equal? (resource->output-path "/1.html.p") "/1.html")
+  (check-equal? (resource->output-path "/1.html.pm") "/1.html")
+
+  (check-true (is-pollen-source? "/1.html.pp"))
+  (check-true (is-pollen-source? "/1.html.pm"))
+  (check-true (is-pollen-source? "/1.html.pmd"))
+  (check-true (is-pollen-source? "/1.html.p"))
+  (check-false (is-pollen-source? "/1.html"))
 
   (check-equal? (resource->breadcrumb-url "/") (list))
   (check-equal? (resource->breadcrumb-url "/a")
