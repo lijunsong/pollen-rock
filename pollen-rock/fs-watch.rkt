@@ -55,7 +55,16 @@
             (handle-evt
              (filesystem-change-evt filepath)
              (lambda (_)
-               (define cur-mod (file-or-directory-modify-seconds filepath))
+               (define cur-mod
+                 (with-handlers
+                     ([exn:fail?
+                       (lambda _
+                         ;; sometimes the file will be replaced in a
+                         ;; non-idempotent way, so sleep a short time
+                         ;; waiting for the real change.
+                         (sleep 0.3)
+                         (file-or-directory-modify-seconds filepath))])
+                   (file-or-directory-modify-seconds filepath)))
                (cond [(not (file-exists? filepath))
                       (error 'file-watch "file is removed. Not yet implemented.")]
                      [(= last-mod cur-mod)

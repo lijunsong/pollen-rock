@@ -32,17 +32,41 @@ body {
     border-bottom: 1px solid #AAA;
 }
 
-.collection-item:hover, .collection-item:hover a {
+.collection-item:hover {
     background: #f4faff;
 }
 
-.collection-item a {
+.collection-item .edit-url a {
     color: #555;
     text-decoration: none;
 }
 
-.collection-item a:hover {
+.collection-item .edit-url a:hover {
     color: #000;
+    text-decoration: none;
+}
+
+.watch-url {
+    float: right;
+}
+
+.btn {
+    cursor: pointer;
+    cursor: hand;
+    padding: 0 4px;
+    border-radius: 3px;
+    border: none;
+    background-color: #424242;
+    z-index: 2;
+}
+a.btn {
+    color: #eceff1;
+    text-decoration: none;
+}
+
+a.btn:hover {
+    background-color: #212121;
+    color: #eceff1;
     text-decoration: none;
 }
 

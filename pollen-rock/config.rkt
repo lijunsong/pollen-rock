@@ -16,3 +16,8 @@
 (define/contract (url-mark-edit url)
   (-> string? string?)
   (append-path "/edit" url))
+
+;; TODO: this is supposed to return a resource!
+(define/contract (url-mark-watch url)
+  (-> string? string?)
+  (append-path "/watchfile" url))

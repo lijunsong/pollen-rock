@@ -46,8 +46,12 @@
   (define ptypes  (map ctrl/file-ptype files))
 
   (define (link name url ptype)
-    (let ((modified-url (if ptype (url-mark-edit url) url)))
-      `(a ((href ,modified-url)) ,name)))
+    (let ((modified-url (if ptype (url-mark-edit url) url))
+          (watch-url (if ptype (url-mark-watch url) #f)))
+      `(div (span ((class "edit-url")) (a ((href ,modified-url)) ,name))
+            ,@(if watch-url
+                 `((span ((class "watch-url")) (a ((class "btn") (href ,watch-url)) "Watch")))
+                 `()))))
   (ui-collections (map link names resources ptypes)))
 
 (define/contract (xexpr/resource->breadcrumb resource)

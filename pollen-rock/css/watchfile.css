@@ -1,3 +1,8 @@
+html {
+    /* use a random font to overwrite roboto */
+    font-family: monospace;
+}
+
 #preview-loader {
     position: absolute;
     top: 0;
@@ -15,4 +20,27 @@
     height: 100vh;
     width: 100vw;
     border: none;
+}
+
+.toast {
+    font-size: 0.9rem;
+}
+.toast-info {
+    background-color: #DFF0D8;
+    color: #468847;
+}
+
+.toast-error {
+    background-color: #FFE2E2;
+    color: #EF3434;
+}
+
+#dead {
+    background-color: #1a237e;
+    color: #EEE;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }

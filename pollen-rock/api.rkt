@@ -257,7 +257,6 @@ This file defines protocols between clients and server
   (define ans
     (make-hasheq `((rendered-resource . ,(resource->output-path resource))
                    (seconds . 0))))
-  (println ans)
   (define (handler _ last-mod)
     (hash-set! ans 'seconds last-mod))
   (when (file-watch filepath handler last-seen-seconds)
