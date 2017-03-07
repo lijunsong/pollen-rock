@@ -71,10 +71,14 @@ raco pkg install pollen-rock
 
 # ChangeLog
 ## 0.3.0 (03/07/2017)
+
 Features
 
-- The preview page file content change
+ - add protocol to watch file changes
+ - Implement auto-reload rendered pages
+
 ## 0.2.0 (03/06/2017)
+
 Features
 
 - add the ability to run shell command in editor
