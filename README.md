@@ -27,18 +27,17 @@ To help you compose, the editor
 To help you typeset, the editor
 
 - [x] detects project settings (e.g. CommandChar)
-- [ ] auto-completes your tag functions
 - [x] warns unbalanced braces
+- [x] provides document preview
+- [x] reloads preview (only when pollen syntax is correct) during editing
+- [ ] auto-completes your tag functions
 - [ ] warns runtime errors in your document
 - [ ] warns undefined tag functions
 - [ ] inlines Racket document
-- [x] provides document preview
-- [x] reloads preview during editing
 
 Also, the server
 
-- [ ] watches file changes and reload your preview page if you choose
-  to use your own editor.
+- [x] watches file changes and auto-reloads your pages.
 
 *Note:*
 - [x] means the feature has been implemented.
@@ -71,6 +70,10 @@ raco pkg install pollen-rock
 `raco pollen-rock -h` shows available options.
 
 # ChangeLog
+## 0.3.0 (03/07/2017)
+Features
+
+- The preview page file content change
 ## 0.2.0 (03/06/2017)
 Features
 

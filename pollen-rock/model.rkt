@@ -11,7 +11,7 @@
 (struct file (name resource directory? ptype)
         #:transparent
         #:guard (lambda (name res dir? ptype tmp)
-                  (unless (absolute-path? res)
+                  (unless (resource? res)
                     (error 'file (format "resource is not absolute path: ~a" res)))
                   (values name res dir? ptype)))
 
@@ -36,9 +36,12 @@
     (error 'data/all-files
            (format "resource ~a not found on ~a." resource webroot)))
   (define names (map path->string (directory-list disk-path)))
-  (define urls  (map (lambda (n) (append-path resource n)) names))
+  (define urls  (map (lambda (n)
+                       (path-elements->resource
+                        `(,@(resource->path-elements resource) ,n)))
+                     names))
   (define files-dir? (map directory-exists?
-  					     (map (lambda (n) (append-path disk-path n)) names)))
+                          (map (lambda (n) (append-path disk-path n)) names)))
   (define pollen-types (map data/pollentype urls))
   (map file names urls files-dir? pollen-types))
 
