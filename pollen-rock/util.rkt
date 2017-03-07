@@ -27,6 +27,11 @@
   (-> string? boolean?)
   (string-prefix? r "/"))
 
+;; take each path element out
+(define/contract (resource->path-elements r)
+  (-> resource? (listof string?))
+  (map path->string (rest (explode-path r))))
+
 ;; assemble url component into a resource
 (define/contract (string-list->resource lst)
   (-> (listof string?) resource?)
@@ -57,6 +62,11 @@
   (define (check-path-equal? p1 p2)
     (check-equal? (normal-case-path p1)
                   (normal-case-path p2)))
+
+  (check-equal? (resource->path-elements "/") '())
+  (check-equal? (resource->path-elements "/1") '("1"))
+  (check-equal? (resource->path-elements "/1/2/3/") '("1" "2" "3"))
+  (check-equal? (resource->path-elements "/1/2/3") '("1" "2" "3"))
 
   (check-equal? (resource->breadcrumb-url "/") (list))
   (check-equal? (resource->breadcrumb-url "/a")
