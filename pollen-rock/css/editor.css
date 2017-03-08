@@ -60,6 +60,9 @@ html, .CodeMirror {
     border-radius: 3px;
     border: 1px solid;
 }
+.small-btn.disabled {
+    cursor: not-allowed;
+}
 
 .panel-item {
     margin-right: 0.5rem;
@@ -149,6 +152,11 @@ html, .CodeMirror {
 .panel-btn-color:hover {
     background-color: #212121;
     border: none;
+}
+
+.panel-btn-color.disabled, .panel-btn-color.disabled:hover {
+    background-color: #424242 !important;
+    color: #9F9F9F !important;
 }
 
 #shell-wrapper {

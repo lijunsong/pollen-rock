@@ -22,6 +22,10 @@ $(document).ready(function() {
       this["pollenTags"] = tags;
     },
 
+    initRockConfig : function(config) {
+      this["rockConfig"] = config;
+    },
+
     saveRequest : function(text, resource) {
       return {
         type : 'save',
@@ -66,14 +70,15 @@ $(document).ready(function() {
       $.post(server_api, initRequest, function(config) {
         // continue init
         var jsconfig = JSON.parse(config);
-        jsconfig["resource"] = resource;
-        model.initPollenConfig(jsconfig["config"]);
+        model.initPollenConfig(jsconfig["pollenConfig"]);
         model.initPollenTags(jsconfig["tags"]);
+        model.initRockConfig(jsconfig["rockConfig"]);
 
         editorView.init(function(name) {
           return ctrl.getPollenConfig(name);
         });
 
+        panelView.init(ctrl.getRockConfig("no-shell"));
         notifyView.info("Ready to Rock!");
       }).fail(function(status) {
         notifyView.error(status.statusText);
@@ -84,8 +89,6 @@ $(document).ready(function() {
       materializeView.init();
       preview.init();
       saveStatusView.init();
-      panelView.init();
-      shellView.init();
     },
 
     // save optionally accepts two callback functions that taking no arguments
@@ -136,6 +139,10 @@ $(document).ready(function() {
 
     getPollenTag : function(name) {
       return model.pollenTags[name];
+    },
+
+    getRockConfig : function(name) {
+      return model.rockConfig[name];
     }
   };
 
@@ -406,24 +413,22 @@ $(document).ready(function() {
   };
 
   var panelView = {
-    init: function() {
+    init: function(noshell) {
       this.panel = $("#editor-panel");
-    },
-    hide: function() {
-      this.panel.addClass("hide");
-    },
-    show: function() {
-      this.panel.removeClass("hide");
+      shellView.init(noshell);
     }
   };
 
   var shellView = {
-    init : function() {
+    init : function(noshell) {
       this.view = $("#shell-wrapper");
+      this.view.addClass("hide");
+      if (noshell) {
+        return;
+      }
       this.outputTemplate = $('script[data-template="shell-output"]').html();
       this.outputWrapper = $('#shell-output-wrapper');
 
-      this.view.addClass("hide");
       $("#shellBtn").click(function() {
         shellView.view.toggleClass("hide");
       });

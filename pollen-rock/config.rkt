@@ -5,6 +5,14 @@
 
 (provide (all-defined-out))
 
+;;; Command Line options
+
+;; server's port
+(define server-port (make-parameter 8000))
+
+;; If no-shell is #t, server won't repond shell command request
+(define no-shell (make-parameter #f))
+
 ;;; Web root for looking for resources
 (define webroot (current-directory))
 (define-runtime-path runtimeroot ".")

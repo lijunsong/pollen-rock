@@ -31,6 +31,7 @@ This file defines protocols between clients and server
 (require pollen/render) ;; handle render
 (require pollen/file)   ;; handle render
 (require json)
+(require sugar)
 
 (require "config.rkt")
 (require "util.rkt")
@@ -181,6 +182,14 @@ This file defines protocols between clients and server
                        (namespace-variable-value
                         s #t (lambda() unknown-val) ns))
                      ids))
+  (define (val->string v)
+    (cond [(list? v)
+           (map val->string v)]
+          [(boolean? v) (if v "true" "false")]
+          [else
+           (with-handlers
+               [(exn:fail? (lambda _ unknown-val))]
+             (->string v))]))
   (map (lambda (name v)
          (if (procedure? v)
              (let ([arity (procedure-arity v)])
@@ -191,10 +200,7 @@ This file defines protocols between clients and server
                     (arity-at-least-value arity)
                     arity)
                 kws))
-             (VariableTag name (cond [(string? v) v]
-                                     [(char? v) (string v)]
-                                     [(symbol? v) (symbol->string v)]
-                                     [else unknown-val]))))
+             (VariableTag name (val->string v))))
        ids
        vals))
 
@@ -225,10 +231,12 @@ This file defines protocols between clients and server
                                               (cons 'keywords (ProcedureTag-keywords v)))))]
                                 [else (error "handle config request error: unknown tag type")]))
                         pollen-tags))
+  (define rock-hash (make-hash `((no-shell . ,(no-shell)))))
   (define tag-hash (make-immutable-hasheq tag-pair))
   (define ans-hash (make-immutable-hasheq
-                    (list (cons 'config config-hash)
-                          (cons 'tags tag-hash))))
+                    `((pollenConfig . ,config-hash)
+                      (tags . ,tag-hash)
+                      (rockConfig .  ,rock-hash))))
   (response/text (jsexpr->bytes ans-hash)))
 
 
@@ -239,11 +247,15 @@ This file defines protocols between clients and server
 (define (handle-shell shell)
   (define cmd (Shell-cmd shell))
   (response/text
-   (call-with-output-bytes
-    (lambda (p)
-      (parameterize ([current-output-port p]
-                     [current-error-port p])
-        (system cmd))))))
+   (cond [(no-shell)
+          (display (format "[shell] disabled: command query '~a'\n" cmd))
+          "disabled"]
+         [else
+          (call-with-output-bytes
+           (lambda (p)
+             (parameterize ([current-output-port p]
+                            [current-error-port p])
+               (system cmd))))])))
 
 ;;; WatchFile request
 (define (request->watchfile req)

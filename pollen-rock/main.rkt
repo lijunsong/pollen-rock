@@ -16,12 +16,6 @@
 (require "http-util.rkt")
 (require racket/cmdline)
 
-(define server-port (make-parameter 8000))
-
-;; preview only indicates that no editor functionality is needed
-(define preview-only (make-parameter #f))
-
-
 ;;; Debug use
 (define (print-request req)
   (let ((uri (request-uri req)))
@@ -64,6 +58,7 @@
   (define breadcrumb (xexpr/resource->breadcrumb resource))
   (define filepath (append-path webroot resource))
   (define content (file->bytes filepath))
+  (define shell-disabled (if (no-shell) "disabled" ""))
   (response/text (include-template "editor.html")))
 
 (define (watchfile-handler req url)
@@ -87,12 +82,12 @@
       [("-p" "--port")
        ,(lambda (flag port)
           (server-port (string->number port)))
-       (,(format "set server's port (default ~a)" (server-port))
+       (,(format "Set server's port (default ~a)" (server-port))
         "port")]
-      [("-u" "--preview-only")
+      [("-n" "--no-shell")
        ,(lambda (flag)
-          (preview-only #t))
-       (,(format "auto render and reload pages when file changes. (default ~a)" (preview-only)))]))
+          (no-shell #t))
+       (,(format "Disable shell (default ~a)" (no-shell)))]))
    (lambda (f) (void))
    '())
   (serve/servlet server-dispatch

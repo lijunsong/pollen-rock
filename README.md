@@ -70,6 +70,12 @@ raco pkg install pollen-rock
 `raco pollen-rock -h` shows available options.
 
 # ChangeLog
+## 0.3.1 (03/07/2017)
+
+Features
+
+ - add option (--no-shell) to disable the terminal
+
 ## 0.3.0 (03/07/2017)
 
 Features
