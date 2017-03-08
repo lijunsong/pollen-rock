@@ -75,6 +75,7 @@ raco pkg install pollen-rock
 Features
 
  - add option (--no-shell) to disable the terminal
+ - add checks on unsaved document before browser is closed
 
 ## 0.3.0 (03/07/2017)
 

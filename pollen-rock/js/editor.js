@@ -12,6 +12,15 @@ $(document).ready(function() {
       // hide others' preview loader. This variable records on-the-fly
       // rendering requests.
       this.renderOnTheFly = 0;
+      // save status is among "saving", "saved", or ""
+      // saveStatus is to protect document from closing browser
+      this.saveStatus = {
+        val : "saved",
+        saving: function() { this.val = "saving"; return this.val; },
+        saved:  function() { this.val = "saved";  return this.val;},
+        clean:  function() { this.val = ""; return this.val; },
+        isSaved: function() { return this.val == "saved"; }
+      }
     },
 
     initPollenConfig : function(config) {
@@ -67,6 +76,11 @@ $(document).ready(function() {
       var resource = $("#editor-data").attr("data");
       var initRequest = model.pollenConfigRequest(resource);
       loaderView.init();
+      materializeView.init();
+      preview.init();
+      saveStatusView.init();
+
+      // initialize project specific settings
       $.post(server_api, initRequest, function(config) {
         // continue init
         var jsconfig = JSON.parse(config);
@@ -86,28 +100,41 @@ $(document).ready(function() {
         loaderView.hide();
       });
 
-      materializeView.init();
-      preview.init();
-      saveStatusView.init();
+      // initialize global event handler
+      $(window).on("beforeunload", function() {
+        if (! model.saveStatus.isSaved()) {
+          // last second save
+          console.log("Document is unsaved yet. Saving...");
+          var resource = ctrl.getPollenConfig("resource");
+          var text = editorView.editor.getValue();
+          var request = model.saveRequest(text, resource);
+          $.ajax({
+            method: "POST",
+            url: server_api,
+            data: request,
+            async: false
+          });
+        }
+      });
     },
 
-    // save optionally accepts two callback functions that taking no arguments
-    save : function(succCallback, failCallback) {
+    // save async optionally accepts two callback functions that taking no arguments
+    save : function(succCallback, failCallback, sync) {
       var editor = editorView.editor;
       if (editor.isClean(editor.curGen)) {
         return;
       }
       editor.curGen = editor.changeGeneration();
-      saveStatusView.saving();
+      saveStatusView.update(model.saveStatus.saving());
       var resource = this.getPollenConfig("resource");
       var text = editor.getValue();
       var request = model.saveRequest(text, resource);
       $.post(server_api, request, function(status) {
-        saveStatusView.saved();
+        saveStatusView.update(model.saveStatus.saved());
         if (succCallback)
           succCallback();
       }).fail(function(status) {
-        saveStatusView.error();
+        saveStatusView.error(status.statusText);
         if (failCallback)
           failCallback();
       });
@@ -146,9 +173,9 @@ $(document).ready(function() {
     }
   };
 
-  ////////////////////////////
-  // create editor instance //
-  ////////////////////////////
+  //////////////////////////
+  // Start Defining Views //
+  //////////////////////////
   var editorView = {
     init : function(getPollenConfig) {
       this.view = $("#editor-wrapper");
@@ -178,7 +205,7 @@ $(document).ready(function() {
       var scheduledSave;
       // on change event
       this.editor.on("change", function(obj) {
-        saveStatusView.empty();
+        saveStatusView.update(model.saveStatus.clean());
         // clean scheduled save task
         if (scheduledSave) {
           clearTimeout(scheduledSave);
@@ -282,32 +309,21 @@ $(document).ready(function() {
   };
 
   var saveStatusView = {
-    init : function() {
+    init : function(status) {
       this.view = $("#savestatus");
-      this.empty();
+      this.update(status);
     },
 
-    saved : function() {
-      this.view.text("saved");
-    },
-
-    saving : function() {
-      this.view.text("saving");
-    },
-
-    empty : function() {
-      this.view.text('');
+    update: function(status) {
+      this.view.text(status);
     },
 
     error : function(text) {
-      notifyView.error("Failed to save.");
+      notifyView.error("Failed to save: " + text);
     }
 
   };
 
-  ///////////////////
-  // Setup Preview //
-  ///////////////////
   var preview = {
     init : function() {
       var wrapper = $("#preview-wrapper");
