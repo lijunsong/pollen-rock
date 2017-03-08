@@ -20,7 +20,22 @@ $(document).ready(function() {
         saved:  function() { this.val = "saved";  return this.val;},
         clean:  function() { this.val = ""; return this.val; },
         isSaved: function() { return this.val == "saved"; }
-      }
+      };
+
+      // editor preference
+      this.preference = this.initPreference();
+    },
+
+    initPreference: function() {
+      var options = {
+        autofocus: true,
+        matchBrackets: true,
+        lineWrapping: true,
+        scrollbarStyle: "null",
+        theme: "default",
+        mode: 'pollen'
+      };
+      return options;
     },
 
     initPollenConfig : function(config) {
@@ -73,12 +88,13 @@ $(document).ready(function() {
       model.init();
 
       // initialize Views.
-      var resource = $("#editor-data").attr("data");
+      var resource = $("#compose").attr("data");
       var initRequest = model.pollenConfigRequest(resource);
       loaderView.init();
       materializeView.init();
       preview.init();
       saveStatusView.init();
+      preferenceView.init();
 
       // initialize project specific settings
       $.post(server_api, initRequest, function(config) {
@@ -91,8 +107,8 @@ $(document).ready(function() {
         editorView.init(function(name) {
           return ctrl.getPollenConfig(name);
         });
-
         panelView.init(ctrl.getRockConfig("no-shell"));
+        upperWrapperView.init(editorView.editor.getWrapperElement());
         notifyView.info("Ready to Rock!");
       }).fail(function(status) {
         notifyView.error(status.statusText);
@@ -170,6 +186,19 @@ $(document).ready(function() {
 
     getRockConfig : function(name) {
       return model.rockConfig[name];
+    },
+
+    selectTheme: function(newTheme) {
+      model.preference.theme = newTheme;
+      if (! newTheme) {
+        console.log("p-theme is not found in preference.");
+      }
+      editorView.selectTheme();
+      upperWrapperView.updateBackground();
+    },
+
+    getPreference: function() {
+      return model.preference;
     }
   };
 
@@ -180,13 +209,7 @@ $(document).ready(function() {
     init : function(getPollenConfig) {
       this.view = $("#editor-wrapper");
       var area = document.getElementById("compose");
-      this.editor = CodeMirror.fromTextArea(area, {
-        autofocus: true,
-        matchBrackets: true,
-        lineWrapping: true,
-        scrollbarStyle: "null",
-        mode: 'pollen'
-      });
+      this.editor = CodeMirror.fromTextArea(area, ctrl.getPreference());
       this.fullscreen = this.initFullscreen();
       this.initKeyMaps(getPollenConfig);
       this.initEventHandlers();
@@ -305,6 +328,24 @@ $(document).ready(function() {
       var lastLine = this.editor.doc.lastLine();
       var state = this.editor.getStateAfter(lastLine, true);
       return state.braceStack.length == 0;
+    },
+
+    selectTheme: function() {
+      var p = ctrl.getPreference();
+      this.editor.setOption("theme", p.theme);
+    }
+  };
+
+  var upperWrapperView = {
+    // taking the wrapper to indicate init dependencies
+    init: function(editorWrapperElement) {
+      this.view = $("#upper-wrapper");
+      this.wrapperElement = editorWrapperElement;
+      this.updateBackground();
+    },
+    updateBackground: function() {
+      var bgColor = $(this.wrapperElement).css('background-color');
+      this.view.css('background-color', bgColor);
     }
   };
 
@@ -423,8 +464,8 @@ $(document).ready(function() {
         ready: function() {
           $("#tab-header li:first-child a").click();
         }
-      }
-      );
+      });
+      $('select').material_select();
     }
   };
 
@@ -473,6 +514,23 @@ $(document).ready(function() {
             shellView.outputWrapper.scrollTop(shellView.outputWrapper[0].scrollHeight);
           });
         }
+      });
+    }
+  };
+
+  var preferenceView = {
+    init: function() {
+      this.preference = ctrl.getPreference();
+      this.initThemes();
+    },
+    initThemes: function() {
+      // pre-select current theme
+      var curTheme = this.preference.theme;
+      $("#p-theme").val(curTheme);
+      $('#p-theme').material_select(); // update again!
+
+      $("#p-theme").on("change", function(e) {
+        ctrl.selectTheme($(this).val());
       });
     }
   };

@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
     <link rel="stylesheet" href="/css/materialize.min.css">
     <link rel="stylesheet" href="/css/codemirror.css">
+    <link rel="stylesheet" href="/css/solarized.css">
     <link rel="stylesheet" href="/css/editor.css">
   </head>
 
@@ -30,9 +31,7 @@
 
       <div id="editor-row" class="row">
         <div id="editor-wrapper" class="col s12 m6 push-m3 hide">
-          <div id="editor-data" data="@|resource|">
-            <textarea name="compose" id="compose" placeholder="Ready to rock!">@|content|</textarea>
-          </div>
+          <textarea name="compose" id="compose" data="@|resource|" placeholder="Ready to rock!">@|content|</textarea>
         </div>
       </div>
     </div>
@@ -44,7 +43,7 @@
       </div>
       <div class="panel-right">
         <span id="savestatus" class="panel-item">saved</span>
-        <span id="keymapsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Help</span>
+        <span id="keymapsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Settings</span>
       </div>
     </div>
 
@@ -53,12 +52,24 @@
         <div class="row">
           <div class="col s12">
             <ul id="tab-header" class="tabs">
+              <li class="tab"><a href="#preference">Preference</a></li>
               <li class="tab"><a href="#keymaps-tab">Keymaps</a></li>
               <li class="tab"><a href="#bug-tab">Issues</a></li>
             </ul>
           </div>
+          <div id="preference" class="col s12">
+            <div class="input-field">
+              <select id="p-theme">
+                <option value="default">Default</option>
+                <option value="solarized light">Solarized Light</option>
+                <option value="solarized dark">Solarized Dark</option>
+              </select>
+              <label>Themes</label>
+            </div>
+          </div>
 
           <div id="keymaps-tab" class="col s12">
+            <p>When the editor is focuses, it reponds to the following keymaps:</p>
             <table class="bordered">
               <thread>
                 <tr>

@@ -70,6 +70,16 @@ raco pkg install pollen-rock
 `raco pollen-rock -h` shows available options.
 
 # ChangeLog
+## 0.3.2 (03/07/2017)
+
+Features
+
+ - add theme (rename Help to Settings)
+
+Enhancement
+
+ - upgrade CodeMirror to 5.24
+
 ## 0.3.1 (03/07/2017)
 
 Features

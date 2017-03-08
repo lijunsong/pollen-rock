@@ -15,12 +15,8 @@ html, .CodeMirror {
     bottom: 1.5rem;
 }
 /* Editor */
-#editor-row, #editor-wrapper, #editor-data, .CodeMirror {
+#editor-row, #editor-wrapper, .CodeMirror {
     height: 100%;
-}
-
-.CodeMirror-cursor {
-  border-left: 2px solid #333;
 }
 
 /* Preview */
@@ -172,12 +168,21 @@ html, .CodeMirror {
     color: #EEE;
 }
 
-.CodeMirror-matchingbracket {
+.cm-s-default .CodeMirror-matchingbracket {
   background-color: #eaffea;
 }
 
 .CodeMirror-empty {
   color: #CCC;
+}
+
+.CodeMirror-cursor {
+    border-left-width: 3px !important;
+}
+
+.CodeMirror {
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
 }
 
 @media only screen and (max-width: 450px) {
@@ -192,20 +197,20 @@ html, .CodeMirror {
 }
 
 @media only screen and (min-width: 600px) {
-html, .CodeMirror {
+.CodeMirror {
     font-size: 21px;
 }
 
 }
 
 @media only screen and (min-width: 768px) {
-html, .CodeMirror {
+.CodeMirror {
     font-size: 22px;
 }
 }
 
 @media only screen and (min-width: 992px) {
-html, .CodeMirror {
+.CodeMirror {
     font-size: 23px;
 }
 }
