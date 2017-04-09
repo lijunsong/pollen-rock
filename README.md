@@ -70,7 +70,7 @@ raco pkg install pollen-rock
 `raco pollen-rock -h` shows available options.
 
 # ChangeLog
-## 0.3.2 (03/07/2017)
+## 0.3.2
 
 Features
 
@@ -80,21 +80,21 @@ Enhancement
 
  - upgrade CodeMirror to 5.24
 
-## 0.3.1 (03/07/2017)
+## 0.3.1
 
 Features
 
  - add option (--no-shell) to disable the terminal
  - add checks on unsaved document before browser is closed
 
-## 0.3.0 (03/07/2017)
+## 0.3.0
 
 Features
 
  - add protocol to watch file changes
  - Implement auto-reload rendered pages
 
-## 0.2.0 (03/06/2017)
+## 0.2.0
 
 Features
 
