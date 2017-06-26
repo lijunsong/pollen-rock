@@ -88,8 +88,44 @@ This file defines protocols between clients and server
 ;;; Main handler for POST api request
 ;; TODO: To save a big file on a slow disk will cause problem.
 ;;       It seems what we need here is a producer-consumer queue.
-(define/contract (api-post-handler req)
-  (-> request? response?)
+(define api-post-handler
+  (export-rpc-handler
+   (hash #"save" save-handler
+         #"render" render-handler
+         #"get-project-config" get-project-config-handler
+         #"run-cmd" run-cmd-handler
+         #"watchfile" watchfile-handler)))
+
+(define (save-handler text resource)
+  (define filepath (append-path webroot resource))
+  (cond [(not (file-exists? filepath)) #f]
+        [else
+         (call-with-atomic-output-file filepath
+           (lambda (out path)
+             (display (Save-text save) out)
+             #t))]))
+
+(define (render-handler resource)
+  (define file-path (path->complete-path
+                     (append-path webroot resource)))
+  (cond [(is-pollen-source? resource)
+         (render-to-file-if-needed file-path)
+         (resource->output-path resource)]
+        [else resource]))
+
+(define (run-cmd-handler cmd)
+  (cond [(no-shell)
+         (display (format "[shell] disabled: command query '~a'\n" cmd))
+         "disabled"]
+         [else
+          (call-with-output-bytes
+           (lambda (p)
+             (parameterize ([current-output-port p]
+                            [current-error-port p])
+               (system cmd))))])
+
+
+  (response/text answer))
   (match (request-api-type req)
     ["save"
      (let ((save (request->save req)))
