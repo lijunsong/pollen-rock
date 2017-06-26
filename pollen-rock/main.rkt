@@ -44,7 +44,7 @@
            (partition ctrl/file-is-directory? all-files))
          (let ((folders (xexpr/all-files folderobjs))
                (files   (xexpr/all-files fileobjs)))
-           (response/text (include-template "files.html")))]
+           (response/text (include-template "templates/files.html")))]
         [else
          (define file-path (path->complete-path
                             (append-path webroot resource)))
@@ -59,11 +59,11 @@
   (define filepath (append-path webroot resource))
   (define content (file->bytes filepath))
   (define shell-disabled (if (no-shell) "disabled" ""))
-  (response/text (include-template "editor.html")))
+  (response/text (include-template "templates/editor.html")))
 
 (define (watchfile-handler req url)
   (define resource (path-elements->resource url))
-  (response/text (include-template "watchfile.html")))
+  (response/text (include-template "templates/watchfile.html")))
 
 (define-values (server-dispatch url)
   (dispatch-rules
