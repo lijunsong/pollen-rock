@@ -6,6 +6,8 @@ $(document).ready(function() {
 
   var server_api = "/api";
 
+  var rpc = new PollenRockRPC("/api");
+
   var model = {
     init : function() {
       // when multiple rendering requests on the fly, the first response will
@@ -48,32 +50,6 @@ $(document).ready(function() {
 
     initRockConfig : function(config) {
       this["rockConfig"] = config;
-    },
-
-    saveRequest : function(text, resource) {
-      return {
-        type : 'save',
-        text : text,
-        resource : resource
-      };
-    },
-    renderRequest : function(resource) {
-      return {
-        type : 'render',
-        resource : resource
-      };
-    },
-    pollenConfigRequest : function(resource) {
-      return {
-        type : 'config',
-        resource : resource
-      };
-    },
-    shellRequest : function(cmd) {
-      return {
-        type : 'shell',
-        cmd  : cmd
-      };
     }
   };
 
@@ -89,7 +65,6 @@ $(document).ready(function() {
 
       // initialize Views.
       var resource = $("#compose").attr("data");
-      var initRequest = model.pollenConfigRequest(resource);
       loaderView.init();
       materializeView.init();
       preview.init();
@@ -97,9 +72,8 @@ $(document).ready(function() {
       preferenceView.init();
 
       // initialize project specific settings
-      $.post(server_api, initRequest, function(config) {
-        // continue init
-        var jsconfig = JSON.parse(config);
+      rpc.call_server("get-project-config", resource).then(v => {
+        let jsconfig = v.result;
         model.initPollenConfig(jsconfig["pollenConfig"]);
         model.initPollenTags(jsconfig["tags"]);
         model.initRockConfig(jsconfig["rockConfig"]);
@@ -110,9 +84,9 @@ $(document).ready(function() {
         panelView.init(ctrl.getRockConfig("no-shell"));
         upperWrapperView.init(editorView.editor.getWrapperElement());
         notifyView.info("Ready to Rock!");
-      }).fail(function(status) {
-        notifyView.error(status.statusText);
-      }).always(function() {
+      }).catch(err => {
+        notifyView.error(err);
+      }).then(() => {
         loaderView.hide();
       });
 
@@ -134,25 +108,23 @@ $(document).ready(function() {
       });
     },
 
-    // save async optionally accepts two callback functions that taking no arguments
-    save : function(succCallback, failCallback, sync) {
-      var editor = editorView.editor;
-      if (editor.isClean(editor.curGen)) {
-        return;
-      }
-      editor.curGen = editor.changeGeneration();
-      saveStatusView.update(model.saveStatus.saving());
-      var resource = this.getPollenConfig("resource");
-      var text = editor.getValue();
-      var request = model.saveRequest(text, resource);
-      $.post(server_api, request, function(status) {
-        saveStatusView.update(model.saveStatus.saved());
-        if (succCallback)
-          succCallback();
-      }).fail(function(status) {
-        saveStatusView.error(status.statusText);
-        if (failCallback)
-          failCallback();
+    save : function() {
+      return new Promise((resolve, reject) => {
+        var editor = editorView.editor;
+        if (editor.isClean(editor.curGen)) {
+          resolve();
+        }
+        editor.curGen = editor.changeGeneration();
+        saveStatusView.update(model.saveStatus.saving());
+        var resource = this.getPollenConfig("resource");
+        var text = editor.getValue();
+        rpc.call_server("save", text, resource).then(v => {
+          saveStatusView.update(model.saveStatus.saved());
+          resolve();
+        }).catch(err => {
+          saveStatusView.error(err.error);
+          reject();
+        });
       });
     },
 
@@ -236,10 +208,12 @@ $(document).ready(function() {
         // save the document 2 seconds after typing
         // and render the document only when the syntax is correct
         scheduledSave = setTimeout(function() {
-          ctrl.save(function(){
+          ctrl.save().then(() => {
             if (preview.visible && editorView.syntaxCheck()) {
               ctrl.renderPreview();
             }
+          }).catch(() => {
+            notifyView.error("Failed to save");
           });
         }, 2000);
       });

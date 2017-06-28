@@ -65,7 +65,7 @@
               (define struct-name
                 (symbol->string (vector-ref (struct->vector e) 0)))
               (define name (string-trim struct-name "struct:"))
-              (rpc-error-answer call-id name))])
+              (rpc-error-answer (if call-id call-id #"-1") name))])
         (cond [(and call-id method params-content)
                (define params (bytes->jsexpr params-content))
                (with-handlers
