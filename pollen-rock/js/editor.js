@@ -1,6 +1,12 @@
 // This is an application using a self-made Model-Control-View
 // principle.
 
+$(document).ready(() => {
+  let model = new Model();
+  let view = new View(model);
+  let controller = new Controller(model, view);
+});
+
 $(document).ready(function() {
   "use strict";
 
@@ -509,6 +515,6 @@ $(document).ready(function() {
     }
   };
 
-  ctrl.init();
+  //ctrl.init();
 
 });

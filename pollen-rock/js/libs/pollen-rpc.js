@@ -35,8 +35,7 @@ class JsonRPC {
 class PollenRockRPC extends JsonRPC {
   // call_server takes a remote procedure name and variable number of
   // arguments, and returns a promise that resolves to a RPC result.
-  call_server(method) {
-    let params = Array.prototype.slice.call(arguments, 1);
+  call_server(method, ... params) {
     return this._rpc_call(method, JSON.stringify(params));
   }
 }
