@@ -1,11 +1,9 @@
-
-
 class View {
   constructor(model) {
     this.model = model;
     this.setupBindings()
       .setupHandlers()
-      .enable();
+      .attach();
   }
 
   setupBindings() {
@@ -17,53 +15,25 @@ class View {
   }
 
   setupHandlers() {
-    this.initCodeMirrorHandler = this.initCodeMirror.bind(this);
-    this.saveStatusChangehandler = this.saveStatusChange.bind(this);
-    this.fetchConfigHandler = this.fetchConfig.bind(this);
+    this.saveStatusChangehandler = this.changeSaveStatus.bind(this);
+    this.editorPostInitHandler = this.makeEditorReady.bind(this);
     return this;
   }
 
-  enable() {
-    this.model.fetchProjectConfigSuccessEvent.attach(this.initCodeMirrorHandler);
-    this.model.fetchProjectConfigSuccessEvent.attach(this.fetchConfigHandler);
-    this.model.fetchConfigFailEvent.attach(this.fetchConfigHandler);
-
+  attach() {
+    this.model.editorInitFailEvent.attach(this.editorPostInitHandler);
+    this.model.editorTagsReadyEvent.attach(this.editorPostInitHandler);
     this.model.saveStatusChangeEvent.attach(this.saveStatusChangeHandler);
     return this;
   }
 
-  /* ---------- CodeMirror setups ---------- */
-
-  initCodeMirror() {
-    let config = {
-      autofocus: true,
-      matchBrackets: true,
-      lineWrapping: true,
-      scrollbarStyle: "null",
-      theme: "default",
-      mode: 'pollen'
-    };
-    this.editor = CodeMirror.fromTextArea(
-      document.getElementById('compose'),
-      config
-    );
-    this.initCodeMirrorKeyMaps();
-  }
-
-  initCodeMirrorKeyMaps() {
-  }
-
-  /* ---------- CodeMirror setup ends ---------- */
-
-  saveStatusChange(val) {
+  changeSaveStatus(val) {
     this.$saveStatus.text(val);
   }
 
-  fetchConfig() {
+  makeEditorReady() {
     this.$loader.addClass("hide");
     this.$editor.removeClass("hide");
-    if (this.editor)
-      this.editor.refresh();
   }
 
 }
