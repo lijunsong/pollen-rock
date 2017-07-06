@@ -7,5 +7,6 @@ class Controller {
   }
 
   init() {
+    this.model.fetchPollenConfig();
   }
 }

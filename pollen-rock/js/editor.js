@@ -2,7 +2,8 @@
 // principle.
 
 $(document).ready(() => {
-  let model = new Model();
+  let resource = $("#compose").attr("data");
+  let model = new Model(resource);
   let view = new View(model);
   let controller = new Controller(model, view);
 });

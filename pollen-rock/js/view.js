@@ -19,20 +19,34 @@ class View {
   setupHandlers() {
     this.initCodeMirrorHandler = this.initCodeMirror.bind(this);
     this.saveStatusChangehandler = this.saveStatusChange.bind(this);
+    this.fetchConfigHandler = this.fetchConfig.bind(this);
     return this;
   }
 
   enable() {
-    this.model.fetchPollenConfigEvent.attach(this.initCodeMirrorHandler);
-    this.model.fetchPollenConfigEvent.attach
+    this.model.fetchProjectConfigSuccessEvent.attach(this.initCodeMirrorHandler);
+    this.model.fetchProjectConfigSuccessEvent.attach(this.fetchConfigHandler);
+    this.model.fetchConfigFailEvent.attach(this.fetchConfigHandler);
+
     this.model.saveStatusChangeEvent.attach(this.saveStatusChangeHandler);
     return this;
   }
 
   /* ---------- CodeMirror setups ---------- */
 
-  initCodeMirror(config) {
-    this.editor = CodeMirror.fromTextArea($("#compose"), config);
+  initCodeMirror() {
+    let config = {
+      autofocus: true,
+      matchBrackets: true,
+      lineWrapping: true,
+      scrollbarStyle: "null",
+      theme: "default",
+      mode: 'pollen'
+    };
+    this.editor = CodeMirror.fromTextArea(
+      document.getElementById('compose'),
+      config
+    );
     this.initCodeMirrorKeyMaps();
   }
 
@@ -45,6 +59,11 @@ class View {
     this.$saveStatus.text(val);
   }
 
-  
+  fetchConfig() {
+    this.$loader.addClass("hide");
+    this.$editor.removeClass("hide");
+    if (this.editor)
+      this.editor.refresh();
+  }
 
 }

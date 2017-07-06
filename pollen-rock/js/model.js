@@ -8,24 +8,28 @@ function notifyError(msg) {
 }
 
 class Model {
-  constructor() {
+  constructor(resource) {
     this.rpc = new PollenRockRPC("/api");
 
-    this.pollenConfig = {};
-    this.pollenTags = {};
+    this.projectConfig = {};
+    this.tags = {};
     this.editorPreference = {};
 
-    this.fetchPollenConfigEvent = new Event(this);
-
+    this.fetchConfigFailEvent = new Event(this);
+    this.fetchTagsSuccessEvent = new Event(this);
+    this.fetchProjectConfigSuccessEvent = new Event(this);
     this.saveStatusChangeEvent = new Event(this);
+
+    this.resource = resource;
   }
 
   fetchPollenConfig() {
-    return this.rpc.call_server("get-project-config", resource).then(v => {
-      let jsconfig = v.result;
-      this.fetchPollenConfigEvent.notify(jsconfig);
+    return this.rpc.call_server("get-project-config", this.resource).then(v => {
+      let config = v.result;
+      this.fetchTagsSuccessEvent.notify(config['tags']);
+      this.fetchProjectConfigSuccessEvent.notify(config['projectConfig']);
     }).catch(err => {
-      this.fetchPollenConfigEvent.notify(err);
+      this.fetchConfigFailEvent.notify(err);
     });
   }
 }
