@@ -14,10 +14,14 @@ class Controller {
   }
 
   setupHandlers() {
+    this.previewHandler = this.preview.bind(this);
+    this.editorPositionChangeHandler = this.editorPositionChange.bind(this);
     return this;
   }
 
   attach() {
+    this.view.previewEvent.attach(this.previewHandler);
+    this.view.editorPositionChangeEvent.attach(this.editorPositionChangeHandler);
     return this;
   }
 
@@ -50,5 +54,20 @@ class Controller {
         "Insert Command Char or @"
       )
     ];
+  }
+
+  editorPositionChange() {
+    this.model.refreshEditor();
+  }
+
+  preview() {
+    let $preview = this.view.$preview;
+    $preview.toggleClass("hide");
+    if ($preview.hasClass("hide")) {
+      this.view.placeEditorOnCenter();
+    } else {
+      this.model.renderPreview();
+      this.view.placeEditorOnRight();
+    }
   }
 }

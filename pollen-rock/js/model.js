@@ -31,6 +31,7 @@ class Model {
     this.pollenTagsReadyEvent = new Event(this);
     this.pollenSetupReadyEvent = new Event(this);
     this.saveStatusChangeEvent = new Event(this);
+    this.previewReadyEvent = new Event(this);
 
     // Handlers
     this.setupHandlers()
@@ -62,9 +63,11 @@ class Model {
       this.pollenSetupReadyEvent.notify(this.pollenSetup);
     }).catch(err => {
       this.editorInitFailEvent.notify(err);
-    }).then(() => {
-      this.editor.refresh();
     });
+  }
+
+  refreshEditor() {
+    this.editor.refresh();
   }
 
   /**
@@ -118,6 +121,12 @@ class Model {
           .then(v => this.saveStatusChangeEvent.notify(v));
       }, 2000);
     };
+  }
+
+  renderPreview() {
+    return this.rpc.call_server("render", this.resource).then(path => {
+      this.previewReadyEvent.notify(path);
+    });
   }
 }
 
