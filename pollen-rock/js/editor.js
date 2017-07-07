@@ -3,9 +3,12 @@
 
 $(document).ready(() => {
   let resource = $("#compose").attr("data");
-  let model = new Model(resource);
+  let $textarea = document.getElementById("compose");
+  let model = new Model($textarea, resource);
   let view = new View(model);
   let controller = new Controller(model, view);
+
+  controller.init();
 });
 
 $(document).ready(function() {

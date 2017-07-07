@@ -28,10 +28,9 @@ class Model {
 
     // Events
     this.editorInitFailEvent = new Event(this);
-    this.editorTagsReadyEvent = new Event(this);
+    this.projectTagsReadyEvent = new Event(this);
     this.projectConfigReadyEvent = new Event(this);
     this.saveStatusChangeEvent = new Event(this);
-    this.editorChangedEvent = new Event(this);
 
     // Handlers
     this.setupHandlers()
@@ -39,24 +38,32 @@ class Model {
   }
 
   setupHandlers() {
+    this.autoSaveHandler = this.makeAutoSaveHandler();
+    this.saveStatusChangeHandler = () => {
+      this.saveStatusChangeEvent.notify();
+    };
+
     return this;
   }
 
   attach() {
-    this.editor.on("change", this.editorChangeEvent.notify);
+    this.editor.on("change", this.autoSaveHandler);
+    this.editor.on("change", this.saveStatusChangeHandler);
 
     return this;
   }
 
-  fetchProjectConfig() {
+  init() {
     return this.rpc.call_server("get-project-config", this.resource).then(v => {
       let config = v.result;
       this.tags = config['tags'];
-      this.editorTagsReadyEvent.notify(this.tags);
+      this.projectTagsReadyEvent.notify(this.tags);
       this.projectConfig = config['projectConfig'];
       this.projectConfigReadyEvent.notify(this.projectConfig);
     }).catch(err => {
       this.editorInitFailEvent.notify(err);
+    }).then(() => {
+      this.editor.refresh();
     });
   }
 
@@ -69,7 +76,24 @@ class Model {
       this.docGeneration = this.editor.changeGeneration();
       let resource = this.resource;
       let text = this.editor.getValue();
-      return this.rpc.call_server("save", text, resource);
+      this.rpc.call_server("save", text, resource)
+        .then(resolve).catch(reject);
     });
+  }
+
+  makeAutoSaveHandler() {
+    var scheduledSave;
+    return () => {
+      if (scheduledSave) {
+        clearTimeout(scheduledSave);
+      }
+
+      scheduledSave = setTimeout(() => {
+        this.save()
+          .then(v => 'saved')
+          .catch(v => 'error')
+          .then(v => this.saveStatusChangeEvent.notify(v));
+      }, 2000);
+    };
   }
 }

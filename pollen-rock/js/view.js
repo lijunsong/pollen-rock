@@ -15,19 +15,21 @@ class View {
   }
 
   setupHandlers() {
-    this.saveStatusChangehandler = this.changeSaveStatus.bind(this);
     this.editorPostInitHandler = this.makeEditorReady.bind(this);
+    this.statusChangeHandler = this.changeSaveStatus.bind(this);
     return this;
   }
 
   attach() {
     this.model.editorInitFailEvent.attach(this.editorPostInitHandler);
-    this.model.editorTagsReadyEvent.attach(this.editorPostInitHandler);
-    this.model.saveStatusChangeEvent.attach(this.saveStatusChangeHandler);
+    this.model.projectTagsReadyEvent.attach(this.editorPostInitHandler);
+    this.model.saveStatusChangeEvent.attach(this.statusChangeHandler);
     return this;
   }
 
-  changeSaveStatus(val) {
+  changeSaveStatus(sender, val) {
+    if (! val)
+      val = '';
     this.$saveStatus.text(val);
   }
 
