@@ -22,7 +22,7 @@ class View {
 
   attach() {
     this.model.editorInitFailEvent.attach(this.editorPostInitHandler);
-    this.model.projectTagsReadyEvent.attach(this.editorPostInitHandler);
+    this.model.pollenTagsReadyEvent.attach(this.editorPostInitHandler);
     this.model.saveStatusChangeEvent.attach(this.statusChangeHandler);
     return this;
   }

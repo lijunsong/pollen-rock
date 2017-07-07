@@ -116,7 +116,7 @@
     (extract-module-info
      '(pollen/setup (submod "pollen.rkt" setup))))
   (define vars (filter VariableTag? pollen-config))
-  (define pair (map (lambda (var)
+  (define setup (map (lambda (var)
                       (cons (VariableTag-name var)
                             (VariableTag-val  var))) vars))
   (define pollen-tags
@@ -131,8 +131,9 @@
                                               (cons 'keywords (ProcedureTag-keywords v)))))]
                                 [else (error "handle config request error: unknown tag type")]))
                         pollen-tags))
-  (hasheq 'pollenConfig (hasheq 'rendered-resource (resource->output-path resource)
-                                'resource resource)
+  (hasheq 'setup (make-hasheq setup)
+          #|(hasheq 'rendered-resource (resource->output-path resource)
+                  'resource resource)|#
           'tags (make-immutable-hasheq tag-pair)
           'rockConfig (hasheq 'no-shell (no-shell))))
 

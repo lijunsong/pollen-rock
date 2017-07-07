@@ -2,7 +2,6 @@ function notifyInfo(msg) {
   Materialize.toast(msg, 4000, 'toast-info');
 }
 
-
 function notifyError(msg) {
   Materialize.toast(msg, 4000, 'toast-error');
 }
@@ -12,8 +11,8 @@ class Model {
     this.resource = resource;
 
     this.rpc = new PollenRockRPC("/api");
-    this.projectConfig = {};
-    this.tags = {};
+    this.pollenSetup = {};
+    this.pollenTags = {};
 
     this.editor = CodeMirror.fromTextArea($textarea, {
       autofocus: true,
@@ -25,11 +24,12 @@ class Model {
     });
     this.docGeneration = null;
     this.editorPreference = {};
+    this.keyMaps = [];
 
     // Events
     this.editorInitFailEvent = new Event(this);
-    this.projectTagsReadyEvent = new Event(this);
-    this.projectConfigReadyEvent = new Event(this);
+    this.pollenTagsReadyEvent = new Event(this);
+    this.pollenSetupReadyEvent = new Event(this);
     this.saveStatusChangeEvent = new Event(this);
 
     // Handlers
@@ -54,12 +54,12 @@ class Model {
   }
 
   init() {
-    return this.rpc.call_server("get-project-config", this.resource).then(v => {
+    this.rpc.call_server("get-project-config", this.resource).then(v => {
       let config = v.result;
-      this.tags = config['tags'];
-      this.projectTagsReadyEvent.notify(this.tags);
-      this.projectConfig = config['projectConfig'];
-      this.projectConfigReadyEvent.notify(this.projectConfig);
+      this.pollenTags = config['tags'];
+      this.pollenTagsReadyEvent.notify(this.pollenTags);
+      this.pollenSetup = config['setup'];
+      this.pollenSetupReadyEvent.notify(this.pollenSetup);
     }).catch(err => {
       this.editorInitFailEvent.notify(err);
     }).then(() => {
@@ -67,6 +67,29 @@ class Model {
     });
   }
 
+  /**
+   * add key maps to the editor
+   */
+  addKeyMap(keymap_list) {
+    let keymap = {};
+    for (let km of keymap_list) {
+      keymap[km.key] = km.func;
+    }
+    this.editor.setOption("extraKeys", keymap);
+  }
+
+  /**
+   * Pollen setup has variables defined in the module 'pollen/setup'. User
+   * can override values in pollen.rkt. Use this method to get correct value.
+   */
+  getPollenSetup(name) {
+    return this.pollenSetup[name] || this.pollenSetup[`default-${name}`];
+  }
+
+  /**
+   * This method saves text in editor.
+   * TODO: resolve and reject should be passed object representing RPC result
+   */
   save() {
     return new Promise((resolve, reject) => {
       if (this.editor.isClean(this.docGeneration)) {
@@ -95,5 +118,13 @@ class Model {
           .then(v => this.saveStatusChangeEvent.notify(v));
       }, 2000);
     };
+  }
+}
+
+class Keymap {
+  constructor(key, func, doc) {
+    this.key = key;
+    this.func = func;
+    this.doc = doc;
   }
 }

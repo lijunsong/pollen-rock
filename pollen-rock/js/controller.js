@@ -9,6 +9,8 @@ class Controller {
 
     this.setupHandlers()
       .attach();
+
+    this.init();
   }
 
   setupHandlers() {
@@ -21,5 +23,32 @@ class Controller {
 
   init() {
     this.model.init();
+    this.model.addKeyMap(this.getKeyMaps());
+  }
+
+  /* ---------- keymap handlers ---------- */
+  insertCommandCharHandler(e) {
+    let pos = e.getCursor();
+    let commandChar = this.model.getPollenSetup('command-char');
+    if (pos.ch == 0) {
+      e.replaceSelection(commandChar);
+    } else {
+      let lastPos = CodeMirror.Pos(pos.line, pos.ch-1);
+      if (e.getRange(lastPos, pos) == commandChar) {
+        e.replaceRange('@', lastPos, pos);
+      } else {
+        e.replaceSelection(commandChar);
+      }
+    }
+  }
+
+  /* ---------- keymap handlers ends ---------- */
+  getKeyMaps() {
+    return [
+      new Keymap('Shift-2',
+        this.insertCommandCharHandler.bind(this),
+        "Insert Command Char or @"
+      )
+    ];
   }
 }
