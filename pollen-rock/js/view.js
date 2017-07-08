@@ -1,3 +1,5 @@
+"use strict";
+
 class View {
   constructor(model) {
     this.model = model;
@@ -18,7 +20,7 @@ class View {
 
     /* ---------- events ---------- */
     this.editorPositionChangeEvent = new Event(this);
-    this.previewEvent = new Event(this);
+    this.previewRequestEvent = new Event(this);
 
     return this;
   }
@@ -27,7 +29,7 @@ class View {
     this.editorPostInitHandler = this.editorPostInit.bind(this);
     this.statusChangeHandler = this.changeSaveStatus.bind(this);
 
-    this.previewBtnHandler = () => { this.previewEvent.notify(); };
+    this.previewBtnHandler = () => { this.previewRequestEvent.notify(); };
     this.previewReadyHandler = this.previewReady.bind(this);
     return this;
   }
@@ -55,6 +57,7 @@ class View {
     } else {
       this.$previewFrame.attr('src', path);
     }
+    this.$previewLoader.addClass("hide");
   }
 
   editorPostInit() {
@@ -75,4 +78,7 @@ class View {
     this.editorPositionChangeEvent.notify();
   }
 
+  showPreviewLoader() {
+    this.$previewLoader.removeClass("hide");
+  }
 }

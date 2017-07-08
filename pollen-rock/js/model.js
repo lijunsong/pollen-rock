@@ -1,10 +1,14 @@
+"use strict";
+
 function notifyInfo(msg) {
   Materialize.toast(msg, 4000, 'toast-info');
 }
 
 function notifyError(msg) {
+  console.error(msg);
   Materialize.toast(msg, 4000, 'toast-error');
 }
+
 
 class Model {
   constructor($textarea, resource) {
@@ -124,8 +128,11 @@ class Model {
   }
 
   renderPreview() {
-    return this.rpc.call_server("render", this.resource).then(path => {
+    return this.rpc.call_server("render", this.resource).then(rpcVal => {
+      let path = rpcVal.result;
       this.previewReadyEvent.notify(path);
+    }).catch(rpcVal => {
+      notifyError(`render failed: ${rpcVal.error}`);
     });
   }
 }
