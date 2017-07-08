@@ -1,5 +1,4 @@
-// This is an application using a self-made Model-Control-View
-// principle.
+"use strict";
 
 $(document).ready(() => {
   let resource = $("#compose").attr("data");
@@ -7,8 +6,7 @@ $(document).ready(() => {
   let model = new Model($textarea, resource);
   let view = new View(model);
   let controller = new Controller(model, view);
-
-  controller.init();
+  // hand off the rest initialization to controller constructor
 });
 
 $(document).ready(function() {

@@ -16,7 +16,7 @@
 
   <body class="noscroll">
     <div id="upper-wrapper">
-      <div id="loader" class="progress">
+      <div id="startup-loader" class="progress">
         <div class="indeterminate"></div>
       </div>
 
@@ -43,7 +43,7 @@
       </div>
       <div class="panel-right">
         <span id="save-status" class="panel-item">saved</span>
-        <span id="keymapsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Settings</span>
+        <span id="settingsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Settings</span>
       </div>
     </div>
 
@@ -69,7 +69,7 @@
           </div>
 
           <div id="keymaps-tab" class="col s12">
-            <p>When the editor is focuses, it reponds to the following keymaps:</p>
+            <p>The following keymaps are active:</p>
             <table class="bordered">
               <thread>
                 <tr>
@@ -100,7 +100,7 @@
     <script type="text/template" data-template="keymap-row">
       <tr>
         <td>{{keystroke}}</td>
-        <td>{{command}}</td>
+        <td>{{doc}}</td>
       </tr>
     </script>
     <script type="text/template" data-template="shell-output">

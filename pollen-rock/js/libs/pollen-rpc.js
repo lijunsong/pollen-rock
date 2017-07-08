@@ -1,6 +1,29 @@
-// RPC caller object is an object that has at least three properties:
-// id, method, result. RPC result is an object that has at least three
+// JsonRPC object is an object that has at least three properties:
+// id, method, result. RPCResult is an object that has at least three
 // properties: id, result, error.
+
+class RPCVal {
+  constructor(id, result, error) {
+    this.id = id;
+    this.result = result;
+    this.error = error;
+    if (this.result == null && this.error == null) {
+      throw "Not RPCVal";
+    }
+  }
+}
+
+class RPCResultVal extends RPCVal {
+  constructor(id, result) {
+    super(id, result, null);
+  }
+}
+
+class RPCErrorVal extends RPCVal {
+  constructor(id, error) {
+    super(id, null, error);
+  }
+}
 
 // JsonRPC
 class JsonRPC {
@@ -23,9 +46,9 @@ class JsonRPC {
       $.post(self.server_url, data, function(result) {
         let res = JSON.parse(result);
         if (res.result) {
-          resolve(res);
+          resolve(new RPCResultVal(res.id, res.result));
         } else {
-          reject(res);
+          reject(new RPCResultVal(res.id, res.error));
         }
       });
     });

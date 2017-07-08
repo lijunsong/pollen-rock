@@ -28,7 +28,7 @@ class Model {
     });
     this.docGeneration = null;
     this.editorPreference = {};
-    this.keyMaps = [];
+    this.keyMaps = new Map();
 
     // Events
     this.editorInitFailEvent = new Event(this);
@@ -36,6 +36,7 @@ class Model {
     this.pollenSetupReadyEvent = new Event(this);
     this.saveStatusChangeEvent = new Event(this);
     this.previewReadyEvent = new Event(this);
+    this.keymapUpdateEvent = new Event(this);
 
     // Handlers
     this.setupHandlers()
@@ -78,11 +79,15 @@ class Model {
    * add key maps to the editor
    */
   addKeyMap(keymap_list) {
-    let keymap = {};
     for (let km of keymap_list) {
-      keymap[km.key] = km.func;
+      this.keyMaps.set(km.key, km);
     }
-    this.editor.setOption("extraKeys", keymap);
+    let kms = {};
+    for (let [k, v] of this.keyMaps) {
+      kms[k] = v.func;
+    }
+    this.editor.setOption("extraKeys", kms);
+    this.keymapUpdateEvent.notify(this.keyMaps);
   }
 
   /**
@@ -100,7 +105,8 @@ class Model {
   save() {
     return new Promise((resolve, reject) => {
       if (this.editor.isClean(this.docGeneration)) {
-        resolve();
+        // pretend RPC succeeded
+        resolve(new RPCResultVal(0, true));
       }
 
       this.docGeneration = this.editor.changeGeneration();

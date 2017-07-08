@@ -3,15 +3,28 @@
 class View {
   constructor(model) {
     this.model = model;
+    this.setupMaterialize();
     this.setupBindings()
       .setupHandlers()
       .attach();
   }
 
+  setupMaterialize() {
+    $(".modal").modal({
+      ready: function() {
+        // Because we hide this tab before, to show this modal the first place
+        // won't show tab's active indicator. I found one click would solve
+        // this problem. So manually trigger a click event here.
+        $("#tab-header li:first-child a").click();
+      }
+    });
+    $('select').material_select();
+  }
+
   setupBindings() {
     this.$editor = $("#editor-wrapper");
     this.$saveStatus = $("#save-status");
-    this.$loader = $("#loader");
+    this.$startupLoader = $("#startup-loader");
 
     this.$preview = $("#preview-wrapper");
     this.$previewFrame = this.$preview.find('#preview-frame');
@@ -31,6 +44,8 @@ class View {
 
     this.previewBtnHandler = () => { this.previewRequestEvent.notify(); };
     this.previewReadyHandler = this.previewReady.bind(this);
+    this.keymapUpdateHandler = this.buildKeymaps.bind(this);
+
     return this;
   }
 
@@ -39,6 +54,7 @@ class View {
     this.model.pollenTagsReadyEvent.attach(this.editorPostInitHandler);
     this.model.saveStatusChangeEvent.attach(this.statusChangeHandler);
     this.model.previewReadyEvent.attach(this.previewReadyHandler);
+    this.model.keymapUpdateEvent.attach(this.keymapUpdateHandler);
 
     this.$previewBtn.click(this.previewBtnHandler);
     return this;
@@ -61,7 +77,7 @@ class View {
   }
 
   editorPostInit() {
-    this.$loader.addClass("hide");
+    this.$startupLoader.addClass("hide");
     this.$editor.removeClass("hide");
     this.editorPositionChangeEvent.notify();
   }
@@ -81,4 +97,22 @@ class View {
   showPreviewLoader() {
     this.$previewLoader.removeClass("hide");
   }
+
+  buildKeymaps(sender, maps) {
+    // discard current keymap view, and build it again.
+    let tableBody = $("#keymap-body");
+    tableBody.html('');
+
+    let rowTemplate = $('script[data-template="keymap-row"]').html();
+    let modal = $("#keymap-settings");
+    // iterate through all the keys
+    console.log(`keymap: ${maps}`);
+    for (let [k, v] of maps) {
+      let row = rowTemplate
+          .replace(/{{keystroke}}/g, k)
+          .replace(/{{doc}}/g, v.doc);
+      tableBody.append(row);
+    }
+  }
+
 }
