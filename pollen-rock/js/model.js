@@ -1,5 +1,18 @@
 "use strict";
 
+/**
+ * Model is responsible for changes of all the data including the
+ * CodeMirror editor, editor preference, pollen project config/setup.
+ *
+ * The change of data will be sent to event's subscriber. Subscriber
+ * can subscribe (use attach function) to events of interests.
+ *
+ * Model's events can be subscribed by both View and Controller. One
+ * example is saveStatusChangeEvent. View subscribes this event to
+ * update the status text box, and Controller subscribes this event to
+ * update preview when preview window is opened.
+ */
+
 function notifyInfo(msg) {
   Materialize.toast(msg, 4000, 'toast-info');
 }
@@ -155,6 +168,13 @@ class Model {
     }
     this.refreshEditor();
     this.editorSettingsChangeEvent.notify(obj);
+  }
+
+  // TODO: editor mode should return such a check function
+  syntaxCheck() {
+    let lastLine = this.editor.doc.lastLine();
+    let state = this.editor.getStateAfter(lastLine, true);
+    return state.braceStack.length == 0;
   }
 }
 

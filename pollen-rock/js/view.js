@@ -1,5 +1,20 @@
 "use strict";
 
+/**
+ * View is responsible for all the DOMs. View sees UI events like
+ * clicking the changing preference.
+ *
+ * View subscribes to Model's events directly so it can respond to
+ * Model's change directly. For example, Model notifies
+ * previewReadyEvent after it asks server to render preview. View
+ * subscribes to that event, and load the preview immediately when
+ * preview is available. Note that View's events will not be
+ * subscribed by Model. Bidirectional Events will only complicate the
+ * whole thing.
+ *
+ *
+ */
+
 class View {
   constructor(model) {
     this.model = model;
@@ -36,10 +51,12 @@ class View {
 
     /* ---------- events ---------- */
     this.editorPositionChangeEvent = new Event(this);
+    // notify when preview is clicked
     this.previewRequestEvent = new Event(this);
-    // notify with an object whose properties are setting name,
-    // property values are settings value
+    // notify with a new setting when settings are changed in UI
     this.editorSettingsChangeEvent = new Event(this);
+    // notify when fullscreen is triggered in UI
+    this.fullscreenEvent = new Event(this);
 
     return this;
   }
@@ -54,10 +71,13 @@ class View {
     this.editorSettingsChangeHandler = this.editorSettingsChange.bind(this);
     this.keymapChangeHandler = this.buildKeymaps.bind(this);
 
+    this.fullscreenHandler = this.searchFullScreenFunction();
+
     return this;
   }
 
   attach() {
+    // attach to model's event
     this.model.editorInitFailEvent.attach(this.editorPostInitHandler);
     this.model.pollenTagsReadyEvent.attach(this.editorPostInitHandler);
     this.model.saveStatusChangeEvent.attach(this.statusChangeHandler);
@@ -66,7 +86,53 @@ class View {
     this.model.editorSettingsChangeEvent.attach(this.editorSettingsChangeHandler);
 
     this.$previewBtn.click(this.previewBtnHandler);
+    this.fullscreenEvent.attach(this.fullscreenHandler);
+
     return this;
+  }
+
+  setupEditorSettings() {
+    let settings = this.model.editorSettings;
+    let $preference = $("#preference");
+    let self = this;
+    $preference.html('');
+
+    // handlers for selecting new value. These DOMs haven't been
+    // attached to the tree yet, and we can't even grab these DOMs in
+    // the following init steps, so let's just setup callbacks in this
+    // method
+    let callback = (name) => function() {
+      let change = {};
+      change[name] = $(this).val();
+      self.editorSettingsChangeEvent.notify(change);
+    };
+
+
+    for (let name of settings.keys()) {
+      // create UI
+      let $inputDiv = $('<div>').addClass('input-field col s12');
+      let $select = $('<select>').attr('id', `p-${name}`).appendTo($inputDiv);
+      for (let option of settings.options(name)) {
+        let $option = $('<option>').attr('value', option).text(option);
+        $select.append($option);
+      }
+      let $label = $('<label>').text(name).appendTo($inputDiv);
+      $preference.append($inputDiv);
+      $select.on("change", callback(name));
+    }
+    $('select').material_select();
+    return this;
+  }
+
+  searchFullScreenFunction() {
+    let lst = ["requestFullscreen", "mozRequestFullScreen",
+             "webkitRequestFullscreen", "msRequestFullscreen"];
+    for (let f of lst) {
+      if (f in document.documentElement) {
+        return document.documentElement[f].bind(document.documentElement);
+      }
+    }
+    return () => notifyError("Your browser doesn't support fullscreen");
   }
 
   changeSaveStatus(sender, val) {
@@ -121,34 +187,6 @@ class View {
           .replace(/{{doc}}/g, v.doc);
       $tableBody.append(row);
     }
-  }
-
-  setupEditorSettings() {
-    let settings = this.model.editorSettings;
-    let $preference = $("#preference");
-    let self = this;
-    $preference.html('');
-    let callback = (name) => function() {
-      let change = {};
-      change[name] = $(this).val();
-      self.editorSettingsChangeEvent.notify(change);
-    };
-
-
-    for (let name of settings.keys()) {
-      // create UI
-      let $inputDiv = $('<div>').addClass('input-field col s12');
-      let $select = $('<select>').attr('id', `p-${name}`).appendTo($inputDiv);
-      for (let option of settings.options(name)) {
-        let $option = $('<option>').attr('value', option).text(option);
-        $select.append($option);
-      }
-      let $label = $('<label>').text(name).appendTo($inputDiv);
-      $preference.append($inputDiv);
-      $select.on("change", callback(name));
-    }
-    $('select').material_select();
-    return this;
   }
 
   editorSettingsChange(sender, settings) {
