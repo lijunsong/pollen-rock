@@ -58,7 +58,6 @@
   (define breadcrumb (xexpr/resource->breadcrumb resource))
   (define filepath (append-path webroot resource))
   (define content (file->bytes filepath))
-  (define shell-disabled (if (no-shell) "disabled" ""))
   (response/text (include-template "templates/editor.html")))
 
 (define (watchfile-handler req url)
@@ -83,11 +82,7 @@
        ,(lambda (flag port)
           (server-port (string->number port)))
        (,(format "Set server's port (default ~a)" (server-port))
-        "port")]
-      [("-n" "--no-shell")
-       ,(lambda (flag)
-          (no-shell #t))
-       (,(format "Disable shell (default ~a)" (no-shell)))]))
+        "port")]))
    (lambda (f) (void))
    '())
   (serve/servlet server-dispatch

@@ -46,17 +46,6 @@
          (resource->output-path resource)]
         [else resource]))
 
-(define (run-cmd-handler cmd)
-  (cond [(no-shell)
-         (display (format "[shell] disabled: command query '~a'\n" cmd))
-         (rpc-raise exn:fail:rpc:unbound)]
-         [else
-          (call-with-output-string
-           (lambda (p)
-             (parameterize ([current-output-port p]
-                            [current-error-port p])
-               (system cmd))))]))
-
 ;; seconds is the last modify seconds that the frontend knows about
 ;; this file
 (define (watchfile-handler resource last-seen-seconds)
@@ -134,8 +123,7 @@
   (hasheq 'setup (make-hasheq setup)
           #|(hasheq 'rendered-resource (resource->output-path resource)
                   'resource resource)|#
-          'tags (make-immutable-hasheq tag-pair)
-          'rockConfig (hasheq 'no-shell (no-shell))))
+          'tags (make-immutable-hasheq tag-pair)))
 
 ;;; Main handler for POST api request
 (define api-post-handler
@@ -143,5 +131,4 @@
    (hash #"save" save-handler
          #"render" render-handler
          #"get-project-config" get-project-config-handler
-         #"run-cmd" run-cmd-handler
          #"watchfile" watchfile-handler)))
