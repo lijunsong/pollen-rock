@@ -4,6 +4,9 @@ class View {
   constructor(model) {
     this.model = model;
     this.setupMaterialize();
+
+    this.setupEditorSettings();
+
     this.setupBindings()
       .setupHandlers()
       .attach();
@@ -48,7 +51,6 @@ class View {
     this.previewBtnHandler = () => { this.previewRequestEvent.notify(); };
     this.previewReadyHandler = this.previewReady.bind(this);
 
-    // settings handlers
     this.editorSettingsChangeHandler = this.editorSettingsChange.bind(this);
     this.keymapChangeHandler = this.buildKeymaps.bind(this);
 
@@ -121,13 +123,17 @@ class View {
     }
   }
 
-  /**
-   * received new settings from model, update preference UI
-   */
-  editorSettingsChange(sender, settings) {
+  setupEditorSettings() {
+    let settings = this.model.editorSettings;
     let $preference = $("#preference");
     let self = this;
     $preference.html('');
+    let callback = (name) => function() {
+      let change = {};
+      change[name] = $(this).val();
+      self.editorSettingsChangeEvent.notify(change);
+    };
+
 
     for (let name of settings.keys()) {
       // create UI
@@ -138,15 +144,22 @@ class View {
         $select.append($option);
       }
       let $label = $('<label>').text(name).appendTo($inputDiv);
-      // setup bindings
-      $select.on("change", ((nm) => function(e) {
-        let changed = {};
-        changed[nm] = $(this).val();
-        self.editorSettingsChangeEvent.notify(changed);
-        $('select').material_select();
-      })(name));
       $preference.append($inputDiv);
+      $select.on("change", callback(name));
     }
     $('select').material_select();
+    return this;
+  }
+
+  editorSettingsChange(sender, settings) {
+    // we don't need to do anything about the change in model's
+    // settings, except that we need to update background if editor
+    // theme is changed: we need to update general background to match
+    // the editor's
+    if (settings.hasOwnProperty('theme')) {
+      $("#upper-wrapper").css(
+        'background-color',
+        $(".CodeMirror-wrap").css('background-color'));
+    }
   }
 }

@@ -26,7 +26,7 @@ class Model {
     this.keyMaps = new Map();
 
     /// Events
-    // notify with EditorSettingsModel
+    // notify with an object containing changed key and value
     this.editorSettingsChangeEvent = new Event(this);
     // notify when init fail
     this.editorInitFailEvent = new Event(this);
@@ -154,7 +154,7 @@ class Model {
       }
     }
     this.refreshEditor();
-    this.editorSettingsChangeEvent.notify(this.editorSettings);
+    this.editorSettingsChangeEvent.notify(obj);
   }
 }
 
