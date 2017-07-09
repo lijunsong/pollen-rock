@@ -18,12 +18,14 @@ class Controller {
   setupHandlers() {
     this.previewHandler = this.preview.bind(this);
     this.editorPositionChangeHandler = this.editorPositionChange.bind(this);
+    this.editorSettingsChangeHandler = this.editorSettingsChange.bind(this);
     return this;
   }
 
   attach() {
     this.view.previewRequestEvent.attach(this.previewHandler);
     this.view.editorPositionChangeEvent.attach(this.editorPositionChangeHandler);
+    this.view.editorSettingsChangeEvent.attach(this.editorSettingsChangeHandler);
     return this;
   }
 
@@ -60,6 +62,13 @@ class Controller {
 
   editorPositionChange() {
     this.model.refreshEditor();
+  }
+
+  /**
+   * subscribe to view's settings change
+   */
+  editorSettingsChange(sender, settings) {
+    this.model.changeEditorSettings(settings);
   }
 
   preview() {

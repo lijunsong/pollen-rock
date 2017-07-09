@@ -18,25 +18,27 @@ class Model {
     this.pollenSetup = {};
     this.pollenTags = {};
 
-    this.editor = CodeMirror.fromTextArea($textarea, {
-      autofocus: true,
-      matchBrackets: true,
-      lineWrapping: true,
-      scrollbarStyle: "null",
-      theme: "default",
-      mode: 'pollen'
-    });
+    this.editorSettings = new EditorSettingsModel();
+    this.editor = CodeMirror.fromTextArea(
+      $textarea,
+      this.editorSettings.serialize());
     this.docGeneration = null;
-    this.editorPreference = {};
     this.keyMaps = new Map();
 
-    // Events
+    /// Events
+    // notify with EditorSettingsModel
+    this.editorSettingsChangeEvent = new Event(this);
+    // notify when init fail
     this.editorInitFailEvent = new Event(this);
+    // notify with pollenTags object
     this.pollenTagsReadyEvent = new Event(this);
     this.pollenSetupReadyEvent = new Event(this);
+    // notify with saveStatus string
     this.saveStatusChangeEvent = new Event(this);
+    // notify with null
     this.previewReadyEvent = new Event(this);
-    this.keymapUpdateEvent = new Event(this);
+    // notify with a new Map
+    this.keymapChangeEvent = new Event(this);
 
     // Handlers
     this.setupHandlers()
@@ -69,6 +71,8 @@ class Model {
     }).catch(err => {
       this.editorInitFailEvent.notify(err);
     });
+
+    this.editorSettingsChangeEvent.notify(this.editorSettings);
   }
 
   refreshEditor() {
@@ -87,7 +91,7 @@ class Model {
       kms[k] = v.func;
     }
     this.editor.setOption("extraKeys", kms);
-    this.keymapUpdateEvent.notify(this.keyMaps);
+    this.keymapChangeEvent.notify(this.keyMaps);
   }
 
   /**
@@ -100,7 +104,6 @@ class Model {
 
   /**
    * This method saves text in editor.
-   * TODO: resolve and reject should be passed object representing RPC result
    */
   save() {
     return new Promise((resolve, reject) => {
@@ -141,6 +144,18 @@ class Model {
       notifyError(`render failed: ${rpcVal.error}`);
     });
   }
+
+  changeEditorSettings(obj) {
+    for (let name in obj) {
+      if (obj.hasOwnProperty(name)) {
+        this.editorSettings.value(name, obj[name]);
+        console.log(`set editor option ${name} to ${obj[name]}`);
+        this.editor.setOption(name, obj[name]);
+      }
+    }
+    this.refreshEditor();
+    this.editorSettingsChangeEvent.notify(this.editorSettings);
+  }
 }
 
 class Keymap {
@@ -148,5 +163,72 @@ class Keymap {
     this.key = key;
     this.func = func;
     this.doc = doc;
+  }
+}
+
+/**
+ * We can simply construct a key-value object to present
+ * editorSettings, but we also need all options for each value for
+ * customization in UI. This class helps construct this info.  It also
+ * can serialize all settings to use in CodeMirror and local storage.
+ *
+ * obj = EditorSettingsModel()
+ * obj.value('theme'): get value of theme
+ * obj.value('theme', 'x'): set value of theme
+ * obj.options('theme'): get all available value for setting theme
+ * obj.serialize(): get a simple object representing editor settings
+ */
+class EditorSettingsModel {
+  constructor() {
+    let makeOptions = (list, defaultIndex=0) => ({
+      value: list[defaultIndex],
+      options: list
+    });
+    let boolOption = makeOptions([true, false]);
+    this.settings = {
+      autofocus: boolOption,
+      matchBrackets: boolOption,
+      lineWrapping: boolOption,
+      scrollbarStyle: makeOptions(["null"]),
+      theme: makeOptions([
+        "default", "solarized light", "solarized dark"
+      ]),
+      mode: makeOptions(["pollen"])
+    };
+
+  }
+
+  hasKey(key) {
+    return this.settings.hasOwnProperty(key);
+  }
+
+  keys() {
+    let result = [];
+    for (let name in this.settings) {
+      if (this.hasKey(name))
+        result.push(name);
+    }
+    return result;
+  }
+
+  value(name, val) {
+    if (val) {
+      this.settings[name].value = val;
+    } else {
+      val = this.settings[name].value;
+    }
+    return val;
+  }
+
+  options(name) {
+    return this.settings[name].options;
+  }
+
+  serialize() {
+    let obj = {};
+    for (let name of this.keys()) {
+      obj[name] = this.value(name);
+    }
+    return obj;
   }
 }
