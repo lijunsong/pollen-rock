@@ -180,7 +180,6 @@ class View {
 
     let rowTemplate = $('script[data-template="keymap-row"]').html();
     // iterate through all the keys
-    console.log(`keymap: ${maps}`);
     for (let [k, v] of maps) {
       let row = rowTemplate
           .replace(/{{keystroke}}/g, k)
