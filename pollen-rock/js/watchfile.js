@@ -1,17 +1,8 @@
 $(document).ready(function() {
   "use strict";
 
-  var serverAPI = "/api";
-
-  // 0 will be used as known last modification seconds when seconds
-  // is not passed in.
-  function watchFileRequest(resource, seconds) {
-    return {
-      type : 'watchfile',
-      resource : resource,
-      seconds : seconds || 0
-    };
-  }
+  var MAXRETRY = 10;
+  var rpc = new PollenRockRPC("/api");
 
   var model = {
     init: function() {
@@ -31,10 +22,8 @@ $(document).ready(function() {
     },
 
     watch: function() {
-      var wfRequest = watchFileRequest(model.resource,
-                                       model.lastSeenSeconds);
-      $.post(serverAPI, wfRequest, function(res){
-        var result = JSON.parse(res);
+      rpc.call_server("watchfile", model.resource, model.lastSeenSeconds||0).then(rpcVal => {
+        let result = rpcVal.result;
         if (! result["rendered-resource"] || result.seconds == 0) {
           notifyView.info("corrupted response. Continue to connect...");
         }
@@ -42,12 +31,12 @@ $(document).ready(function() {
         preview.reload(result["rendered-resource"]);
         model.retry = 0;
         ctrl.watch();
-      }).fail(function(status) {
+      }).catch(rpcVal => {
         // depends on file system changes, the request may be sent out
         // in the middle of an replace operation, retry a few times if
         // failed.
         model.retry += 1;
-        if (model.retry <= 10) {
+        if (model.retry <= MAXRETRY) {
           loaderView.show();
           setTimeout(function() {
             loaderView.hide();
