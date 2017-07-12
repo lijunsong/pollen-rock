@@ -56,7 +56,7 @@ class Controller {
 
   init() {
     this.model.init();
-    this.model.addKeyMap(this.getKeyMaps());
+    this.model.addCMKeyMap(this.getKeyMaps());
   }
 
   /* ---------- keymap handlers ---------- */
@@ -86,7 +86,9 @@ class Controller {
       new Keymap('Shift-Ctrl-Enter', this.fullscreenHandler.bind(this),
                  "Enter Fullscreen"),
       new Keymap('Shift-Ctrl-P', this.preview.bind(this),
-                 "Open/Close Preview")
+                 "Open/Close Preview"),
+      new Keymap('Ctrl-Space', "autocomplete",
+                 "Autocomplete Tag Names From pollen.rkt"),
     ];
   }
   /* ---------- keymap handlers ends ---------- */
@@ -127,5 +129,4 @@ class Controller {
       this.model.renderPreview();
     }
   }
-
 }

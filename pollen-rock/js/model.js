@@ -35,6 +35,7 @@ class Model {
     this.editor = CodeMirror.fromTextArea(
       $textarea,
       this.editorSettings.serialize());
+    this.setupEditorHint(this.editor);
     this.docGeneration = null;
     this.keyMaps = new Map();
 
@@ -71,16 +72,17 @@ class Model {
     this.editor.on("change", this.autoSaveHandler);
     this.editor.on("change", this.saveStatusChangeHandler);
 
+    this.pollenTagsReadyEvent.attach((_, tags) => this.pollenTags = tags);
+    this.pollenSetupReadyEvent.attach((_, setup) => this.pollenSetup = setup);
+
     return this;
   }
 
   init() {
     this.rpc.call_server("get-project-config", this.resource).then(v => {
       let config = v.result;
-      this.pollenTags = config['tags'];
-      this.pollenTagsReadyEvent.notify(this.pollenTags);
-      this.pollenSetup = config['setup'];
-      this.pollenSetupReadyEvent.notify(this.pollenSetup);
+      this.pollenTagsReadyEvent.notify(config['tags']);
+      this.pollenSetupReadyEvent.notify(config['setup']);
     }).catch(err => {
       this.editorInitFailEvent.notify(err);
     });
@@ -95,7 +97,7 @@ class Model {
   /**
    * add key maps to the editor
    */
-  addKeyMap(keymap_list) {
+  addCMKeyMap(keymap_list) {
     for (let km of keymap_list) {
       this.keyMaps.set(km.key, km);
     }
@@ -105,6 +107,40 @@ class Model {
     }
     this.editor.setOption("extraKeys", kms);
     this.keymapChangeEvent.notify(this.keyMaps);
+  }
+
+  setupEditorHint(editor) {
+    let pollenHint = (cm, options) => {
+      return new Promise(resolve => {
+        let cursor = cm.getCursor(),
+            line = cm.getLine(cursor.line);
+
+        let start = cursor.ch, end = cursor.ch;
+        while (start && /\S/.test(line.charAt(start-1)))
+          --start;
+
+        let result = [];
+        if (line.charAt(start) != this.getPollenSetup('command-char')) {
+          return resolve(null);
+        } else {
+          start += 1;
+          let prefix = line.substring(start, end);
+
+          for (let name in this.pollenTags) {
+            if (name.startsWith(prefix))
+              result.push(name);
+          }
+          return resolve({
+            list: result,
+            from: CodeMirror.Pos(cursor.line, start),
+            to: CodeMirror.Pos(cursor.line, end)
+          });
+        }
+      });
+    };
+    editor.setOption("hintOptions", {
+      hint: pollenHint
+    });
   }
 
   /**
