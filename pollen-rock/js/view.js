@@ -102,8 +102,11 @@ class View {
     // the following init steps, so let's just setup callbacks in this
     // method
     let callback = (name) => function() {
-      let change = {};
-      change[name] = $(this).val();
+      let change = {},
+          val = $(this).val();
+      if (val === "true") val = true;
+      if (val === "false") val = false;
+      change[name] = val;
       self.editorSettingsChangeEvent.notify(change);
     };
 

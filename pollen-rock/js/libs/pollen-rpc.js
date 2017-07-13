@@ -48,10 +48,10 @@ class JsonRPC {
         if (res.result) {
           resolve(new RPCResultVal(res.id, res.result));
         } else {
-          reject(new RPCResultVal(res.id, res.error));
+          reject(new RPCErrorVal(res.id, res.error));
         }
       }).fail(function(e) {
-        reject(new RPCResultVal(self.id, '$.post failed'));
+        reject(new RPCErrorVal(self.id, '$.post failed'));
       });
     });
   }

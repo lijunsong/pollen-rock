@@ -19,7 +19,8 @@ function notifyInfo(msg) {
 
 function notifyError(msg) {
   console.error(msg);
-  Materialize.toast(msg, 4000, 'toast-error');
+  msg = msg.replace(/\n/g, '<br />');
+  Materialize.toast(msg, 15000, 'toast-error');
 }
 
 
@@ -190,7 +191,7 @@ class Model {
       let path = rpcVal.result;
       this.previewReadyEvent.notify(path);
     }).catch(rpcVal => {
-      notifyError(`render failed: ${rpcVal.error}`);
+      notifyError(rpcVal.error);
     });
   }
 
@@ -249,7 +250,8 @@ class EditorSettingsModel {
       theme: makeOptions([
         "default", "solarized light", "solarized dark"
       ]),
-      mode: makeOptions(["pollen"])
+      mode: makeOptions(["pollen"]),
+      autoReloadPreview: makeOptions([false, true])
     };
 
   }

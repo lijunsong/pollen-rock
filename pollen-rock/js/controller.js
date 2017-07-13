@@ -126,7 +126,9 @@ class Controller {
     if (status == 'saved'
         && ! this.view.$preview.hasClass("hide")
         && this.model.syntaxCheck()) {
-      this.model.renderPreview();
+      if (this.model.editor.options.autoReloadPreview) {
+        this.model.renderPreview();
+      }
     }
   }
 }

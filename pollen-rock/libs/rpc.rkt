@@ -17,6 +17,7 @@
 (struct exn:fail:rpc:unbound exn:fail:rpc ())
 (struct exn:fail:rpc:arity exn:fail:rpc ())
 (struct exn:fail:rpc:bad-request exn:fail:rpc ())
+(struct exn:fail:rpc:server-exn exn:fail:rpc ())
 
 ;; raise rpc exceptions
 (define (rpc-raise exn-type [msg ""])
@@ -39,6 +40,16 @@
 (define (rpc-result-answer id result)
   (rpc-answer id #:result result))
 
+(define/contract (exn->rpc-answer e [id #f])
+  (-> exn:fail? bytes?)
+  ;(define exn-vec (struct->vector e))
+  ;(define struct-name (symbol->string (vector-ref exn-vec 0)))
+  ;(define name (string-trim struct-name "struct:"))
+  (define message (exn-message e))
+  ((error-display-handler) message e)
+  (rpc-error-answer (if id id #"-1") message))
+
+
 ;; This function returns a request handler that handles requests conforming
 ;; to json-rpc protocol
 ;;
@@ -60,12 +71,8 @@
     (define method (hash-ref exports method-name false))
     (define answer
       (with-handlers
-          ([exn:fail:rpc?
-            (lambda (e)
-              (define struct-name
-                (symbol->string (vector-ref (struct->vector e) 0)))
-              (define name (string-trim struct-name "struct:"))
-              (rpc-error-answer (if call-id call-id #"-1") name))])
+          ([exn:fail:rpc? (lambda (e) (exn->rpc-answer e))]
+           [exn:fail? (lambda (e) (exn->rpc-answer e))])
         (cond [(and call-id method params-content)
                (define params (bytes->jsexpr params-content))
                (with-handlers
