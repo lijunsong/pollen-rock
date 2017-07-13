@@ -30,7 +30,7 @@ To help you typeset, the editor
 - [x] warns unbalanced braces
 - [x] provides document preview
 - [x] reloads preview (only when pollen syntax is correct) during editing
-- [ ] auto-completes your tag functions
+- [x] auto-completes your tag functions
 - [ ] warns runtime errors in your document
 - [ ] warns undefined tag functions
 - [ ] inlines Racket document
@@ -41,6 +41,7 @@ Also, the server
 
 *Note:*
 - [x] means the feature has been implemented.
+- Only Chrome and Safari are supported.
 
 These useful features are made possible because the back-end of
 Pollen-Rock is written in Racket. It understands your configuration
@@ -48,11 +49,6 @@ file `pollen.rkt`, and serves you better than tranditional editors
 (like Vim, Emacs, Sublime Text, etc.).
 
 ## Project Management
-
-In the editor, you can run shell command. This means that you can
-manage your Pollen projects directly from the editor, which makes
-Pollen-Rock suitable to run as a service on your home server (if you
-have any).
 
 Pollen-Rock is also going to provide a simple interface to add, rename,
 delete files in your pollen projects.
@@ -70,6 +66,23 @@ raco pkg install pollen-rock
 `raco pollen-rock -h` shows available options.
 
 # ChangeLog
+## 0.4.0
+Features
+
+ - Implement a simple autocomplete that can autocomplete tag names defined and exported in pollen.rkt
+
+Enhancement
+
+ - Editor now shows server errors
+ - UI supports updating editor settings
+ - CodeMirror upgrades to 5.27
+ - Implement JSON RPC in racket to provide a manageable way to extend server features
+ - Completely rewrite the editor using ES6; implement the editor in event-based MVC
+
+Break Compatibility
+
+ - Removed shell command panel (keep the app simple; not sure how useful it is to others)
+
 ## 0.3.2
 
 Features
