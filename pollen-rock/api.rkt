@@ -1,29 +1,6 @@
 #lang racket
 
-;;; This file defines json object for an API request
-;;;
-;;; Attributes for common requests:
-;;;
-;;;   "type" the type of this API request.
-;;;   "type" := save | render | config | shell
-;;;
-;;; Attributes for save
-;;;   "text"     : text to save
-;;;   "resource" : resource (an absolute path) to save into
-;;;
-;;; Attributes for shell
-;;;   "cmd": command to run
-;;;
-;;;
-;;; Examples:
-;;; - save: {type : "save",
-;;;          resource : "/dir1/dir2/hello.html.pm",
-;;;          text : "#lang pollen\n..."}
-#|
-
-This file defines protocols between clients and server
-
-|#
+;;; This file defines json object for API requests
 
 (require web-server/http)
 (require web-server/http/bindings)
@@ -37,46 +14,10 @@ This file defines protocols between clients and server
 (require "util.rkt")
 (require "http-util.rkt")
 (require "fs-watch.rkt")
+(require "libs/rpc.rkt")
 
 (provide api-post-handler)
 
-;;; Structs for request APIs
-(define (assert-resource resource)
-  (unless (resource? resource)
-    (error "Not a Resource: ~a" resource)))
-
-;; request to save resource
-(struct Save (resource text)
-        #:transparent
-        #:guard (lambda (f t tmp)
-                  (assert-resource f)
-                  (values f t)))
-
-;; request to render the given resource
-(struct Render (resource)
-        #:transparent
-        #:guard (lambda (f tmp)
-                  (assert-resource f)
-                  (values f)))
-
-;; request pollen config of the given resource
-(struct Config (resource)
-        #:transparent
-        #:guard (lambda (f tmp)
-                  (assert-resource f)
-                  (values f)))
-
-;; request to run a shell command
-(struct Shell (cmd) #:transparent)
-
-;; request to watch file changes
-;; seconds is the last modify seconds that the frontend knows about
-;; this file
-(struct WatchFile (resource seconds)
-        #:transparent
-        #:guard (lambda (f s tmp)
-                  (assert-resource f)
-                  (values f (string->number s))))
 
 ;; request user-defined tag information
 (struct Tag (resource) #:transparent)
@@ -85,85 +26,37 @@ This file defines protocols between clients and server
 (struct VariableTag (name val) #:transparent)
 (struct ProcedureTag (name arity keywords) #:transparent)
 
-;;; Main handler for POST api request
+
 ;; TODO: To save a big file on a slow disk will cause problem.
 ;;       It seems what we need here is a producer-consumer queue.
-(define/contract (api-post-handler req)
-  (-> request? response?)
-  (match (request-api-type req)
-    ["save"
-     (let ((save (request->save req)))
-       (let ((saved? (handle-save save)))
-         (response/text
-          (if saved? #"saved" #"error occurs. Manually save your text"))))]
-    ["render"
-     (let ((render (request->render req)))
-       (handle-render render))]
-    ["config"
-     (let ((config (request->config req)))
-       (handle-config config))]
-    ["shell"
-     (let ((shell (request->shell req)))
-       (handle-shell shell))]
-    ["watchfile"
-     (let ((wf (request->watchfile req)))
-       (handle-watchfile wf))]
-    [x
-     (response/xexpr
-      `(html (head) (p ,(format "unknown POST command: ~a" x))))]))
-
-;;;; Helper functions
-(define (request-api-type req)
-  (let ((bindings (request-bindings req)))
-    (extract-binding/single 'type bindings)))
-
-(define/contract (request-extract-binding req ids)
-  (-> request? (listof symbol?) (listof any/c))
-  (define bindings (request-bindings req))
-  (for/list ([id ids])
-    (if (exists-binding? id bindings)
-        (extract-binding/single id bindings)
-        (error 'request-extract-binding "missing ~a in request" id))))
-
-;; TODO: failure should be sent to client
-(define (request->api-struct req strut . fields)
-  (apply strut (request-extract-binding req fields)))
-
-;;; Save
-(define (request->save req)
-  (request->api-struct req Save 'resource 'text))
-
-;; save file in idemptent way
-(define (handle-save save)
-  (define filepath (append-path webroot (Save-resource save)))
+(define (save-handler text resource)
+  (define filepath (append-path webroot resource))
   (cond [(not (file-exists? filepath)) #f]
         [else
          (call-with-atomic-output-file filepath
            (lambda (out path)
-             (display (Save-text save) out)
+             (display text out)
              #t))]))
 
-
-;;; Render
-(define (request->render req)
-  (request->api-struct req Render 'resource))
-
-(define (handle-render render)
-  (define resource (Render-resource render))
+(define (render-handler resource)
   (define file-path (path->complete-path
                      (append-path webroot resource)))
+  (cond [(is-pollen-source? resource)
+         (render-to-file-if-needed file-path)
+         (resource->output-path resource)]
+        [else resource]))
 
-  (define answer
-    (cond [(is-pollen-source? resource)
-           (render-to-file-if-needed file-path)
-           (resource->output-path resource)]
-          [else resource]))
-
-  (response/text answer))
-
-;;; PollenConfig
-(define (request->config req)
-  (request->api-struct req Config 'resource))
+;; seconds is the last modify seconds that the frontend knows about
+;; this file
+(define (watchfile-handler resource last-seen-seconds)
+  (define filepath (append-path webroot resource))
+  (define ans
+    (make-hasheq `((rendered-resource . ,(resource->output-path resource))
+                   (seconds . 0))))
+  (define (handler _ last-mod)
+    (hash-set! ans 'seconds last-mod))
+  (when (file-watch filepath handler last-seen-seconds)
+    ans))
 
 
 (define/contract (extract-module-info modules)
@@ -207,18 +100,14 @@ This file defines protocols between clients and server
 ;; to load user's pollen.rkt, either define
 ;; `current-load-relative-directory`, or sevlet defines
 ;; `current-directory` to user's working directory.
-(define (handle-config config)
-  (define resource (Config-resource config))
+(define (get-project-config-handler resource)
   (define pollen-config
     (extract-module-info
      '(pollen/setup (submod "pollen.rkt" setup))))
   (define vars (filter VariableTag? pollen-config))
-  (define pair (map (lambda (var)
+  (define setup (map (lambda (var)
                       (cons (VariableTag-name var)
                             (VariableTag-val  var))) vars))
-  (define config-hash (hash-set* (make-immutable-hasheq pair)
-                                'rendered-resource (resource->output-path resource)
-                                'resource          resource))
   (define pollen-tags
     (extract-module-info '("pollen.rkt")))
   (define tag-pair (map (lambda (v)
@@ -231,45 +120,15 @@ This file defines protocols between clients and server
                                               (cons 'keywords (ProcedureTag-keywords v)))))]
                                 [else (error "handle config request error: unknown tag type")]))
                         pollen-tags))
-  (define rock-hash (make-hash `((no-shell . ,(no-shell)))))
-  (define tag-hash (make-immutable-hasheq tag-pair))
-  (define ans-hash (make-immutable-hasheq
-                    `((pollenConfig . ,config-hash)
-                      (tags . ,tag-hash)
-                      (rockConfig .  ,rock-hash))))
-  (response/text (jsexpr->bytes ans-hash)))
+  (hasheq 'setup (make-hasheq setup)
+          #|(hasheq 'rendered-resource (resource->output-path resource)
+                  'resource resource)|#
+          'tags (make-immutable-hasheq tag-pair)))
 
-
-;;; Shell Command
-(define (request->shell req)
-  (request->api-struct req Shell 'cmd))
-
-(define (handle-shell shell)
-  (define cmd (Shell-cmd shell))
-  (response/text
-   (cond [(no-shell)
-          (display (format "[shell] disabled: command query '~a'\n" cmd))
-          "disabled"]
-         [else
-          (call-with-output-bytes
-           (lambda (p)
-             (parameterize ([current-output-port p]
-                            [current-error-port p])
-               (system cmd))))])))
-
-;;; WatchFile request
-(define (request->watchfile req)
-  (request->api-struct req WatchFile 'resource 'seconds))
-
-(define (handle-watchfile wf)
-  (define resource (WatchFile-resource wf))
-  (define filepath (append-path webroot resource))
-  (define last-seen-seconds (WatchFile-seconds wf))
-  ;; TODO: send back file system's most recent modify seconds
-  (define ans
-    (make-hasheq `((rendered-resource . ,(resource->output-path resource))
-                   (seconds . 0))))
-  (define (handler _ last-mod)
-    (hash-set! ans 'seconds last-mod))
-  (when (file-watch filepath handler last-seen-seconds)
-    (response/text (jsexpr->bytes ans))))
+;;; Main handler for POST api request
+(define api-post-handler
+  (export-rpc-handler
+   (hash #"save" save-handler
+         #"render" render-handler
+         #"get-project-config" get-project-config-handler
+         #"watchfile" watchfile-handler)))
