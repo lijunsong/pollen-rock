@@ -250,7 +250,7 @@ class EditorSettingsModel {
       theme: makeOptions([
         "default", "solarized light", "solarized dark"
       ]),
-      mode: makeOptions(["pollen"]),
+      mode: makeOptions(["pollenMixed"]),
       autoReloadPreview: makeOptions([false, true])
     };
 
