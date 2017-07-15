@@ -1,6 +1,16 @@
 html, .CodeMirror {
     font-family: "Source Sans Pro", sans-serif;
-    font-size: 20px;
+    font-size: 16px;
+}
+
+.CodeMirror {
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+}
+
+.cm-m-scheme, .cm-keyword {
+    font-family: "Source Code Pro", Courier, monospace;
+    font-size: 16px;
 }
 
 .noscroll {
@@ -46,7 +56,6 @@ html, .CodeMirror {
     width: 100%;
     padding: 0 4px;
     z-index: 201;
-    font-size: 16px;
 }
 
 .small-btn {
@@ -180,10 +189,6 @@ html, .CodeMirror {
     border-left-width: 3px !important;
 }
 
-.CodeMirror {
-    box-shadow: none !important;
-    -webkit-box-shadow: none !important;
-}
 
 @media only screen and (max-width: 450px) {
 #preview-wrapper {
@@ -198,19 +203,18 @@ html, .CodeMirror {
 
 @media only screen and (min-width: 600px) {
 .CodeMirror {
-    font-size: 21px;
 }
 
 }
 
 @media only screen and (min-width: 768px) {
 .CodeMirror {
-    font-size: 22px;
+    font-size: 1.1rem;
 }
 }
 
 @media only screen and (min-width: 992px) {
 .CodeMirror {
-    font-size: 23px;
+    font-size: 1.2rem;
 }
 }

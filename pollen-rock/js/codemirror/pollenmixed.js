@@ -8,17 +8,18 @@
 })(function(CodeMirror) {
 "use strict";
 
-CodeMirror.defineMode("pollenMixed", function(config) {
+CodeMirror.defineMode("pollenMixed", function(config, cm) {
   let schemeMode = CodeMirror.getMode(config, "scheme");
   let pollenMode = CodeMirror.getMode(config, "pollen");
 
   function pollen(stream, state) {
     let ch = stream.peek();
     let style = pollenMode.token(stream, state.pollenState);
-    if ((ch  == '◊' && stream.peek() == '(')
-        || (style == "keyword" && stream.peek() == '[')) {
+    if (style == "keyword"
+        && ((ch  == '◊' && stream.peek() == '(')
+            || stream.peek() == '[')) {
       state.token = scheme;
-      state.mode = "pollen";
+      state.mode = "scheme";
     }
     return style;
   }
@@ -30,7 +31,7 @@ CodeMirror.defineMode("pollenMixed", function(config) {
         && (ch == "]" || ch == ")")) {
       // closed all bracket, ready to switch back to pollen
       state.token = pollen;
-      state.mode = "scheme";
+      state.mode = "pollen";
     }
     return style;
   }
@@ -59,11 +60,28 @@ CodeMirror.defineMode("pollenMixed", function(config) {
       };
     },
 
+    /* indent racket code */
     indent: function(state, textAfter) {
       if (state.token == scheme) {
         return schemeMode.indent(state.schemeState, textAfter);
       } else {
         return 0;
+      }
+    },
+
+    /* For turnning on addModeClass option so racket code can use
+     * fixed width font */
+    innerMode: function(state) {
+      if (state.token == scheme) {
+        return {
+          state: state.schemeState,
+          mode: schemeMode
+        };
+      } else {
+        return {
+          state: state.pollenMode,
+          mode: pollenMode
+        };
       }
     }
   };

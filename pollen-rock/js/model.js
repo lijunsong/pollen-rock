@@ -23,6 +23,9 @@ function notifyError(msg) {
   Materialize.toast(msg, 15000, 'toast-error');
 }
 
+var DEFAULT_EDITOR_SETTINGS = {
+  addModeClass: true
+};
 
 class Model {
   constructor($textarea, resource) {
@@ -283,7 +286,8 @@ class EditorSettingsModel {
   }
 
   serialize() {
-    let obj = {};
+    let obj = Object.assign({}, DEFAULT_EDITOR_SETTINGS);
+
     for (let name of this.keys()) {
       obj[name] = this.value(name);
     }
