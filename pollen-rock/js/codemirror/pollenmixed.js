@@ -8,15 +8,16 @@
 })(function(CodeMirror) {
 "use strict";
 
-CodeMirror.defineMode("pollenMixed", function(config, cm) {
-  let schemeMode = CodeMirror.getMode(config, "scheme");
-  let pollenMode = CodeMirror.getMode(config, "pollen");
+CodeMirror.defineMode("pollenMixed", function(cmConfig, modeConfig) {
+  let schemeMode = CodeMirror.getMode(cmConfig, "scheme");
+  let pollenMode = CodeMirror.getMode(cmConfig, "pollen");
+  let cmdChar = cmConfig['command-char'] || '◊';
 
   function pollen(stream, state) {
     let ch = stream.peek();
     let style = pollenMode.token(stream, state.pollenState);
     if (style == "keyword"
-        && ((ch  == '◊' && stream.peek() == '(')
+        && ((ch  == cmdChar && stream.peek() == '(')
             || stream.peek() == '[')) {
       state.token = scheme;
       state.mode = "scheme";

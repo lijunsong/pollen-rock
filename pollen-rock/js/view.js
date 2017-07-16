@@ -20,8 +20,6 @@ class View {
     this.model = model;
     this.setupMaterialize();
 
-    this.setupEditorSettings();
-
     this.setupBindings()
       .setupHandlers()
       .attach();
@@ -78,8 +76,7 @@ class View {
 
   attach() {
     // attach to model's event
-    this.model.editorInitFailEvent.attach(this.editorPostInitHandler);
-    this.model.pollenTagsReadyEvent.attach(this.editorPostInitHandler);
+    this.model.pollenSetupReadyEvent.attach(this.editorPostInitHandler);
     this.model.saveStatusChangeEvent.attach(this.statusChangeHandler);
     this.model.previewReadyEvent.attach(this.previewReadyHandler);
     this.model.keymapChangeEvent.attach(this.keymapChangeHandler);
@@ -91,8 +88,7 @@ class View {
     return this;
   }
 
-  setupEditorSettings() {
-    let settings = this.model.editorSettings;
+  setupEditorPreference(settings) {
     let $preference = $("#preference");
     let self = this;
     $preference.html('');
@@ -112,18 +108,32 @@ class View {
 
 
     for (let name of settings.keys()) {
+      let val = settings.value(name);
       // create UI
       let $inputDiv = $('<div>').addClass('input-field col s12');
-      let $select = $('<select>').attr('id', `p-${name}`).appendTo($inputDiv);
-      for (let option of settings.options(name)) {
-        let $option = $('<option>').attr('value', option).text(option);
-        $select.append($option);
+
+      if (settings.options(name)) {
+        let $select = $('<select>').attr('id', `p-${name}`).appendTo($inputDiv);
+        for (let option of settings.options(name)) {
+          let $option = $('<option>').attr('value', option+'').text(option+'');
+          if (option === val) {
+            $option.attr('selected', '');
+          }
+          $select.append($option);
+        }
+        let $label = $('<label>').text(name).appendTo($inputDiv);
+        $select.on("change", callback(name));
+      } else {
+        let id = `p-${name}`;
+        let $input = $('<input>').attr('id', id).attr('type', 'text')
+            .attr('value', val).appendTo($inputDiv);
+        let $label = $('<label>').attr('for', id).text(name).appendTo($inputDiv);
+        $input.on("change", callback(name));
       }
-      let $label = $('<label>').text(name).appendTo($inputDiv);
       $preference.append($inputDiv);
-      $select.on("change", callback(name));
     }
     $('select').material_select();
+    Materialize.updateTextFields();
     return this;
   }
 
@@ -158,6 +168,7 @@ class View {
     this.$startupLoader.addClass("hide");
     this.$editor.removeClass("hide");
     this.editorPositionChangeEvent.notify();
+    notifyInfo("Ready to Rock!");
   }
 
   placeEditorOnRight() {
@@ -200,6 +211,10 @@ class View {
       $("#upper-wrapper").css(
         'background-color',
         $(".CodeMirror-wrap").css('background-color'));
+    }
+
+    if (settings.hasOwnProperty('font')) {
+      $(".CodeMirror").css('font-family', settings['font']);
     }
   }
 }

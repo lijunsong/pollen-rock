@@ -42,10 +42,12 @@ class Controller {
     this.editorPositionChangeHandler = this.editorPositionChange.bind(this);
     this.editorSettingsChangeHandler = this.editorSettingsChange.bind(this);
     this.saveStatusChangeHandler = this.saveStatusChange.bind(this);
+    this.editorSetupReadyHandler = this.setupEditorSettings.bind(this);
     return this;
   }
 
   attach() {
+    this.model.pollenSetupReadyEvent.attach(this.editorSetupReadyHandler);
     this.model.saveStatusChangeEvent.attach(this.saveStatusChangeHandler);
 
     this.view.previewRequestEvent.attach(this.previewHandler);
@@ -55,8 +57,15 @@ class Controller {
   }
 
   init() {
-    this.model.init();
-    this.model.addCMKeyMap(this.getKeyMaps());
+    // Start fetching editor's settings and let event notification
+    // take care of the rest
+    this.model.fetchConfigs();
+  }
+
+  setupEditorSettings() {
+    this.editorSettings = new EditorSettingsModel(this.model);
+    this.view.setupEditorPreference(this.editorSettings);
+    this.model.initEditor(this.editorSettings.serialize(), this.getKeyMaps());
   }
 
   /* ---------- keymap handlers ---------- */

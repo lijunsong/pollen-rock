@@ -14,6 +14,8 @@
  */
 
 function notifyInfo(msg) {
+  console.log(msg);
+  msg = msg.replace(/\n/g, '<br />');
   Materialize.toast(msg, 4000, 'toast-info');
 }
 
@@ -23,33 +25,21 @@ function notifyError(msg) {
   Materialize.toast(msg, 15000, 'toast-error');
 }
 
-var DEFAULT_EDITOR_SETTINGS = {
-  addModeClass: true
-};
-
 class Model {
   constructor($textarea, resource) {
     this.resource = resource;
+    this.$textarea = $textarea;
 
     this.rpc = new PollenRockRPC("/api");
     this.pollenSetup = {};
     this.pollenTags = {};
 
-    this.editorSettings = new EditorSettingsModel();
-    this.editor = CodeMirror.fromTextArea(
-      $textarea,
-      this.editorSettings.serialize());
-    this.setupEditorHint(this.editor);
-    this.docGeneration = null;
-    this.keyMaps = new Map();
-
     /// Events
     // notify with an object containing changed key and value
     this.editorSettingsChangeEvent = new Event(this);
-    // notify when init fail
-    this.editorInitFailEvent = new Event(this);
-    // notify with pollenTags object
+    // notify with pollenTags object (has all tag functions)
     this.pollenTagsReadyEvent = new Event(this);
+    // notify with pollenSetup object (has all project setup)
     this.pollenSetupReadyEvent = new Event(this);
     // notify with saveStatus string
     this.saveStatusChangeEvent = new Event(this);
@@ -57,10 +47,6 @@ class Model {
     this.previewReadyEvent = new Event(this);
     // notify with a new Map
     this.keymapChangeEvent = new Event(this);
-
-    // Handlers
-    this.setupHandlers()
-      .attach();
   }
 
   setupHandlers() {
@@ -76,26 +62,46 @@ class Model {
     this.editor.on("change", this.autoSaveHandler);
     this.editor.on("change", this.saveStatusChangeHandler);
 
-    this.pollenTagsReadyEvent.attach((_, tags) => this.pollenTags = tags);
-    this.pollenSetupReadyEvent.attach((_, setup) => this.pollenSetup = setup);
-
     return this;
   }
 
-  init() {
-    this.rpc.call_server("get-project-config", this.resource).then(v => {
-      let config = v.result;
-      this.pollenTagsReadyEvent.notify(config['tags']);
-      this.pollenSetupReadyEvent.notify(config['setup']);
+  fetchConfigs() {
+    notifyInfo("Fetching project setups...");
+    this.rpc.call_server("get-pollen-setup", this.resource).then(v => {
+      this.pollenSetup = v.result;
+      this.pollenSetupReadyEvent.notify(this.pollenSetup);
     }).catch(err => {
-      this.editorInitFailEvent.notify(err);
+      notifyError(err);
     });
 
-    this.editorSettingsChangeEvent.notify(this.editorSettings);
+    this.rpc.call_server("get-pollen-tags", this.resource).then(v => {
+      this.pollenTags = v.result;
+      this.pollenTagsReadyEvent.notify(this.pollenTags);
+    }).catch(err => {
+      notifyError(err);
+    });
+  }
+
+  initEditor(editorSettings, keymap_list) {
+    this.docGeneration = null;
+    this.keyMaps = new Map();
+
+    this.editor = CodeMirror.fromTextArea(this.$textarea, editorSettings);
+    // setup auto complete
+    this.setupEditorHint(this.editor);
+    // setup key bindings
+    this.addCMKeyMap(keymap_list);
+
+    // Handlers
+    this.setupHandlers()
+      .attach();
   }
 
   refreshEditor() {
-    this.editor.refresh();
+    // refresh the editor only when editor has been initialized (created)
+    if (this.editor) {
+      this.editor.refresh();
+    }
   }
 
   /**
@@ -130,7 +136,7 @@ class Model {
           start += 1;
           let prefix = line.substring(start, end);
 
-          for (let name in this.pollenTags) {
+          for (let name of Object.keys(this.pollenTags)) {
             if (name.startsWith(prefix))
               result.push(name);
           }
@@ -199,12 +205,9 @@ class Model {
   }
 
   changeEditorSettings(obj) {
-    for (let name in obj) {
-      if (obj.hasOwnProperty(name)) {
-        this.editorSettings.value(name, obj[name]);
-        console.log(`set editor option ${name} to ${obj[name]}`);
-        this.editor.setOption(name, obj[name]);
-      }
+    for (let name of Object.keys(obj)) {
+      console.log(`set editor option ${name} to ${obj[name]}`);
+      this.editor.setOption(name, obj[name]);
     }
     this.refreshEditor();
     this.editorSettingsChangeEvent.notify(obj);
@@ -236,27 +239,54 @@ class Keymap {
  * obj.value('theme'): get value of theme
  * obj.value('theme', 'x'): set value of theme
  * obj.options('theme'): get all available value for setting theme
- * obj.serialize(): get a simple object representing editor settings
+ * obj.serialize(): get a key-value object representing editor settings
  */
+// Given a model instance, creating an editor settings that contains
+// default settings.
 class EditorSettingsModel {
-  constructor() {
-    let makeOptions = (list, defaultIndex=0) => ({
-      value: list[defaultIndex],
-      options: list
-    });
-    let boolOption = makeOptions([true, false]);
-    this.settings = {
-      autofocus: boolOption,
-      matchBrackets: boolOption,
-      lineWrapping: boolOption,
-      scrollbarStyle: makeOptions(["null"]),
-      theme: makeOptions([
-        "default", "solarized light", "solarized dark"
-      ]),
-      mode: makeOptions(["pollenMixed"]),
-      autoReloadPreview: makeOptions([false, true])
+  constructor(model) {
+    this.model = model;
+    this.modeMap = {
+      'html': 'html',
+      'html.p': 'html',
+      'rkt': 'scheme',
+      'scm': 'scheme',
+      'pm': 'pollenMixed',
+      'p': 'pollen'
     };
 
+    this.uncustomizableSettings = {
+      // uncustomizable settings
+      addModeClass: true,
+      autofocus: true,
+      matchBrackets: true,
+      "command-char": this.model.getPollenSetup('command-char') || '◊'
+    };
+
+    this.settings = {
+      // customizable settings
+      lineWrapping: true,
+      lineNumbers: false,
+      autoReloadPreview: false,
+      theme: {
+        value: "default",
+        options: new Set(["default", "solarized light", "solarized dark"])
+      },
+      font: 'Source Sans Pro',
+      mode: {
+        value: this.searchMode(this.model.resource),
+        options: new Set(Object.values(this.modeMap))
+      }
+    };
+  }
+
+  searchMode(filename) {
+    for (let suffix of Object.keys(this.modeMap)) {
+      if (filename.endsWith(suffix)) {
+        return this.modeMap[suffix];
+      }
+    }
+    return 'pollen';
   }
 
   hasKey(key) {
@@ -264,29 +294,40 @@ class EditorSettingsModel {
   }
 
   keys() {
-    let result = [];
-    for (let name in this.settings) {
-      if (this.hasKey(name))
-        result.push(name);
-    }
-    return result;
+    return Object.keys(this.settings);
   }
 
   value(name, val) {
-    if (val) {
-      this.settings[name].value = val;
-    } else {
-      val = this.settings[name].value;
+    if (! val) {
+      let v = this.settings[name];
+      return v.value || v;
     }
-    return val;
+
+    switch (typeof(v)) {
+    case 'string':
+    case 'boolean':
+      this.settings[name] = v;
+      break;
+    case 'object':
+      if (v.options.has(val)) {
+        this.settings[name].value = v;
+        return null;
+      }
+    default:
+      throw `unknown value ${v}`;
+    }
   }
 
   options(name) {
-    return this.settings[name].options;
+    let v = this.settings[name].options;
+    if (! v && typeof(this.settings[name]) == 'boolean') {
+      v = [true, false];
+    }
+    return v;
   }
 
   serialize() {
-    let obj = Object.assign({}, DEFAULT_EDITOR_SETTINGS);
+    let obj = Object.assign({}, this.uncustomizableSettings);
 
     for (let name of this.keys()) {
       obj[name] = this.value(name);
