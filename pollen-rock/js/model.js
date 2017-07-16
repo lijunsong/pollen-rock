@@ -247,12 +247,13 @@ class EditorSettingsModel {
   constructor(model) {
     this.model = model;
     this.modeMap = {
-      'html': 'html',
-      'html.p': 'html',
-      'rkt': 'scheme',
-      'scm': 'scheme',
-      'pm': 'pollenMixed',
-      'p': 'pollen'
+      '.html': 'xml',
+      '.html.p': 'xml',
+      '.rkt': 'scheme',
+      '.pm': 'pollenMixed',
+      '.p': 'pollen',
+      '.pp': 'pollen',
+      '.ptree': 'pollenMixed'
     };
 
     this.uncustomizableSettings = {

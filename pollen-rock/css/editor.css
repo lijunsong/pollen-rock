@@ -8,9 +8,9 @@ html, .CodeMirror {
     -webkit-box-shadow: none !important;
 }
 
-.cm-m-scheme, .cm-keyword {
+.cm-m-scheme, .cm-keyword, .cm-m-xml {
     font-family: "Source Code Pro", Courier, monospace;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .noscroll {
