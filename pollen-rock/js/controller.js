@@ -90,7 +90,7 @@ class Controller {
 
   getKeyMaps() {
     return [
-      new Keymap('Shift-2', this.insertCommandCharHandler.bind(this),
+      new Keymap("'@'", this.insertCommandCharHandler.bind(this),
                  "Insert Command Char or @"),
       new Keymap('Shift-Ctrl-Enter', this.fullscreenHandler.bind(this),
                  "Enter Fullscreen"),
