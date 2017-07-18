@@ -10,7 +10,7 @@ html, .CodeMirror {
 
 .cm-m-scheme, .cm-keyword, .cm-m-xml {
     font-family: "Source Code Pro", Courier, monospace;
-    font-size: 15px;
+    font-size: 16px;
 }
 
 .noscroll {
@@ -22,21 +22,44 @@ html, .CodeMirror {
     left: 0;
     right: 0;
     top: 0;
-    bottom: 1.5rem;
+    bottom: 0;
 }
 /* Editor */
-#editor-row, #editor-wrapper, .CodeMirror {
+/* We set html body noscroll, so the overflow in editor needs to be
+   enabled by setting the height of CodeMirror's parents to 100%
+*/
+#editor-row, #editor-wrapper, .CodeMirror, #main-editor {
     height: 100%;
+}
+
+/* editor-panel and main-editor are in editor-wrapper, which occupies
+   100% browser height. The problem is that editor-panel will take
+   some space and main-editor will be pushed down by editor-panel. The
+   result is that bottom lines in the editor are also pushed down and
+   not shwon up. So I sepcify both padding and line-height for
+   editor-panel, and make it up in main-editor with the same amount of
+   space.
+*/
+#editor-panel {
+    padding: 1rem 0;
+    line-height: 1.5rem;
+}
+
+#main-editor {
+    padding-bottom: 3.5rem; /* calcualted from editor-panel */
 }
 
 /* Preview */
 #preview-row {
     margin: 0;
 }
+.progress {
+    margin-top: 0;
+}
 #preview-wrapper {
     position: fixed;
     left: 0;
-    top: 0;
+    top: 3.5rem; /* sync with editor-panel main-editor */
     height: 100%;
     z-index: 200;
 }
@@ -45,17 +68,6 @@ html, .CodeMirror {
     height: 100%;
     border: 1px solid #EEE;
     background: #FFF;
-}
-
-/* Bottom */
-#editor-panel {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    height: 1.5rem;
-    width: 100%;
-    padding: 0 4px;
-    z-index: 201;
 }
 
 .small-btn {
@@ -145,17 +157,23 @@ html, .CodeMirror {
 }
 
 /* COLORS */
+#save-status {
+    color: #AAAAAA;
+}
+#editor-panel {
+    border-bottom: 1px solid #EEEEEE;
+}
 .panel-bg {
     background-color: #616161;
     color: #eceff1;
     border-top: 1px solid #757575;
 }
 .panel-btn-color {
-    background-color: #424242;
+    background-color: #EEEEEE;
     border: none;
 }
 .panel-btn-color:hover {
-    background-color: #212121;
+    background-color: #DDDDDD;
     border: none;
 }
 
@@ -186,7 +204,7 @@ html, .CodeMirror {
 }
 
 .CodeMirror-cursor {
-    border-left-width: 3px !important;
+    border-left-width: 2px !important;
 }
 
 

@@ -46,6 +46,7 @@ class View {
     this.$previewFrame = this.$preview.find('#preview-frame');
     this.$previewLoader = this.$preview.find("#preview-loader");
     this.$previewBtn = $("#previewBtn");
+    this.$backBtn = $("#backBtn");
 
     /* ---------- events ---------- */
     this.editorPositionChangeEvent = new Event(this);
@@ -66,6 +67,8 @@ class View {
     this.previewBtnHandler = () => { this.previewRequestEvent.notify(); };
     this.previewReadyHandler = this.previewReady.bind(this);
 
+    this.backBtnHandler = () => window.history.back();
+
     this.editorSettingsChangeHandler = this.editorSettingsChange.bind(this);
     this.keymapChangeHandler = this.buildKeymaps.bind(this);
 
@@ -82,8 +85,10 @@ class View {
     this.model.keymapChangeEvent.attach(this.keymapChangeHandler);
     this.model.editorSettingsChangeEvent.attach(this.editorSettingsChangeHandler);
 
-    this.$previewBtn.click(this.previewBtnHandler);
     this.fullscreenEvent.attach(this.fullscreenHandler);
+
+    this.$previewBtn.click(this.previewBtnHandler);
+    this.$backBtn.click(this.backBtnHandler);
 
     return this;
   }

@@ -32,20 +32,24 @@
 
       <div id="editor-row" class="row">
         <div id="editor-wrapper" class="col s12 m6 push-m3 hide">
-          <textarea name="compose" id="compose" data="@|resource|" placeholder="Ready to rock!">@|content|</textarea>
+          <div id="editor-panel" class="valign-wrapper">
+            <div class="panel-left">
+              <span id="backBtn" class="small-btn panel-btn-color panel-item">&larr; Back</span>
+              <!--<span class="panel-item hide-on-small-only">@|resource|</span>-->
+            </div>
+            <div class="panel-right">
+              <span id="save-status" class="panel-item">saved</span>
+              <span id="previewBtn" class="small-btn panel-btn-color panel-item">Preview</span>
+              <span id="settingsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Settings</span>
+            </div>
+          </div>
+          <div id="main-editor">
+            <textarea name="compose" id="compose" data="@|resource|" placeholder="Ready to rock!">@|content|</textarea>
+          </div>
         </div>
       </div>
     </div>
-    <div id="editor-panel" class="panel-bg valign-wrapper">
-      <div class="panel-left">
-        <span class="panel-item hide-on-small-only">@|resource|</span>
-        <span id="previewBtn" class="small-btn panel-btn-color panel-item">Preview</span>
-      </div>
-      <div class="panel-right">
-        <span id="save-status" class="panel-item">saved</span>
-        <span id="settingsBtn" data-target="editor-settings" class="small-btn panel-btn-color panel-item">Settings</span>
-      </div>
-    </div>
+
 
     <div id="editor-settings" class="modal">
       <div class="modal-content">

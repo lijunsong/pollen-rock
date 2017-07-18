@@ -66,7 +66,6 @@ class Model {
   }
 
   fetchConfigs() {
-    notifyInfo("Fetching project setups...");
     this.rpc.call_server("get-pollen-setup", this.resource).then(v => {
       this.pollenSetup = v.result;
       this.pollenSetupReadyEvent.notify(this.pollenSetup);
