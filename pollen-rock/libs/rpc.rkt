@@ -42,10 +42,13 @@
 
 (define/contract (exn->rpc-answer e [id #f])
   (-> exn:fail? bytes?)
-  ;(define exn-vec (struct->vector e))
-  ;(define struct-name (symbol->string (vector-ref exn-vec 0)))
-  ;(define name (string-trim struct-name "struct:"))
-  (define message (exn-message e))
+  ;; RPC error name will be reported.
+  ;; Other racket error message will be reported
+  (define message (if (exn:fail:rpc? e)
+                      (let* ([exn-vec (struct->vector e)]
+                             [struct-name (symbol->string (vector-ref exn-vec 0))])
+                        (string-trim struct-name "struct:"))
+                      (exn-message e)))
   ((error-display-handler) message e)
   (rpc-error-answer (if id id #"-1") message))
 

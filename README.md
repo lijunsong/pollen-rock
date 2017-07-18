@@ -66,6 +66,17 @@ raco pkg install pollen-rock
 `raco pollen-rock -h` shows available options.
 
 # ChangeLog
+## 0.4.1
+Features
+
+ - Editor can edit Racket and HTML files
+ - Editor recognizes Racket code in Pollen file (supports mixed pollen and Racket code in pm files)
+
+Enhancement
+
+ - Editor parser respects the command char defined in pollen.rkt and pollen/setup.
+
+
 ## 0.4.0
 Features
 

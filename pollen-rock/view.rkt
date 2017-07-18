@@ -46,7 +46,8 @@
   (define ptypes  (map ctrl/file-ptype files))
 
   (define (link name url ptype)
-    (let ((modified-url (if ptype (url-mark-edit url) url))
+    (let ((modified-url (if (or ptype (string-suffix? name ".rkt"))
+                            (url-mark-edit url) url))
           (watch-url (if ptype (url-mark-watch url) #f)))
       `(div (span ((class "edit-url")) (a ((href ,modified-url)) ,name))
             ,@(if watch-url

@@ -8,8 +8,8 @@
 })(function(CodeMirror) {
 "use strict";
 
-CodeMirror.defineMode("pollen", function() {
-  var cmdChar = '◊';
+  CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
+  var cmdChar = cmConfig['command-char'] || '◊';
   var racketId = '[' +  "^ \\n(){}\\[\\]\",'`;#|\\\\" + cmdChar + ']';
   var racketIdReg = new RegExp(racketId);
 

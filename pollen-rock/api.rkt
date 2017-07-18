@@ -100,35 +100,32 @@
 ;; to load user's pollen.rkt, either define
 ;; `current-load-relative-directory`, or sevlet defines
 ;; `current-directory` to user's working directory.
-(define (get-project-config-handler resource)
-  (define pollen-config
-    (extract-module-info
-     '(pollen/setup (submod "pollen.rkt" setup))))
-  (define vars (filter VariableTag? pollen-config))
-  (define setup (map (lambda (var)
-                      (cons (VariableTag-name var)
-                            (VariableTag-val  var))) vars))
-  (define pollen-tags
-    (extract-module-info '("pollen.rkt")))
-  (define tag-pair (map (lambda (v)
-                          (cond [(VariableTag? v)
-                                 (cons (VariableTag-name v) (VariableTag-val v))]
-                                [(ProcedureTag? v)
-                                 (cons (ProcedureTag-name v)
-                                       (make-immutable-hasheq
-                                        (list (cons 'arity (ProcedureTag-arity v))
-                                              (cons 'keywords (ProcedureTag-keywords v)))))]
-                                [else (error "handle config request error: unknown tag type")]))
-                        pollen-tags))
-  (hasheq 'setup (make-hasheq setup)
-          #|(hasheq 'rendered-resource (resource->output-path resource)
-                  'resource resource)|#
-          'tags (make-immutable-hasheq tag-pair)))
+(define (get-pollen-setup resource)
+  (let [(tags (extract-module-info
+                 '(pollen/setup (submod "pollen.rkt" setup))))]
+    (define vars (filter VariableTag? tags))
+    (make-hasheq (map (lambda (v)
+                        (cons (VariableTag-name v)
+                              (VariableTag-val v))) vars))))
+
+(define (get-pollen-tags resource)
+  (define tags (extract-module-info '("pollen.rkt")))
+  (make-hasheq
+    (map (lambda (v)
+           (cond [(VariableTag? v)
+                  (cons (VariableTag-name v) (VariableTag-val v))]
+                 [(ProcedureTag? v)
+                  (cons (ProcedureTag-name v) (hasheq 'arity (ProcedureTag-arity v)
+                                                      'keywords (ProcedureTag-keywords v)))]
+                 [else
+                  (error "Unknown tag type")]))
+         tags)))
 
 ;;; Main handler for POST api request
 (define api-post-handler
   (export-rpc-handler
    (hash #"save" save-handler
          #"render" render-handler
-         #"get-project-config" get-project-config-handler
+         #"get-pollen-setup" get-pollen-setup
+         #"get-pollen-tags" get-pollen-tags
          #"watchfile" watchfile-handler)))
