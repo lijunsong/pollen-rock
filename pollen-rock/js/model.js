@@ -277,6 +277,7 @@ class EditorSettingsModel {
         options: new Set(["default", "solarized light", "solarized dark"])
       },
       font: 'Source Sans Pro',
+      indentUnit: 2,
       mode: {
         value: this.searchMode(this.model.resource),
         options: new Set(Object.values(this.modeMap))
@@ -310,6 +311,7 @@ class EditorSettingsModel {
     switch (typeof(v)) {
     case 'string':
     case 'boolean':
+    case 'number':
       this.settings[name] = v;
       break;
     case 'object':

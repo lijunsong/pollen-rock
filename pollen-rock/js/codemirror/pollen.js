@@ -48,6 +48,10 @@
       //console.log(state);
       var ch;
 
+      if (stream.eatSpace()) {
+        return null;
+      }
+
       // TODO: to clean this, push tag-function and its brace (either { or |{) information
       // on the stack. if current char is in tag function ";", it is in comment.
       // '}' in ";" with "|{" will be matched one more with "|", etc.
@@ -101,8 +105,15 @@
             var tag = '';
             var letter;
 
-            while ((letter = stream.eat(racketIdReg)) != null) {
-              tag += letter;
+            if (stream.eat("|")) {
+              // racket bar quoted identifier, e.g. @|one, two|
+              // https://docs.racket-lang.org/guide/symbols.html
+              stream.eatWhile(/[^|]/);
+              stream.eat("|");
+            } else {
+              while ((letter = stream.eat(racketIdReg)) != null) {
+                tag += letter;
+              }
             }
             return 'keyword';
           }
@@ -131,7 +142,7 @@
         }
       }
       return null;
-    },
+    }
   };
 
 });

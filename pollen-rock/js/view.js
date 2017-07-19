@@ -106,7 +106,8 @@ class View {
       let change = {},
           val = $(this).val();
       if (val === "true") val = true;
-      if (val === "false") val = false;
+      else if (val === "false") val = false;
+      else if (/^\d+$/.test(val)) val = Number(val);
       change[name] = val;
       self.editorSettingsChangeEvent.notify(change);
     };
@@ -133,7 +134,7 @@ class View {
         let $input = $('<input>').attr('id', id).attr('type', 'text')
             .attr('value', val).appendTo($inputDiv);
         let $label = $('<label>').attr('for', id).text(name).appendTo($inputDiv);
-        $input.on("change", callback(name));
+        $input.on("input", callback(name));
       }
       $preference.append($inputDiv);
     }
