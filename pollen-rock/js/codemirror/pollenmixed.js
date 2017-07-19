@@ -8,6 +8,13 @@
 })(function(CodeMirror) {
 "use strict";
 
+CodeMirror.registerHelper("syntaxCheck", "pollenMixed", function(cm, line) {
+  console.log("lint.pollenMixed");
+  let state = cm.getStateAfter(line, true);
+  return (state.schemeState.indentStack == null
+          && state.pollenState.braceStack.length == 0);
+});
+
 CodeMirror.defineMode("pollenMixed", function(cmConfig, modeConfig) {
   let schemeMode = CodeMirror.getMode(cmConfig, "scheme");
   let pollenMode = CodeMirror.getMode(cmConfig, "pollen");

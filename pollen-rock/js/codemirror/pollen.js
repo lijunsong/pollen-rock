@@ -8,6 +8,12 @@
 })(function(CodeMirror) {
 "use strict";
 
+  CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
+    console.log("lint.pollen");
+    let state = cm.getStateAfter(line, true);
+    return state.pollenState.braceStack.length == 0;
+  });
+
   CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
   var cmdChar = cmConfig['command-char'] || '◊';
   var racketId = '[' +  "^ \\n(){}\\[\\]\",'`;#|\\\\" + cmdChar + ']';
@@ -41,6 +47,10 @@
       //console.log(stream);
       //console.log(state);
       var ch;
+
+      if (stream.eatSpace()) {
+        return null;
+      }
 
       // TODO: to clean this, push tag-function and its brace (either { or |{) information
       // on the stack. if current char is in tag function ";", it is in comment.
@@ -95,8 +105,15 @@
             var tag = '';
             var letter;
 
-            while ((letter = stream.eat(racketIdReg)) != null) {
-              tag += letter;
+            if (stream.eat("|")) {
+              // racket bar quoted identifier, e.g. @|one, two|
+              // https://docs.racket-lang.org/guide/symbols.html
+              stream.eatWhile(/[^|]/);
+              stream.eat("|");
+            } else {
+              while ((letter = stream.eat(racketIdReg)) != null) {
+                tag += letter;
+              }
             }
             return 'keyword';
           }
@@ -125,7 +142,7 @@
         }
       }
       return null;
-    },
+    }
   };
 
 });
