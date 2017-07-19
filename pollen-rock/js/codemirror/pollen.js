@@ -8,6 +8,12 @@
 })(function(CodeMirror) {
 "use strict";
 
+  CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
+    console.log("lint.pollen");
+    let state = cm.getStateAfter(line, true);
+    return state.pollenState.braceStack.length == 0;
+  });
+
   CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
   var cmdChar = cmConfig['command-char'] || '◊';
   var racketId = '[' +  "^ \\n(){}\\[\\]\",'`;#|\\\\" + cmdChar + ']';

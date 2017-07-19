@@ -212,11 +212,15 @@ class Model {
     this.editorSettingsChangeEvent.notify(obj);
   }
 
-  // TODO: editor mode should return such a check function
+  // Check syntax using syntax check function of current editor mode
   syntaxCheck() {
-    let lastLine = this.editor.doc.lastLine();
-    let state = this.editor.getStateAfter(lastLine, true);
-    return state.braceStack.length == 0;
+    let mode = this.editor.doc.getMode();
+    let check = CodeMirror.syntaxCheck[mode.name];
+    if (! check) {
+      console.log(`syntaxCheck not found for mode ${mode.name}.`);
+      return false;
+    }
+    return check(this.editor, this.editor.doc.lastLine());
   }
 }
 
@@ -267,7 +271,7 @@ class EditorSettingsModel {
       // customizable settings
       lineWrapping: true,
       lineNumbers: false,
-      autoReloadPreview: false,
+      autoReloadPreview: true,
       theme: {
         value: "default",
         options: new Set(["default", "solarized light", "solarized dark"])
