@@ -1,30 +1,37 @@
 # Pollen-Rock
 
-A Pollen Server and an In-Browser Editor For Pollen Publishing System.
-
-Pollen-Rock aims to be a simple yet powerful tool to manage your
-pollen projects. Essentially, it offers a front-end editor and a
-back-end server to improve UX of pollen editing.
+Pollen-Rock provides an improved rendering server and an in-browser editor for [pollen](http://docs.racket-lang.org/pollen/).
 
 ## Note
 
 This project is still at its early development stage. Feedback and
 suggestions are welcome.
 
+## Pollen Server
+
+The main contribution of Pollen-Rock is its rendering server: the
+server can respond to various HTTP POST requests in [JSON RPC](http://json-rpc.org/);
+your program can dynamically fetch useful project specific information
+from the server.
+
+Why is this useful? Take the built-in editor as an example. The editor talks
+to the server before opening a pm file. It
+asks the server to gether project info (e.g. list all functions exported from
+pollen.rkt) and uses these info when you typing (e.g. auto-complete known function names).
+
 ## Editor
 
-Pollen-Rock aims to offer a powerful editor in browser to help you
-focus when you compose, and to find runtime racket errors when you
-typeset.
+Pollen-Rock also comes with a built-in editor that makes it easy to edit
+text mixed with racket code.
 
-To help you compose, the editor
+To help you compose your prose, the editor
 
 - [x] provides a distraction-free mode
 - [x] saves the file automatically for you
 - [x] inserts CommandChar using `@`
 - [x] provides useful syntax highlight for pollen files
 
-To help you typeset, the editor
+To help typeset, the editor
 
 - [x] detects project settings (e.g. CommandChar)
 - [x] warns unbalanced braces
@@ -41,7 +48,7 @@ Also, the server
 
 *Note:*
 - [x] means the feature has been implemented.
-- Only Chrome and Safari are supported.
+- The built-in editor supports only Chrome and Safari (Other browsers are not tested)
 
 These useful features are made possible because the back-end of
 Pollen-Rock is written in Racket. It understands your configuration
@@ -49,6 +56,8 @@ file `pollen.rkt`, and serves you better than tranditional editors
 (like Vim, Emacs, Sublime Text, etc.).
 
 ## Project Management
+
+(Not yet implemented)
 
 Pollen-Rock is also going to provide a simple interface to add, rename,
 delete files in your pollen projects.
@@ -60,10 +69,40 @@ raco pkg install pollen-rock
 
 ## Usage
 
-1. Run `raco pollen-rock` in your pollen project root directory.
-2. Start your work in your browser
-
 `raco pollen-rock -h` shows available options.
+
+### Start Server
+
+Run `raco pollen-rock` in your pollen project root directory.
+
+```
+$ raco pollen-rock
+Your Web application is running at http://localhost:8000.
+Stop this program at any time to terminate the Web Server.
+```
+
+Open http://localhost:8000 in your browser. Your browser will display an index page that lists all files in your project.
+
+### Use built-in editor
+
+The built-in editor supports only Racket (.rkt), HTML (.html), pollen files (.pm, .pp, .p). When you click a file name on the index page, server opens the editor only when the opening file is editable (supported). Otherwise your browser will display a page showing simple plain text.
+
+The editor comes with preview and auto reload preview when you modifies the file. You can turn off auto reload preview in settings.
+
+You can also see what key bindings are provided in settings. For example, autocomplete by default is `Ctrl-Space` (only when the cursor is after a command char). `@` is used to insert either a command char or a `@`.
+
+(Key binding customization is not implemented so far)
+
+### Watch file changes
+
+When the built-in editor is not sufficient for you, you can always switch back to your favorite editor. Pollen-Rock can watch changes made to pollen files, and refresh the rendered HTML in your browser.
+
+On the index page, pollen files will have a **watch** icon on the right. Clicking the icon will open a rendered page. When you make changes to the watching file, the rendered page will refresh automatically.
+
+## Known Issues
+
+ - Opening multiple built-in editors to edit the same file will result in data loss.
+ - Editor settings are ephemeral; closing browser will reset all settings.
 
 # ChangeLog
 ## 0.4.1
