@@ -5,6 +5,7 @@
 (require web-server/templates)
 (require web-server/dispatchers/dispatch)
 (require web-server/dispatch)
+(require setup/getinfo)
 (require pollen/file)
 (require pollen/render)
 (require xml)
@@ -82,12 +83,28 @@
        ,(lambda (flag port)
           (server-port (string->number port)))
        (,(format "Set server's port (default ~a)" (server-port))
-        "port")]))
+        "port")]
+      [("--local")
+       ,(lambda (flag)
+          (listen-ip "127.0.0.1"))
+       ("Make pollen server accessible by only this machine")]))
    (lambda (f) (void))
    '())
+
+  (displayln (format "Welcome to Pollen Rock ~a (Racket ~a)"
+                     ((get-info/full (build-path runtimeroot 'up)) 'version)
+                     (version)))
+  (displayln (format "Project root is ~a" webroot))
+  (displayln (format "Pollen Editor is running at http://localhost:~a (accessible by ~a)"
+                     (server-port)
+                     (if (listen-ip) "only this machine" "all machines on your network")))
+  (displayln "Ctrl-C at any time to terminate Pollen Rock.")
+
   (serve/servlet server-dispatch
+                 #:command-line? #t
+                 #:banner? #f
                  #:port (server-port)
-                 #:listen-ip "0.0.0.0"
+                 #:listen-ip (listen-ip)
                  #:launch-browser? #f
                  #:servlet-regexp #rx""
                  #:extra-files-paths (list webroot runtimeroot)

@@ -9,6 +9,7 @@
 
 ;; server's port
 (define server-port (make-parameter 8000))
+(define listen-ip (make-parameter #f))
 
 ;;; Web root for looking for resources
 (define webroot (current-directory))
