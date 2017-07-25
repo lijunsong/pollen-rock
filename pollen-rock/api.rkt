@@ -121,6 +121,30 @@
                   (error "Unknown tag type")]))
          tags)))
 
+;; list
+(define (ls-handler resource)
+  (define disk-path (append-path webroot resource))
+  (unless (directory-exists? disk-path)
+    (raise-user-error 'ls "~a not found" resource))
+
+  ;; we don't use (directory-list ... #:build? #t) here because
+  ;; we also needs pass an absolute path (another resource) back
+  (define filenames (map path->string (directory-list disk-path)))
+  (define filepaths (map (lambda (n) (append-path disk-path n)) filenames))
+  (define resource-element (resource->path-elements resource))
+  (make-hash
+   (map (lambda (p n)
+          (cons (if (directory-exists? p) 'directory 'non-directory)
+                (path-elements->resource `(,@resource-element ,n))))
+        filepaths filenames)))
+
+(define (create-pollen-file-handler) 1)
+
+(define (create-directory-handler) 2)
+
+(define (rename-file-or-directory-handler) 3)
+
+
 ;;; Main handler for POST api request
 (define api-post-handler
   (export-rpc-handler
@@ -128,4 +152,35 @@
          #"render" render-handler
          #"get-pollen-setup" get-pollen-setup
          #"get-pollen-tags" get-pollen-tags
-         #"watchfile" watchfile-handler)))
+         #"watchfile" watchfile-handler
+         #"ls" ls-handler
+         #"create-pollen-file" create-pollen-file-handler
+         #"create-directory" create-directory-handler
+         #"rename-file-or-directory" rename-file-or-directory-handler)))
+
+(module+ test
+  (require rackunit)
+  (require net/url-string)
+  (require json)
+
+  (define (rpc-request id method params)
+    (make-request
+     #"POST" (string->url "http://localhost:8000") empty
+     (delay
+       (list (make-binding:form #"method" method)
+             (make-binding:form #"params" params)
+             (make-binding:form #"id" id)))
+     #"fake post raw"
+     "0.0.0.0" 8000
+     "0.0.0.0"))
+
+  (define (check-response-field-equal? response field expected)
+    (define (get-response-json response)
+      (define output (call-with-output-string (response-output response)))
+      (string->jsexpr output))
+    (define json (get-response-json response))
+    (check-equal? (hash-ref json field false) expected))
+
+  (let [(response (api-post-handler (rpc-request #"1" #"ls" #"[\"/abc\"]")))]
+    (check-response-field-equal? response 'result (json-null))
+    (check-response-field-equal? response 'error "ls: /abc not found")))
