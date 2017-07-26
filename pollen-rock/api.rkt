@@ -138,12 +138,33 @@
                 (path-elements->resource `(,@resource-element ,n))))
         filepaths filenames)))
 
-(define (create-pollen-file-handler) 1)
+(define (create-pollen-file-handler resource)
+  (define disk-path (append-path webroot resource))
+  (with-handlers
+      ([exn:fail:filesystem? (lambda (e) #f)])
+    (with-output-to-file disk-path
+      (lambda (out)
+        (displayln "#lang pollen" out)
+        (displayln "" out)
+        #t)
+      #:mode 'text
+      #:exists 'error)))
 
-(define (create-directory-handler) 2)
+(define (create-directory-handler resource)
+  (define disk-path (append-path webroot resource))
+  (with-handlers
+      ([exn:fail:filesystem? (lambda (e) #f)])
+    (make-directory disk-path)
+    #t))
 
-(define (rename-file-or-directory-handler) 3)
-
+(define/contract (rename-file-or-directory-handler src dst)
+  (-> resource? resource? boolean?)
+  (define src-path (append-path webroot src))
+  (define dst-path (append-path webroot dst))
+  (with-handlers
+      ([exn:fail:filesystem? (lambda (e) #f)])
+    (rename-file-or-directory src dst)
+    #t))
 
 ;;; Main handler for POST api request
 (define api-post-handler
