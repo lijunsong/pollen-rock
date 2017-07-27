@@ -37,15 +37,7 @@
 (define (index-handler req _)
   (define resource (request->resource req))
   (cond [(directory-exists? (append-path webroot resource))
-         ;; render directory path to breadcrumb
-         (define breadcrumb (xexpr/resource->breadcrumb resource))
-         ;; split the list into folders and files.
-         (define all-files (ctrl/all-files resource))
-         (define-values (folderobjs fileobjs)
-           (partition ctrl/file-is-directory? all-files))
-         (let ((folders (xexpr/all-files folderobjs))
-               (files   (xexpr/all-files fileobjs)))
-           (response/text (include-template "templates/files.html")))]
+         (response/text (include-template "templates/files.html"))]
         [else
          (define file-path (path->complete-path
                             (append-path webroot resource)))

@@ -6,27 +6,34 @@
     <title>Pollen Rock</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
-    <link rel="stylesheet" href="/css/index.css">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+    <link rel="stylesheet" href="/css/materialize.min.css">
+    <link rel="stylesheet" href="/css/files.css">
   </head>
 
   <body>
-    <div class="container">
-      <div class="header">
-        @(xexpr->string breadcrumb)
+    <div class="wrapper">
+      <div id="folder-indexing" class="collection">
+        <a href="#!" class="collection-item">Alvin</a>
+        <a href="#!" class="collection-item active">Alvin</a>
+        <a href="#!" class="collection-item">Alvin</a>
+        <a href="#!" class="collection-item">Alvin</a>
       </div>
-      <div class="folders">
-        @(if (not (empty? folders)) "<h3>Folders</h3>" "")
-        @(if (empty? folders)
-        ""
-        (xexpr->string folders))
-      </div>
-      <div class="files">
-        @(if (not (empty? files)) "<h3>Files</h3>" "")
-        @(if (empty? files)
-        ""
-        (xexpr->string files))
+
+      <div id="file-indexing" class="collection">
+        <a href="#!" class="collection-item">Alvin</a>
+        <a href="#!" class="collection-item active">Alvin</a>
+        <a href="#!" class="collection-item">Alvin</a>
+        <a href="#!" class="collection-item">Alvin</a>
       </div>
     </div>
+
+    <div id="container" class="container">
+    </div>
+    <script src="/js/libs/jquery-3.1.1.min.js"></script>
+    <script src="/js/libs/materialize.min.js"></script>
+    <script src="/js/libs/pollen-rpc.js"></script>
+    <script src="/js/event.js"></script>
+   <script src="/js/files.js"></script>
   </body>
 </html>
