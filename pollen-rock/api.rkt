@@ -131,28 +131,6 @@
   ;; we don't use (directory-list ... #:build? #t) here because
   ;; we also needs pass an absolute path (another resource) back
   (define filenames (map path->string (directory-list disk-path)))
-  ;; filepaths contains path AND name
-  (define filepaths (map (lambda (n) (cons (append-path disk-path n) n)) filenames))
-  (define resource-element (resource->path-elements resource))
-  (define-values (dirs files)
-    (partition (lambda (path)
-                 (directory-exists? (car path)))
-               filepaths))
-  (hasheq
-   'directory (map (lambda (dir)
-                     (path-elements->resource `(,@resource-element ,(cdr dir))))
-                   dirs)
-   'non-directory (map (lambda (file)
-                         (path-elements->resource `(,@resource-element ,(cdr file))))
-                       files)))
-
-(define (ls-handler0 resource)
-  (define disk-path (append-path webroot resource))
-  (unless (directory-exists? disk-path)
-    (raise-user-error 'ls "~a not found" resource))
-  ;; we don't use (directory-list ... #:build? #t) here because
-  ;; we also needs pass an absolute path (another resource) back
-  (define filenames (map path->string (directory-list disk-path)))
   (define-values (dirs files)
     (partition (lambda (name) (directory-exists? (append-path disk-path name)))
                filenames))
