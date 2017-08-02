@@ -10,8 +10,50 @@ body {
     background-color: #fafbfc;
 }
 
-.wrapper {
+#wrapper {
     max-width: 768px;
     margin: 0 auto;
 }
 
+.collection a.collection-item {
+    color: #888;
+}
+
+.item-left {
+    flex: 1;
+}
+
+.not-pollen-source .item-left {
+    color: #DDD;
+}
+
+.is-pollen-source a {
+    color: rgba(0,0,0,87);
+}
+
+.is-pollen-source a:hover {
+    color: #777;
+}
+
+.material-icons {
+    line-height: 1.5rem;
+    font-size: inherit;
+}
+
+
+.item-right {
+    visibility: visible;
+}
+
+.editable:hover .item-right {
+    visibility: visible;
+}
+
+.item-right a {
+    margin-right: 1rem;
+}
+
+.indexing-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+}

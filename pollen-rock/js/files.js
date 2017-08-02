@@ -59,8 +59,9 @@ class View {
   }
 
   setupBindings() {
-    this.$folderCollection = $("#folder-indexing");
-    this.$fileCollection = $("#file-indexing");
+    this.$wrapper = $("#wrapper");
+    this.$indexWrapperTemplate = $("#tpl-index-wrapper");
+    this.$itemTemplate = $("#tpl-collection-item");
     return this;
   }
 
@@ -74,40 +75,95 @@ class View {
     return this;
   }
 
-  /**
-   * There are several things involved when creating a item for
-   * showing in a list, so make these steps a separate function.
-   */
-  buildCollectionItem(filename) {
-    let base = this.model.resource;
-    base = (base == "/" ? "" : base);
-    let href = `${base}/${filename}`;
+  icon(name) {
+    return $("<i>").attr('class', 'material-icons').text(name);
+  }
 
-    if (this.model.isPollenSource(filename)) {
-      // redirect to edit page and add watch icon
-      href = `/edit${href}`;
+  makeFileURL(filename){
+    let base = this.model.resource;
+    let href;
+    if (base == "/") {
+      href = `/${filename}`;
+    } else {
+      href = `${base}/${filename}`;
     }
-    let item = $("<a>")
-        .attr('href', href)
-        .attr('class', 'collection-item')
-        .text(filename);
-    return item;
+    return href;
+  }
+
+  /**
+   * Common file operations may include rename and delete.
+   * This method returns a list of jquery object
+   */
+  makeCommonFileOperations() {
+    let icon = this.icon('more_horiz');
+    return [icon];
+  }
+
+  make$FolderList(folders) {
+    let lists = folders || [];
+    let result = [];
+
+    for (let name of lists) {
+      let url = this.makeFileURL(name);
+      let itemRight = this.makeCommonFileOperations();
+      let itemLeft = $('<a>', {href: url, text: name});
+      let item = $(this.$itemTemplate.html());
+      item.find('.item-left').append(itemLeft);
+      item.find('.item-right').append(itemRight);
+      result.push(item);
+    }
+    return result;
+  }
+
+  make$RegularFileList(files) {
+    let lists = files || [];
+    let result = [];
+
+    for (let name of lists) {
+      let url = this.makeFileURL(name);
+      let itemLeft = name;
+      let commonOps = this.makeCommonFileOperations();
+      let itemRight;
+      let isSource = this.model.isPollenSource(name);
+      if (! isSource) {
+        itemRight = commonOps;
+      } else {
+        // add pollen source operations
+        let editOp = $('<a>', {href: `/edit${url}`})
+            .append(this.icon('edit'));
+        let viewOp = $('<a>', {href: `/watchfile${url}`})
+            .append(this.icon('pageview'));
+        itemRight = [editOp, viewOp, ... commonOps];
+      }
+
+      let item = $(this.$itemTemplate.html())
+          .addClass(isSource ? "is-pollen-source" : "not-pollen-source");
+      item.find('.item-left').append(itemLeft);
+      item.find('.item-right').append(itemRight);
+      result.push(item);
+    }
+    return result;
   }
 
   refreshFileList(sender, fileList) {
-    let self = this;
-    function addItems($collection, nameList) {
-      for (let name of nameList) {
-        let item = self.buildCollectionItem(name);
-        $collection.append(item);
+    this.$wrapper.html('');
+
+    let folders = this.make$FolderList(fileList['directory']);
+    let files = this.make$RegularFileList(fileList['non-directory']);
+
+    let listNames = {
+      'Folders' : folders,
+      'Files': files
+    };
+    for (let itemListName of Object.keys(listNames)) {
+      let itemList = listNames[itemListName];
+      if (itemList.length != 0) {
+        let $listWrapper = $(this.$indexWrapperTemplate.html());
+        $listWrapper.find('ul').append(itemList);
+        $listWrapper.find('.indexing-name').text(itemListName);
+        this.$wrapper.append($listWrapper);
       }
     }
-    let dirs = fileList['directory'];
-    let files = fileList['non-directory'];
-    this.$folderCollection.html('');
-    this.$fileCollection.html('');
-    addItems(this.$folderCollection, dirs);
-    addItems(this.$fileCollection, files);
   }
 }
 

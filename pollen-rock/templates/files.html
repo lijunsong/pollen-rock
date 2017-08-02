@@ -7,18 +7,28 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="/css/materialize.min.css">
     <link rel="stylesheet" href="/css/files.css">
   </head>
 
   <body>
-    <div class="wrapper">
-      <div id="folder-indexing" class="collection">
-      </div>
-
-      <div id="file-indexing" class="collection">
-      </div>
+    <div id="wrapper">
     </div>
+
+    <template id="tpl-collection-item">
+      <li class="collection-item valign-wrapper">
+        <div class="item-left"></div>
+        <div class="item-right"></div>
+      </li>
+    </template>
+    <template id="tpl-index-wrapper">
+      <div class="indexing">
+        <ul class="collection with-header">
+          <li class="indexing-name collection-header"></li>
+        </ul>
+      </div>
+    </template>
     <script src="/js/libs/jquery-3.1.1.min.js"></script>
     <script src="/js/libs/materialize.min.js"></script>
     <script src="/js/libs/pollen-rpc.js"></script>
