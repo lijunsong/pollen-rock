@@ -17,17 +17,23 @@
     </div>
 
     <template id="tpl-item-right">
-      <span class="op"></span>
+      <span class="op tooltipped"></span>
     </template>
     <template id="tpl-collection-item">
       <li class="collection-item valign-wrapper">
         <div class="item-left"></div>
         <div class="item-right">
           <span class="op divider"></span>
-          <span class="op expand-item fs-delete"><i class="material-icons">delete</i></span>
-          <span class="op expand-item fs-edit"><i class="material-icons">edit</i></span>
+          <span class="op expand-item fs-rename tooltipped" data-tooltip="Rename this file">
+            <i class="material-icons">edit</i>
+          </span>
+          <span class="op expand-item fs-delete tooltipped" data-tooltip="Delete this file">
+            <i class="material-icons">delete</i>
+          </span>
           <span class="op expand-less"><i class="material-icons">chevron_left</i></span>
-          <span class="op expand-more"><i class="material-icons">expand_more</i></span>
+          <span class="op expand-more tooltipped" data-tooltip="more options">
+            <i class="material-icons">expand_more</i>
+          </span>
         </div>
       </li>
     </template>
@@ -36,6 +42,12 @@
         <ul class="collection with-header">
           <li class="indexing-name collection-header"></li>
         </ul>
+      </div>
+    </template>
+    <template id="tpl-rename-input-field">
+      <div class="input-field">
+        <input type="text" id="rename-to" class="">
+        <label for="rename-to">Rename <span class="rename-from"></span></label>
       </div>
     </template>
     <script src="/js/libs/jquery-3.1.1.min.js"></script>

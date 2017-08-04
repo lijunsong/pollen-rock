@@ -63,6 +63,7 @@ class View {
     this.$indexWrapperTemplate = $("#tpl-index-wrapper");
     this.$itemTemplate = $("#tpl-collection-item");
     this.$itemRightTemplate = $("#tpl-item-right");
+    this.$renameInputTemplate = $("#tpl-rename-input-field");
     return this;
   }
 
@@ -82,12 +83,34 @@ class View {
    * constructor
    */
   setupFsHandler() {
+    let self = this;
     $(".expand-more").on('click', function() {
       $(this).parent().addClass('active');
     });
     $(".expand-less").on('click', function() {
       $(this).parent().removeClass('active');
     });
+    $(".fs-delete").on('click', function() {
+      let $this = $(this);
+      let filename = $this.parent().prev().attr('data');
+      console.log(`to delete ${filename}`);
+    });
+    $(".fs-rename").on('click', function() {
+      let $this = $(this);
+      let itemLeft = $this.parent().prev();
+      let filename = itemLeft.attr('data');
+      itemLeft.html('');
+      let $input = $(self.$renameInputTemplate.html());
+      $input.find('input').attr('value', filename);
+      $input.find('label').addClass('active');
+      $input.find('span').text(filename);
+      itemLeft.append($input);
+      console.log(`rename ${filename}`);
+    });
+  }
+
+  setupTooltip() {
+    $('.tooltipped').tooltip({delay: 300});
   }
 
   icon(name, attr) {
@@ -115,7 +138,7 @@ class View {
       let url = this.makeFileURL(name);
       let itemLeft = $('<a>', {href: url, text: name});
       let item = $(this.$itemTemplate.html());
-      item.find('.item-left').append(itemLeft);
+      item.find('.item-left').append(itemLeft).attr('data', name);
       result.push(item);
     }
     return result;
@@ -132,18 +155,20 @@ class View {
       let isSource = this.model.isPollenSource(name);
       if (isSource) {
         // add pollen source operations
-        let editOp = $(this.$itemRightTemplate.html()).append(
-          $('<a>', {href: `/edit${url}`})
-            .append(this.icon('code')));
-        let viewOp = $(this.$itemRightTemplate.html()).append(
-          $('<a>', {href: `/watchfile${url}`})
-            .append(this.icon('visibility')));
+        let editOp = $(this.$itemRightTemplate.html())
+            .attr('data-tooltip', 'open editor to edit this file')
+            .append($('<a>', {href: `/edit${url}`})
+                    .append(this.icon('code')));
+        let viewOp = $(this.$itemRightTemplate.html())
+            .attr('data-tooltip', 'render this file')
+            .append($('<a>', {href: `/watchfile${url}`})
+                    .append(this.icon('visibility')));
         itemRight = [editOp, viewOp];
       }
 
       let item = $(this.$itemTemplate.html())
           .addClass(isSource ? "is-pollen-source" : "not-pollen-source");
-      item.find('.item-left').append(itemLeft);
+      item.find('.item-left').append(itemLeft).attr('data', name);
       item.find('.item-right').prepend(itemRight);
       result.push(item);
     }
@@ -171,6 +196,7 @@ class View {
     }
 
     this.setupFsHandler();
+    this.setupTooltip();
   }
 }
 
