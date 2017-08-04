@@ -16,10 +16,19 @@
     <div id="wrapper">
     </div>
 
+    <template id="tpl-item-right">
+      <span class="op"></span>
+    </template>
     <template id="tpl-collection-item">
       <li class="collection-item valign-wrapper">
         <div class="item-left"></div>
-        <div class="item-right"></div>
+        <div class="item-right">
+          <span class="op divider"></span>
+          <span class="op expand-item fs-delete"><i class="material-icons">delete</i></span>
+          <span class="op expand-item fs-edit"><i class="material-icons">edit</i></span>
+          <span class="op expand-less"><i class="material-icons">chevron_left</i></span>
+          <span class="op expand-more"><i class="material-icons">expand_more</i></span>
+        </div>
       </li>
     </template>
     <template id="tpl-index-wrapper">

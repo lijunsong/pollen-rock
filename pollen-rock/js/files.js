@@ -62,6 +62,7 @@ class View {
     this.$wrapper = $("#wrapper");
     this.$indexWrapperTemplate = $("#tpl-index-wrapper");
     this.$itemTemplate = $("#tpl-collection-item");
+    this.$itemRightTemplate = $("#tpl-item-right");
     return this;
   }
 
@@ -75,8 +76,24 @@ class View {
     return this;
   }
 
-  icon(name) {
-    return $("<i>").attr('class', 'material-icons').text(name);
+  /**
+   * setup handlers for filesystem operations. Because icons are
+   * constructed dynamically, we don't call this function in
+   * constructor
+   */
+  setupFsHandler() {
+    $(".expand-more").on('click', function() {
+      $(this).parent().addClass('active');
+    });
+    $(".expand-less").on('click', function() {
+      $(this).parent().removeClass('active');
+    });
+  }
+
+  icon(name, attr) {
+    let $i = $("<i>", attr).text(name);
+    $i.addClass('material-icons');
+    return $i;
   }
 
   makeFileURL(filename){
@@ -90,26 +107,15 @@ class View {
     return href;
   }
 
-  /**
-   * Common file operations may include rename and delete.
-   * This method returns a list of jquery object
-   */
-  makeCommonFileOperations() {
-    let icon = this.icon('more_horiz');
-    return [icon];
-  }
-
   make$FolderList(folders) {
     let lists = folders || [];
     let result = [];
 
     for (let name of lists) {
       let url = this.makeFileURL(name);
-      let itemRight = this.makeCommonFileOperations();
       let itemLeft = $('<a>', {href: url, text: name});
       let item = $(this.$itemTemplate.html());
       item.find('.item-left').append(itemLeft);
-      item.find('.item-right').append(itemRight);
       result.push(item);
     }
     return result;
@@ -122,24 +128,23 @@ class View {
     for (let name of lists) {
       let url = this.makeFileURL(name);
       let itemLeft = name;
-      let commonOps = this.makeCommonFileOperations();
       let itemRight;
       let isSource = this.model.isPollenSource(name);
-      if (! isSource) {
-        itemRight = commonOps;
-      } else {
+      if (isSource) {
         // add pollen source operations
-        let editOp = $('<a>', {href: `/edit${url}`})
-            .append(this.icon('edit'));
-        let viewOp = $('<a>', {href: `/watchfile${url}`})
-            .append(this.icon('pageview'));
-        itemRight = [editOp, viewOp, ... commonOps];
+        let editOp = $(this.$itemRightTemplate.html()).append(
+          $('<a>', {href: `/edit${url}`})
+            .append(this.icon('code')));
+        let viewOp = $(this.$itemRightTemplate.html()).append(
+          $('<a>', {href: `/watchfile${url}`})
+            .append(this.icon('visibility')));
+        itemRight = [editOp, viewOp];
       }
 
       let item = $(this.$itemTemplate.html())
           .addClass(isSource ? "is-pollen-source" : "not-pollen-source");
       item.find('.item-left').append(itemLeft);
-      item.find('.item-right').append(itemRight);
+      item.find('.item-right').prepend(itemRight);
       result.push(item);
     }
     return result;
@@ -164,6 +169,8 @@ class View {
         this.$wrapper.append($listWrapper);
       }
     }
+
+    this.setupFsHandler();
   }
 }
 

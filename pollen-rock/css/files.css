@@ -27,12 +27,13 @@ body {
     color: #DDD;
 }
 
-.is-pollen-source a {
+.collection-item .op, .collection-item a {
     color: rgba(0,0,0,87);
 }
 
-.is-pollen-source a:hover {
+.collection-item .op:hover, .collection-item a:hover {
     color: #777;
+    cursor: pointer;
 }
 
 .material-icons {
@@ -40,20 +41,29 @@ body {
     font-size: inherit;
 }
 
-
-.item-right {
-    visibility: visible;
-}
-
-.editable:hover .item-right {
-    visibility: visible;
-}
-
-.item-right a {
-    margin-right: 1rem;
-}
-
 .indexing-name {
     font-size: 1.2rem;
     font-weight: bold;
+}
+
+.expand-item, .expand-less, .active .expand-more {
+    display: none;
+}
+
+.active .expand-item, .active .expand-less {
+    display: inline-block;
+}
+
+.op {
+    margin-left: 0.5rem;
+}
+
+/* .divier will have space only when the whole list is expanded */
+.active .op.divider {
+    margin-left: 0.8rem;
+}
+
+.op.divider {
+    width: 0;
+    margin-left: 0rem;
 }
