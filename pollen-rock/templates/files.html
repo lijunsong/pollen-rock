@@ -14,8 +14,36 @@
 
   <body>
     <div id="wrapper">
+      <div id="folder-wrapper" class="indexing">
+        <ul class="collection with-header">
+          <li class="table-name collection-header valign-wrapper">
+            <div class="item-left"> Folders </div>
+            <div class="item-right tooltipped op" id="add-folder" data-tooltip="add new folder"><i class="material-icons">add</i></div>
+          </li>
+        </ul>
+      </div>
+
+      <div id="file-wrapper" class="indexing">
+        <ul class="collection with-header">
+          <li class="table-name collection-header valign-wrapper">
+            <div class="item-left"> Files </div>
+            <div class="item-right tooltipped op" id="add-file" data-tooltip="Add new file"><i class="material-icons">add</i></div>
+          </li>
+        </ul>
+      </div>
     </div>
 
+    <template id="tpl-add-file-or-folder-input">
+      <li class="collection-item valign-wrapper">
+        <div class="item-left">
+          <div class="input-field">
+            <input type="text" class="add-new">
+            <label></label>
+          </div>
+        </div>
+        <div class="item-right op"><i class="material-icons">cancel</i> </div>
+      </li>
+    </template>
     <template id="tpl-item-right">
       <span class="op tooltipped"></span>
     </template>
@@ -27,7 +55,7 @@
           <span class="op expand-item fs-rename tooltipped" data-tooltip="Rename this file">
             <i class="material-icons">edit</i>
           </span>
-          <span class="op expand-item fs-delete tooltipped" data-tooltip="Delete this file">
+          <span class="op expand-item fs-delete tooltipped" data-tooltip="Double click to delete this file">
             <i class="material-icons">delete</i>
           </span>
           <span class="op expand-less"><i class="material-icons">chevron_left</i></span>
@@ -35,14 +63,12 @@
             <i class="material-icons">expand_more</i>
           </span>
         </div>
+        <div class="item-left-renaming">
+        </div>
+        <div class="item-right-renaming">
+          <span class="op rename-cancel tooltipped" data-tooltip="cancel"><i class="material-icons">cancel</i></span>
+        </div>
       </li>
-    </template>
-    <template id="tpl-index-wrapper">
-      <div class="indexing">
-        <ul class="collection with-header">
-          <li class="indexing-name collection-header"></li>
-        </ul>
-      </div>
     </template>
     <template id="tpl-rename-input-field">
       <div class="input-field">

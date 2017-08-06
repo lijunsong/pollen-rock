@@ -21,12 +21,18 @@ class Model {
    */
   constructor(resource) {
     this.rpc = new PollenRockRPC("/api");
-    this.resource = resource;
+    this.resource = resource.replace(/%20/g, ' ');
     this.pollenSuffix = [".pm", ".p", ".pp", ".ptree"];
     this.files = {};
 
-    // Events
+    // notify with an object containing directory and non-directory
+    // list when files are feteched
     this.fileListReadyEvent = new Event(this);
+    // notify with an object indicating whether fop (filesystem
+    // operation) succeeded. The key of this object is the same as
+    // that passed into Vew.fsEvent, with one more bool property
+    // 'result' added.
+    this.fopResultReadyEvent = new Event(this);
   }
 
   fetchList(resource) {
@@ -46,12 +52,61 @@ class Model {
     }
     return false;
   }
+
+  // check filename. If anything wrong, throw exception
+  checkFilename(filename) {
+    if (!filename || filename.length == 0) {
+      throw `${filename} is empty`;
+    }
+  }
+
+  // accept the same argument as View.fsEvent
+  fop(obj, curDir) {
+    let op = obj.op;
+    let opArgList;
+    switch (obj.op) {
+    case 'mv':
+      opArgList = [obj.src, obj.dst];
+      break;
+    case 'touch':
+    case 'mkdir':
+    case 'rm':
+      opArgList = [obj.src];
+      break;
+    default:
+      notifyError(`Uknown fs operation ${obj.op}`);
+      throw obj;
+    }
+
+    let opArgPathList = opArgList.map(a => `${curDir}/${a}`);
+    for (let a of opArgPathList) {
+      this.checkFilename(a);
+    }
+
+    console.log(`calling ${op} with ${opArgPathList} on server`);
+    this.rpc.call_server(op, ... opArgPathList).then(v => {
+      obj['result'] = v.result;
+      this.fopResultReadyEvent.notify(obj);
+    }).catch(err => {
+      notifyError(err.error);
+      obj['result'] = false;
+      this.fopResultReadyEvent.notify(obj);
+    });
+  }
 }
 
 class View {
   constructor(model) {
     this.model = model;
     this.hostname = window.location.host;
+
+    /// Events for controller to subscribe
+
+    // notify with an object there has the following property
+    // op := mv | rm | touch | mkdir
+    // src := string
+    // dst := [string]
+    this.fsEvent = new Event(this);
 
     this.setupBindings()
       .setupHandlers()
@@ -60,22 +115,71 @@ class View {
 
   setupBindings() {
     this.$wrapper = $("#wrapper");
-    this.$indexWrapperTemplate = $("#tpl-index-wrapper");
+    this.$foldersWrapper = $("#folder-wrapper");
+    this.$filesWrapper = $("#file-wrapper");
     this.$itemTemplate = $("#tpl-collection-item");
     this.$itemRightTemplate = $("#tpl-item-right");
     this.$renameInputTemplate = $("#tpl-rename-input-field");
+    this.$addTemplate = $("#tpl-add-file-or-folder-input");
+
+    this.$addFolderIcon = $("#add-folder");
+    this.$addFileIcon = $("#add-file");
     return this;
   }
 
   setupHandlers() {
+    let self = this;
     this.fileListReadyHandler = this.refreshFileList.bind(this);
+    this.fopResultReadyHandler = this.fopResultReady.bind(this);
+
     return this;
   }
 
   attach() {
     this.model.fileListReadyEvent.attach(this.fileListReadyHandler);
+    this.model.fopResultReadyEvent.attach(this.fopResultReadyHandler);
+
+    this.$addFolderIcon.on('click', this.makeAddFileOrFolderHandler("mkdir"));
+    this.$addFileIcon.on('click', this.makeAddFileOrFolderHandler("touch"));
     return this;
   }
+
+  // makeAddFileOrFolderHandler returns a callback for click event on add
+  // file/folder icons.
+  //
+  // op must be either mkdir or touch
+  makeAddFileOrFolderHandler(op) {
+    let self = this;
+    return function () {
+      let $header = $(this).parents('.collection-header');
+      if ($header.hasClass('adding-mode')) {
+        return;
+      }
+      $header.addClass('adding-mode');
+      let $newItem = $(self.$addTemplate.html());
+      $header.after($newItem);
+
+      // setup label
+      let fileType = op == "mkdir" ? "folder" : "file";
+      $newItem.find('label').text(`Enter a name and then press Enter to create a ${fileType}`);
+
+      // setup click handlers
+      $newItem.find('.op').on('click', () => {
+        $header.removeClass('adding-mode');
+        $newItem.remove();
+      });
+      // setup Enter handlers
+      $newItem.find('input').on('change', function() {
+        let filename = $(this).val();
+        console.log(`create: ${filename}`);
+        self.fsEvent.notify({
+          op: op,
+          src: filename
+        });
+      });
+    };
+  }
+
 
   /**
    * setup handlers for filesystem operations. Because icons are
@@ -85,28 +189,77 @@ class View {
   setupFsHandler() {
     let self = this;
     $(".expand-more").on('click', function() {
-      $(this).parent().addClass('active');
+      $(this).parent().addClass('expanding');
     });
     $(".expand-less").on('click', function() {
-      $(this).parent().removeClass('active');
+      $(this).parent().removeClass('expanding');
     });
     $(".fs-delete").on('click', function() {
       let $this = $(this);
-      let filename = $this.parent().prev().attr('data');
-      console.log(`to delete ${filename}`);
+      if ($this.hasClass('rm-mode')) {
+        let filename = $this.parents('.collection-item').attr('data');
+        self.fsEvent.notify({
+          op: 'rm',
+          src: filename
+        });
+      }
+      $this.addClass('rm-mode');
+      setTimeout(() => {
+        $this.removeClass('rm-mode');
+      }, 3000);
     });
     $(".fs-rename").on('click', function() {
-      let $this = $(this);
-      let itemLeft = $this.parent().prev();
-      let filename = itemLeft.attr('data');
-      itemLeft.html('');
-      let $input = $(self.$renameInputTemplate.html());
-      $input.find('input').attr('value', filename);
-      $input.find('label').addClass('active');
-      $input.find('span').text(filename);
-      itemLeft.append($input);
-      console.log(`rename ${filename}`);
+      let $collectionItem = $(this).parents('.collection-item');
+      $collectionItem.addClass('mv-mode');
+      self.renameHandler($collectionItem);
     });
+    $(".rename-cancel").on('click', function() {
+      $(this).parents('.collection-item').removeClass('mv-mode');
+    });
+  }
+
+  addFileHandler() {
+
+  }
+
+  addFileOrFolderHandler($collection) {
+  }
+
+  renameHandler($item) {
+    if (! $item.hasClass('collection-item')) {
+      notifyError('internal Error: renameHandler');
+      console.log($item);
+      return;
+    }
+
+    let $itemLeft = $item.find('.item-left-renaming');
+    let filename = $item.attr('data');
+
+    let $input = $(this.$renameInputTemplate.html());
+    $input.find('input').attr('value', filename);
+    $input.find('label').addClass('active');
+    $input.find('span').text(filename);
+
+    $itemLeft.html('').append($input);
+    console.log(`rename ${filename}`);
+
+    let self = this;
+    $input.find('input').on('change', function() {
+      let newName = $(this).val();
+      self.fsEvent.notify({
+        op: 'mv',
+        src: filename,
+        dst: newName
+      });
+    });
+  }
+
+  fopResultReady(sender, obj) {
+    if (obj.result === false) {
+      notifyError(`${obj.op} failed`);
+    } else {
+      document.location.reload();
+    }
   }
 
   setupTooltip() {
@@ -137,8 +290,8 @@ class View {
     for (let name of lists) {
       let url = this.makeFileURL(name);
       let itemLeft = $('<a>', {href: url, text: name});
-      let item = $(this.$itemTemplate.html());
-      item.find('.item-left').append(itemLeft).attr('data', name);
+      let item = $(this.$itemTemplate.html()).attr('data', name);
+      item.find('.item-left').append(itemLeft);
       result.push(item);
     }
     return result;
@@ -167,8 +320,9 @@ class View {
       }
 
       let item = $(this.$itemTemplate.html())
+          .attr('data', name)
           .addClass(isSource ? "is-pollen-source" : "not-pollen-source");
-      item.find('.item-left').append(itemLeft).attr('data', name);
+      item.find('.item-left').append(itemLeft);
       item.find('.item-right').prepend(itemRight);
       result.push(item);
     }
@@ -176,24 +330,11 @@ class View {
   }
 
   refreshFileList(sender, fileList) {
-    this.$wrapper.html('');
-
     let folders = this.make$FolderList(fileList['directory']);
     let files = this.make$RegularFileList(fileList['non-directory']);
 
-    let listNames = {
-      'Folders' : folders,
-      'Files': files
-    };
-    for (let itemListName of Object.keys(listNames)) {
-      let itemList = listNames[itemListName];
-      if (itemList.length != 0) {
-        let $listWrapper = $(this.$indexWrapperTemplate.html());
-        $listWrapper.find('ul').append(itemList);
-        $listWrapper.find('.indexing-name').text(itemListName);
-        this.$wrapper.append($listWrapper);
-      }
-    }
+    this.$foldersWrapper.find('ul').append(folders);
+    this.$filesWrapper.find('ul').append(files);
 
     this.setupFsHandler();
     this.setupTooltip();
@@ -204,6 +345,28 @@ class Controller {
   constructor(model, view) {
     this.model = model;
     this.view = view;
+
+    this.setupBindings()
+      .setupHandlers()
+      .attach();
+  }
+
+  setupBindings() {
+    return this;
+  }
+
+  setupHandlers() {
+    self.fsHandler = this.fs.bind(this);
+    return this;
+  }
+
+  attach() {
+    this.view.fsEvent.attach(self.fsHandler);
+    return this;
+  }
+
+  fs(sender, obj) {
+    this.model.fop(obj, this.model.resource);
   }
 
   init() {

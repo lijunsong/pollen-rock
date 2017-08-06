@@ -27,6 +27,15 @@
   (-> string? boolean?)
   (string-prefix? r "/"))
 
+;;; check if path is in folder
+(define/contract (is-in-folder? path folder [strict false])
+  (->* (resource? resource?) (boolean?) boolean?)
+  (define s-path (append-path path "."))
+  (define s-folder (append-path folder "."))
+  (if ((if strict <= <) (string-length s-path) (string-length s-folder))
+      #f
+      (string=? s-folder (substring s-path 0 (string-length s-folder)))))
+
 ;; take each path element out
 (define/contract (resource->path-elements r)
   (-> resource? (listof string?))
@@ -77,6 +86,21 @@
   (check-equal? (resource->output-path "/1.html.p") "/1.html")
   (check-equal? (resource->output-path "/1.html.pm") "/1.html")
 
+  (check-true (is-in-folder? "/a/b/c" "/a/b/c"))
+  (check-false (is-in-folder? "/a/b/c" "/a/b/c" true))
+  (check-true (is-in-folder? "/a/b/c/" "/a/b/c"))
+  (check-false (is-in-folder? "/a/b/c/" "/a/b/c" true))
+
+  (check-false (is-in-folder? "/a/b/" "/a/b/c"))
+  (check-true (is-in-folder? "/a/b/c/d" "/a/b/c"))
+  (check-true (is-in-folder? "/a/b/c/d/e/f/g" "/a/b/c"))
+  (check-true (is-in-folder? "/a" "/"))
+
+  (check-false (is-in-folder? "/a/b/c/.." "/a/b/c"))
+  (check-false (is-in-folder? "/a/b/c/d/e/../../.." "/a/b/c"))
+
+
+
   (check-true (is-pollen-source? "/1.html.pp"))
   (check-true (is-pollen-source? "/1.html.pm"))
   (check-true (is-pollen-source? "/1.html.pmd"))
@@ -90,6 +114,7 @@
                 '("/a" "/a/b" "/a/b/c"))
 
   (check-path-equal? (append-path "/12" "2") "/12/2")
+  (check-path-equal? (append-path "/12" ".." ".." ".." "..") "/")
   (check-path-equal? (append-path "/12" "" "3") "/12/3")
   (check-path-equal? (append-path "/12" ".." "3") "/3")
   (check-path-equal? (append-path "12" ".." "3") "3")

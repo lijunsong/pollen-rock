@@ -127,7 +127,8 @@
 (define (ls-handler resource)
   (define disk-path (append-path webroot resource))
   (unless (directory-exists? disk-path)
-    (raise-user-error 'ls "~a not found" resource))
+    (raise-user-error 'ls "~a not found" disk-path))
+  (check-path-safety disk-path false)
   ;; we don't use (directory-list ... #:build? #t) here because
   ;; we also needs pass an absolute path (another resource) back
   (define filenames (map path->string (directory-list disk-path)))
@@ -137,33 +138,46 @@
   (hasheq 'directory dirs
           'non-directory files))
 
+;;; if the given path is not inside webroot, i.e. is outside of
+;;; webroot folder (or is the webroot if strict is true), this
+;;; function raises error.
+(define/contract (check-path-safety path [strict true])
+  (->* (resource?) (boolean?) void?)
+  (unless (is-in-folder? path (path->string webroot) strict)
+    (raise-user-error (format "path ~a is not in project root" path))))
+
 (define (create-pollen-file-handler resource)
   (define disk-path (append-path webroot resource))
-  (with-handlers
-      ([exn:fail:filesystem? (lambda (e) #f)])
-    (with-output-to-file disk-path
-      (lambda (out)
-        (displayln "#lang pollen" out)
-        (displayln "" out)
-        #t)
-      #:mode 'text
-      #:exists 'error)))
+  (check-path-safety disk-path)
+  (with-output-to-file disk-path
+    (lambda (out)
+      (displayln "#lang pollen" out)
+      (displayln "" out)
+      #t)
+    #:mode 'text
+    #:exists 'error))
 
 (define (create-directory-handler resource)
   (define disk-path (append-path webroot resource))
-  (with-handlers
-      ([exn:fail:filesystem? (lambda (e) #f)])
-    (make-directory disk-path)
-    #t))
+  (make-directory disk-path)
+  #t)
 
 (define/contract (rename-file-or-directory-handler src dst)
   (-> resource? resource? boolean?)
   (define src-path (append-path webroot src))
   (define dst-path (append-path webroot dst))
-  (with-handlers
-      ([exn:fail:filesystem? (lambda (e) #f)])
-    (rename-file-or-directory src dst)
-    #t))
+  (check-path-safety src-path)
+  (check-path-safety dst-path)
+  (println (format "~a => ~a" src-path dst-path))
+  (rename-file-or-directory src-path dst-path)
+  #t)
+
+(define/contract (delete-handler resource)
+  (-> resource? boolean?)
+  (define disk-path (append-path webroot resource))
+  (check-path-safety disk-path)
+  (delete-directory/files disk-path #:must-exist? true)
+  #t)
 
 ;;; Main handler for POST api request
 (define api-post-handler
@@ -174,9 +188,10 @@
          #"get-pollen-tags" get-pollen-tags
          #"watchfile" watchfile-handler
          #"ls" ls-handler
-         #"create-pollen-file" create-pollen-file-handler
-         #"create-directory" create-directory-handler
-         #"rename-file-or-directory" rename-file-or-directory-handler)))
+         #"touch" create-pollen-file-handler
+         #"mkdir" create-directory-handler
+         #"mv" rename-file-or-directory-handler
+         #"rm" delete-handler)))
 
 (module+ test
   (require rackunit)
