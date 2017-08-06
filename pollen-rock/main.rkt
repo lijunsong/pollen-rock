@@ -10,8 +10,6 @@
 (require pollen/render)
 (require xml)
 (require "config.rkt")
-(require "view.rkt")
-(require "ctrl.rkt")
 (require "util.rkt")
 (require "api.rkt")
 (require "http-util.rkt")
@@ -36,6 +34,9 @@
 ;; source. If not, yield to next dispatcher
 (define (index-handler req _)
   (define resource (request->resource req))
+  (define filepath (append-path webroot resource))
+  ;; allow referring webroot
+  (check-path-safety filepath false)
   (cond [(directory-exists? (append-path webroot resource))
          (response/text (include-template "templates/files.html"))]
         [else
@@ -48,8 +49,8 @@
 
 (define (edit-handler req trimmed-url)
   (define resource (path-elements->resource trimmed-url))
-  (define breadcrumb (xexpr/resource->breadcrumb resource))
   (define filepath (append-path webroot resource))
+  (check-path-safety filepath)
   (define content (file->bytes filepath))
   (response/text (include-template "templates/editor.html")))
 

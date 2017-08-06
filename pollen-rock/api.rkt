@@ -16,7 +16,7 @@
 (require "fs-watch.rkt")
 (require "libs/rpc.rkt")
 
-(provide api-post-handler)
+(provide api-post-handler check-path-safety)
 
 
 ;; request user-defined tag information
@@ -26,11 +26,19 @@
 (struct VariableTag (name val) #:transparent)
 (struct ProcedureTag (name arity keywords) #:transparent)
 
+;;; if the given path is not inside webroot, i.e. is outside of
+;;; webroot folder (or is the webroot if strict is true), this
+;;; function raises error.
+(define/contract (check-path-safety path [strict true])
+  (->* (resource?) (boolean?) void?)
+  (unless (is-in-folder? path (path->string webroot) strict)
+    (raise-user-error (format "path ~a is not in project root" path))))
 
 ;; TODO: To save a big file on a slow disk will cause problem.
 ;;       It seems what we need here is a producer-consumer queue.
 (define (save-handler text resource)
   (define filepath (append-path webroot resource))
+  (check-path-safety filepath)
   (cond [(not (file-exists? filepath)) #f]
         [else
          (call-with-atomic-output-file filepath
@@ -41,6 +49,7 @@
 (define (render-handler resource)
   (define file-path (path->complete-path
                      (append-path webroot resource)))
+  (check-path-safety file-path)
   (cond [(is-pollen-source? resource)
          (render-to-file-if-needed file-path)
          (resource->output-path resource)]
@@ -50,6 +59,7 @@
 ;; this file
 (define (watchfile-handler resource last-seen-seconds)
   (define filepath (append-path webroot resource))
+  (check-path-safety filepath)
   (define ans
     (make-hasheq `((rendered-resource . ,(resource->output-path resource))
                    (seconds . 0))))
@@ -126,9 +136,9 @@
 ;;; Returned names are suitable for URL redirection.
 (define (ls-handler resource)
   (define disk-path (append-path webroot resource))
+  (check-path-safety disk-path false)
   (unless (directory-exists? disk-path)
     (raise-user-error 'ls "~a not found" disk-path))
-  (check-path-safety disk-path false)
   ;; we don't use (directory-list ... #:build? #t) here because
   ;; we also needs pass an absolute path (another resource) back
   (define filenames (map path->string (directory-list disk-path)))
@@ -137,14 +147,6 @@
                filenames))
   (hasheq 'directory dirs
           'non-directory files))
-
-;;; if the given path is not inside webroot, i.e. is outside of
-;;; webroot folder (or is the webroot if strict is true), this
-;;; function raises error.
-(define/contract (check-path-safety path [strict true])
-  (->* (resource?) (boolean?) void?)
-  (unless (is-in-folder? path (path->string webroot) strict)
-    (raise-user-error (format "path ~a is not in project root" path))))
 
 (define (create-pollen-file-handler resource)
   (define disk-path (append-path webroot resource))
