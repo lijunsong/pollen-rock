@@ -15,6 +15,7 @@
 (require "http-util.rkt")
 (require "fs-watch.rkt")
 (require "libs/rpc.rkt")
+(require "logger.rkt")
 
 (provide api-post-handler check-path-safety)
 
@@ -37,6 +38,7 @@
 ;; TODO: To save a big file on a slow disk will cause problem.
 ;;       It seems what we need here is a producer-consumer queue.
 (define (save-handler text resource)
+  (log-api-debug "save '~a'" resource)
   (define filepath (append-path webroot resource))
   (check-path-safety filepath)
   (cond [(not (file-exists? filepath)) #f]
@@ -47,6 +49,7 @@
              #t))]))
 
 (define (render-handler resource)
+  (log-api-debug "render '~a'" resource)
   (define file-path (path->complete-path
                      (append-path webroot resource)))
   (check-path-safety file-path)
@@ -58,6 +61,7 @@
 ;; seconds is the last modify seconds that the frontend knows about
 ;; this file
 (define (watchfile-handler resource last-seen-seconds)
+  (log-api-debug "watch changes on ~a" resource)
   (define filepath (append-path webroot resource))
   (check-path-safety filepath)
   (define ans
@@ -111,6 +115,7 @@
 ;; `current-load-relative-directory`, or sevlet defines
 ;; `current-directory` to user's working directory.
 (define (get-pollen-setup resource)
+  (log-api-debug "get-pollen-setup for '~a'" resource)
   (let [(tags (extract-module-info
                  '(pollen/setup (submod "pollen.rkt" setup))))]
     (define vars (filter VariableTag? tags))
@@ -119,6 +124,7 @@
                               (VariableTag-val v))) vars))))
 
 (define (get-pollen-tags resource)
+  (log-api-debug "get-pollen-tag for '~a'" resource)
   (define tags (extract-module-info '("pollen.rkt")))
   (make-hasheq
     (map (lambda (v)
@@ -135,6 +141,7 @@
 ;;; 'non-directory are the only two keys points to a list of names.
 ;;; Returned names are suitable for URL redirection.
 (define (ls-handler resource)
+  (log-api-debug "ls '~a'" resource)
   (define disk-path (append-path webroot resource))
   (check-path-safety disk-path false)
   (unless (directory-exists? disk-path)
@@ -148,7 +155,8 @@
   (hasheq 'directory dirs
           'non-directory files))
 
-(define (create-pollen-file-handler resource)
+(define (create-new-file-handler resource)
+  (log-api-debug "create new file '~a'" resource)
   (define disk-path (append-path webroot resource))
   (check-path-safety disk-path)
   (with-output-to-file disk-path
@@ -162,6 +170,7 @@
     #:exists 'error))
 
 (define (create-directory-handler resource)
+  (log-api-debug "create new directory '~a'" resource)
   (define disk-path (append-path webroot resource))
   (check-path-safety disk-path)
   (make-directory disk-path)
@@ -169,6 +178,7 @@
 
 (define/contract (rename-file-or-directory-handler src dst)
   (-> resource? resource? boolean?)
+  (log-api-debug "rename '~a' to '~a'" src dst)
   (define src-path (append-path webroot src))
   (define dst-path (append-path webroot dst))
   (check-path-safety src-path)
@@ -179,6 +189,7 @@
 
 (define/contract (delete-handler resource)
   (-> resource? boolean?)
+  (log-api-debug "delete '~a'" resource)
   (define disk-path (append-path webroot resource))
   (check-path-safety disk-path)
   (delete-directory/files disk-path #:must-exist? true)
@@ -193,7 +204,7 @@
          #"get-pollen-tags" get-pollen-tags
          #"watchfile" watchfile-handler
          #"ls" ls-handler
-         #"touch" create-pollen-file-handler
+         #"touch" create-new-file-handler
          #"mkdir" create-directory-handler
          #"mv" rename-file-or-directory-handler
          #"rm" delete-handler)))
