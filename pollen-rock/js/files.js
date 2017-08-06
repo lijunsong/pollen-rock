@@ -56,7 +56,8 @@ class Model {
   // check filename. If anything wrong, throw exception
   checkFilename(filename) {
     if (!filename || filename.length == 0) {
-      throw `${filename} is empty`;
+      notifyError(`Name can't be empty`);
+      throw "Name can't be empty";
     }
   }
 
@@ -78,10 +79,11 @@ class Model {
       throw obj;
     }
 
-    let opArgPathList = opArgList.map(a => `${curDir}/${a}`);
-    for (let a of opArgPathList) {
+    for (let a of opArgList) {
       this.checkFilename(a);
     }
+
+    let opArgPathList = opArgList.map(a => `${curDir}/${a}`);
 
     console.log(`calling ${op} with ${opArgPathList} on server`);
     this.rpc.call_server(op, ... opArgPathList).then(v => {
@@ -161,7 +163,7 @@ class View {
 
       // setup label
       let fileType = op == "mkdir" ? "folder" : "file";
-      $newItem.find('label').text(`Enter a name and then press Enter to create a ${fileType}`);
+      $newItem.find('label').text(`New ${fileType}`);
 
       // setup click handlers
       $newItem.find('.op').on('click', () => {
@@ -255,7 +257,7 @@ class View {
 
   fopResultReady(sender, obj) {
     if (obj.result === false) {
-      notifyError(`${obj.op} failed`);
+      notifyError(`${obj.op} ${obj.src} failed`);
     } else {
       document.location.reload();
     }

@@ -161,6 +161,7 @@
 
 (define (create-directory-handler resource)
   (define disk-path (append-path webroot resource))
+  (check-path-safety disk-path)
   (make-directory disk-path)
   #t)
 
@@ -170,7 +171,7 @@
   (define dst-path (append-path webroot dst))
   (check-path-safety src-path)
   (check-path-safety dst-path)
-  (println (format "~a => ~a" src-path dst-path))
+  ;; (println (format "~a => ~a" src-path dst-path))
   (rename-file-or-directory src-path dst-path)
   #t)
 
