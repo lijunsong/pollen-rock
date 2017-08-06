@@ -23,18 +23,6 @@ body {
     color: #DDD;
 }
 
-/*
-.collection-header .item-right {
-    font-size: 1rem;
-    color: #DDD;
-}
-
-.collection-header .item-right:hover {
-    color: inherit;
-    cursor: pointer;
-}
-*/
-
 .op {
     color: #777;
 }

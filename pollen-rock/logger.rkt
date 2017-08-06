@@ -11,7 +11,6 @@
 
 ;; create receiver only after (log-level) has been set correctly.
 (define (start-logging-threads)
-  (println (format "start-logging-threads at ~a" (log-level)))
   (define web-request-rc (make-log-receiver web-request-logger (log-level)))
   (define api-rc (make-log-receiver api-logger (log-level)))
 
