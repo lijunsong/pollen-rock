@@ -169,13 +169,16 @@ class View {
         $newItem.remove();
       });
       // setup Enter handlers
-      $newItem.find('input').on('change', function() {
-        let filename = $(this).val();
-        console.log(`create: ${filename}`);
-        self.fsEvent.notify({
-          op: op,
-          src: filename
-        });
+      $newItem.find('input').on('keydown', function(e) {
+        if (e.which == 13) {
+          e.preventDefault();
+          let filename = $(this).val();
+          console.log(`create: ${filename}`);
+          self.fsEvent.notify({
+            op: op,
+            src: filename
+          });
+        }
       });
     };
   }
@@ -218,13 +221,6 @@ class View {
     });
   }
 
-  addFileHandler() {
-
-  }
-
-  addFileOrFolderHandler($collection) {
-  }
-
   renameHandler($item) {
     if (! $item.hasClass('collection-item')) {
       notifyError('internal Error: renameHandler');
@@ -244,13 +240,16 @@ class View {
     console.log(`rename ${filename}`);
 
     let self = this;
-    $input.find('input').on('change', function() {
-      let newName = $(this).val();
-      self.fsEvent.notify({
-        op: 'mv',
-        src: filename,
-        dst: newName
-      });
+    $input.find('input').on('keydown', function(e) {
+      if (e.which == 13) {
+        e.preventDefault();
+        let newName = $(this).val();
+        self.fsEvent.notify({
+          op: 'mv',
+          src: filename,
+          dst: newName
+        });
+      }
     });
   }
 

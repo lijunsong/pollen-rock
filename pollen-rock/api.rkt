@@ -150,9 +150,11 @@
   (define disk-path (append-path webroot resource))
   (check-path-safety disk-path)
   (with-output-to-file disk-path
-    (lambda (out)
-      (displayln "#lang pollen" out)
-      (displayln "" out)
+    (lambda ()
+      (when (string-suffix? disk-path ".pm")
+        (displayln "#lang pollen")
+        (displayln ""))
+      (display "")
       #t)
     #:mode 'text
     #:exists 'error))
