@@ -6,9 +6,9 @@
  *
  * View subscribes to Model's events directly so it can respond to
  * Model's change directly. For example, Model notifies
- * previewReadyEvent after it asks server to render preview. View
- * subscribes to that event, and load the preview immediately when
- * preview is available. Note that View's events will not be
+ * autorenderReadyEvent after it asks server to render autorender. View
+ * subscribes to that event, and load the autorender immediately when
+ * autorender is available. Note that View's events will not be
  * subscribed by Model. Bidirectional Events will only complicate the
  * whole thing.
  *
@@ -42,16 +42,16 @@ class View {
     this.$saveStatus = $("#save-status");
     this.$startupLoader = $("#startup-loader");
 
-    this.$preview = $("#preview-wrapper");
-    this.$previewFrame = this.$preview.find('#preview-frame');
-    this.$previewLoader = this.$preview.find("#preview-loader");
-    this.$previewBtn = $("#previewBtn");
+    this.$autorender = $("#autorender-wrapper");
+    this.$autorenderFrame = this.$autorender.find('#autorender-frame');
+    this.$autorenderLoader = this.$autorender.find("#autorender-loader");
+    this.$autorenderBtn = $("#autorenderBtn");
     this.$backBtn = $("#backBtn");
 
     /* ---------- events ---------- */
     this.editorPositionChangeEvent = new Event(this);
-    // notify when preview is clicked
-    this.previewRequestEvent = new Event(this);
+    // notify when autorender is clicked
+    this.autorenderRequestEvent = new Event(this);
     // notify with a new setting when settings are changed in UI
     this.editorSettingsChangeEvent = new Event(this);
     // notify when fullscreen is triggered in UI
@@ -64,8 +64,8 @@ class View {
     this.editorPostInitHandler = this.editorPostInit.bind(this);
     this.statusChangeHandler = this.changeSaveStatus.bind(this);
 
-    this.previewBtnHandler = () => { this.previewRequestEvent.notify(); };
-    this.previewReadyHandler = this.previewReady.bind(this);
+    this.autorenderBtnHandler = () => { this.autorenderRequestEvent.notify(); };
+    this.autorenderReadyHandler = this.autorenderReady.bind(this);
 
     this.backBtnHandler = () => window.history.back();
 
@@ -81,13 +81,13 @@ class View {
     // attach to model's event
     this.model.pollenSetupReadyEvent.attach(this.editorPostInitHandler);
     this.model.saveStatusChangeEvent.attach(this.statusChangeHandler);
-    this.model.previewReadyEvent.attach(this.previewReadyHandler);
+    this.model.autorenderReadyEvent.attach(this.autorenderReadyHandler);
     this.model.keymapChangeEvent.attach(this.keymapChangeHandler);
     this.model.editorSettingsChangeEvent.attach(this.editorSettingsChangeHandler);
 
     this.fullscreenEvent.attach(this.fullscreenHandler);
 
-    this.$previewBtn.click(this.previewBtnHandler);
+    this.$autorenderBtn.click(this.autorenderBtnHandler);
     this.$backBtn.click(this.backBtnHandler);
 
     return this;
@@ -160,14 +160,14 @@ class View {
     this.$saveStatus.text(val);
   }
 
-  previewReady(sender, path) {
-    if (this.$previewFrame.attr('src')) {
-      let doc = this.$previewFrame.contents()[0];
+  autorenderReady(sender, path) {
+    if (this.$autorenderFrame.attr('src')) {
+      let doc = this.$autorenderFrame.contents()[0];
       doc.location.reload(true);
     } else {
-      this.$previewFrame.attr('src', path);
+      this.$autorenderFrame.attr('src', path);
     }
-    this.$previewLoader.addClass("hide");
+    this.$autorenderLoader.addClass("hide");
   }
 
   editorPostInit() {
@@ -189,8 +189,8 @@ class View {
     this.editorPositionChangeEvent.notify();
   }
 
-  showPreviewLoader() {
-    this.$previewLoader.removeClass("hide");
+  showAutorenderLoader() {
+    this.$autorenderLoader.removeClass("hide");
   }
 
   buildKeymaps(sender, maps) {

@@ -3,7 +3,7 @@ html {
     font-family: monospace;
 }
 
-#preview-loader {
+#autorender-loader {
     position: absolute;
     top: 0;
     left: 0;
@@ -11,13 +11,13 @@ html {
     padding: 0;
 }
 
-#preview-data {
+#autorender-data {
     height: 100%;
     width: 100%;
     overflow: hidden;
 }
 
-#preview-frame {
+#autorender-frame {
     height: 100vh;
     width: 100vw;
     border: none;

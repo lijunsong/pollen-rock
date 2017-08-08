@@ -52,7 +52,7 @@
   (log-api-debug "render '~a'" resource)
   (define file-path (path->complete-path
                      (append-path webroot resource)))
-  (check-path-safety file-path)
+  (check-path-safety (path->string file-path))
   (cond [(is-pollen-source? resource)
          (render-to-file-if-needed file-path)
          (resource->output-path resource)]

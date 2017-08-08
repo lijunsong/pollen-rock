@@ -10,7 +10,7 @@
  * Model's events can be subscribed by both View and Controller. One
  * example is saveStatusChangeEvent. View subscribes this event to
  * update the status text box, and Controller subscribes this event to
- * update preview when preview window is opened.
+ * update autorender when autorender window is opened.
  */
 
 function notifyInfo(msg) {
@@ -46,7 +46,7 @@ class Model {
     // notify with saveStatus string
     this.saveStatusChangeEvent = new Event(this);
     // notify with null
-    this.previewReadyEvent = new Event(this);
+    this.autorenderReadyEvent = new Event(this);
     // notify with a new Map
     this.keymapChangeEvent = new Event(this);
   }
@@ -200,10 +200,10 @@ class Model {
     };
   }
 
-  renderPreview() {
+  autorendering() {
     return this.rpc.call_server("render", this.resource).then(rpcVal => {
       let path = rpcVal.result;
-      this.previewReadyEvent.notify(path);
+      this.autorenderReadyEvent.notify(path);
     }).catch(rpcVal => {
       notifyError(rpcVal.error);
     });
@@ -277,7 +277,7 @@ class EditorSettingsModel {
       // customizable settings
       lineWrapping: true,
       lineNumbers: false,
-      autoReloadPreview: true,
+      autorender: true,
       theme: {
         value: "default",
         options: new Set(["default", "solarized light", "solarized dark"])
