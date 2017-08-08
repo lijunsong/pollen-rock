@@ -93,11 +93,6 @@ class Controller {
     }
   }
 
-  insertSpaceHandler(e) {
-    let spaces = Array(e.getOption("indentUnit") + 1).join(" ");
-    e.replaceSelection(spaces);
-  }
-
   fullscreenHandler(e) {
     this.view.fullscreenEvent.notify();
   }
@@ -106,8 +101,6 @@ class Controller {
     return [
       new Keymap("'@'", this.insertCommandCharHandler.bind(this),
                  "Insert Command Char or @"),
-      new Keymap("Tab", this.insertSpaceHandler.bind(this),
-                 "Insert Spaces. (The number of spaces inserted is specified by indentUnit)"),
       new Keymap('Shift-Ctrl-Enter', this.fullscreenHandler.bind(this),
                  "Enter Fullscreen"),
       new Keymap('Shift-Ctrl-P', this.preview.bind(this),
