@@ -53,6 +53,15 @@ class Controller {
     this.view.previewRequestEvent.attach(this.previewHandler);
     this.view.editorPositionChangeEvent.attach(this.editorPositionChangeHandler);
     this.view.editorSettingsChangeEvent.attach(this.editorSettingsChangeHandler);
+
+    $(window).on('beforeunload', (e) => {
+      if (this.model.saveStatus != 'saved') {
+        this.model.save();
+        e.returnValue = "Saving your contens";
+        return e.returnValue;
+      }
+      return undefined;
+    });
     return this;
   }
 

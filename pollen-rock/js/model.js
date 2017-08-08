@@ -33,6 +33,8 @@ class Model {
     this.rpc = new PollenRockRPC("/api");
     this.pollenSetup = {};
     this.pollenTags = {};
+    // saveStatus is among (null, "saved", "error")
+    this.saveStatus = 'saved';
 
     /// Events
     // notify with an object containing changed key and value
@@ -52,7 +54,8 @@ class Model {
   setupHandlers() {
     this.autoSaveHandler = this.makeAutoSaveHandler();
     this.saveStatusChangeHandler = () => {
-      this.saveStatusChangeEvent.notify();
+      this.saveStatus = null;
+      this.saveStatusChangeEvent.notify(this.saveStatus);
     };
 
     return this;
@@ -189,7 +192,10 @@ class Model {
         this.save()
           .then(v => 'saved')
           .catch(v => 'error')
-          .then(v => this.saveStatusChangeEvent.notify(v));
+          .then(v => {
+            this.saveStatus = v;
+            this.saveStatusChangeEvent.notify(this.saveStatus);
+          });
       }, 2000);
     };
   }
