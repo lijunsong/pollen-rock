@@ -75,19 +75,24 @@ Run `raco pollen-rock` in your pollen project root directory.
 
 ```
 $ raco pollen-rock
+Welcome to Pollen Rock 0.5.0 (Racket 6.8)
+Project root is /home/user/pollen-doc
+Pollen Editor is running at http://localhost:8000 (accessible by all machines on your network)
+Ctrl-C at any time to terminate Pollen Rock.
 ```
 
 Open http://localhost:8000 in your browser. Your browser will display an index page that lists all files in your project.
 
-To secure your server, use `--local` option to limit server access to local apps. 
+To secure your server, use `--local` option to limit server access to local apps.
 
 ### Use built-in editor
 
-The built-in editor supports only Racket (.rkt), HTML (.html), pollen files (.pm, .pp, .p). When you click a file name on the index page, server opens the editor only when the opening file is editable (supported). Otherwise your browser will display a page showing simple plain text.
+The built-in editor supports only Racket (.rkt), HTML (.html), pollen files (.pm, .pp, .p). You can open supported file with the built-in editor on index page. Clicking an icon on the right of the file name opens the editor.
 
 The editor comes with render and auto-render when you modifies the file. You can turn off auto render in settings.
 
-You can also see what key bindings are provided in settings. For example, autocomplete by default is `Ctrl-Space` (only when the cursor is after a command char). `@` is used to insert either a command char or a `@`.
+You can also see what key bindings are provided in settings. For example, autocomplete by default is `Ctrl-Space` (only when the cursor is after
+a command char). `@` is used to insert either a command char or a `@`.
 
 (Key binding customization is not implemented so far)
 
@@ -95,7 +100,8 @@ You can also see what key bindings are provided in settings. For example, autoco
 
 When the built-in editor is not sufficient for you, you can always switch back to your favorite editor. Pollen-Rock can watch changes made to pollen files, and refresh the rendered HTML in your browser.
 
-On the index page, pollen file has an icon on the right to open rendered page. Server will watch changes on source files and auto refresh the auto rendered page.
+On the index page, pollen source file has an icon on the right to open rendered page. Server will watch changes on source files and auto refresh
+the auto rendered page.
 
 ## Known Issues
 
@@ -106,9 +112,10 @@ On the index page, pollen file has an icon on the right to open rendered page. S
 # ChangeLog
 ## 0.5.0
 Features
- - A new index page with fonts available locally on the server
- - server side logging
- - add `--local` option for secure access
+ - Support create/rename/delete project files on index page
+ - Make editor fonts available locally on the server (network font dependencies are removed)
+ - Add server side logging
+ - Add `--local` option for secure access
 
 ## 0.4.1
 Features
