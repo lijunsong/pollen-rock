@@ -10,12 +10,13 @@
 (require pollen/render)
 (require xml)
 (require "config.rkt")
-(require "view.rkt")
-(require "ctrl.rkt")
 (require "util.rkt")
 (require "api.rkt")
 (require "http-util.rkt")
+(require "logger.rkt")
 (require racket/cmdline)
+(require racket/logging)
+
 
 ;;; Debug use
 (define (print-request req)
@@ -36,19 +37,15 @@
 ;; source. If not, yield to next dispatcher
 (define (index-handler req _)
   (define resource (request->resource req))
+  (define filepath (append-path webroot resource))
+  (log-web-request-debug "indexing ~a" filepath)
+  ;; allow referring webroot
+  (check-path-safety filepath false)
   (cond [(directory-exists? (append-path webroot resource))
-         ;; render directory path to breadcrumb
-         (define breadcrumb (xexpr/resource->breadcrumb resource))
-         ;; split the list into folders and files.
-         (define all-files (ctrl/all-files resource))
-         (define-values (folderobjs fileobjs)
-           (partition ctrl/file-is-directory? all-files))
-         (let ((folders (xexpr/all-files folderobjs))
-               (files   (xexpr/all-files fileobjs)))
-           (response/text (include-template "templates/files.html")))]
+         (log-web-request-info "indexing ~a" filepath)
+         (response/text (include-template "templates/files.html"))]
         [else
-         (define file-path (path->complete-path
-                            (append-path webroot resource)))
+         (define file-path (path->complete-path filepath))
          (let ((pollen-source (get-source file-path)))
            (unless (eq? pollen-source #f)
              (render-to-file-if-needed pollen-source))
@@ -56,13 +53,16 @@
 
 (define (edit-handler req trimmed-url)
   (define resource (path-elements->resource trimmed-url))
-  (define breadcrumb (xexpr/resource->breadcrumb resource))
   (define filepath (append-path webroot resource))
+  (log-web-request-info "edit ~a" filepath)
+  (check-path-safety filepath)
   (define content (file->bytes filepath))
   (response/text (include-template "templates/editor.html")))
 
+;; No need to check path safety here; browser ensures no access to parent folder.
 (define (watchfile-handler req url)
   (define resource (path-elements->resource url))
+  (log-web-request-info "watch ~a" resource)
   (response/text (include-template "templates/watchfile.html")))
 
 (define-values (server-dispatch url)
@@ -87,7 +87,16 @@
       [("--local")
        ,(lambda (flag)
           (listen-ip "127.0.0.1"))
-       ("Make pollen server accessible by only this machine")]))
+       ("Make pollen server accessible by only this machine")]
+      [("--log-level")
+       ,(lambda (flag level)
+          (let [(level-sym (string->symbol level))]
+            (unless (member level-sym all-levels)
+              (raise-user-error (format "Unknown log-level ~a" level-sym)))
+            (log-level level-sym)))
+       (,(format "set log level (default ~a). Choices are ~a"
+                 (log-level) (string-join (map symbol->string all-levels) ", "))
+        "level")]))
    (lambda (f) (void))
    '())
 
@@ -100,6 +109,7 @@
                      (if (listen-ip) "only this machine" "all machines on your network")))
   (displayln "Ctrl-C at any time to terminate Pollen Rock.")
 
+  (start-logging-threads)
   (serve/servlet server-dispatch
                  #:command-line? #t
                  #:banner? #f

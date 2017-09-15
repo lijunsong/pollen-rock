@@ -7,7 +7,7 @@ $(document).ready(function() {
   var model = {
     init: function() {
       this.lastSeenSeconds = 0;
-      this.resource = $("#preview-data").attr("data");
+      this.resource = $("#autorender-data").attr("data");
       this.retry = 0;
     }
   };
@@ -17,7 +17,7 @@ $(document).ready(function() {
       model.init();
       deadView.init();
       loaderView.init();
-      preview.init();
+      autorender.init();
       notifyView.info("Watching " + model.resource);
     },
 
@@ -28,7 +28,7 @@ $(document).ready(function() {
           notifyView.info("corrupted response. Continue to connect...");
         }
         model.lastSeenSeconds = result.seconds;
-        preview.reload(result["rendered-resource"]);
+        autorender.reload(result["rendered-resource"]);
         model.retry = 0;
         ctrl.watch();
       }).catch(rpcVal => {
@@ -53,7 +53,7 @@ $(document).ready(function() {
 
   var loaderView = {
     init: function() {
-      this.view = $("#preview-loader");
+      this.view = $("#autorender-loader");
       this.hide();
     },
     show: function() {
@@ -74,9 +74,9 @@ $(document).ready(function() {
     }
   };
 
-  var preview = {
+  var autorender = {
     init: function() {
-      this.frame = $("#preview-frame");
+      this.frame = $("#autorender-frame");
     },
     reload: function(src) {
       loaderView.show();

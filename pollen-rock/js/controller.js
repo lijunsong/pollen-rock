@@ -38,7 +38,7 @@ class Controller {
   }
 
   setupHandlers() {
-    this.previewHandler = this.preview.bind(this);
+    this.autorenderHandler = this.autorender.bind(this);
     this.editorPositionChangeHandler = this.editorPositionChange.bind(this);
     this.editorSettingsChangeHandler = this.editorSettingsChange.bind(this);
     this.saveStatusChangeHandler = this.saveStatusChange.bind(this);
@@ -50,9 +50,18 @@ class Controller {
     this.model.pollenSetupReadyEvent.attach(this.editorSetupReadyHandler);
     this.model.saveStatusChangeEvent.attach(this.saveStatusChangeHandler);
 
-    this.view.previewRequestEvent.attach(this.previewHandler);
+    this.view.autorenderRequestEvent.attach(this.autorenderHandler);
     this.view.editorPositionChangeEvent.attach(this.editorPositionChangeHandler);
     this.view.editorSettingsChangeEvent.attach(this.editorSettingsChangeHandler);
+
+    $(window).on('beforeunload', (e) => {
+      if (this.model.saveStatus != 'saved') {
+        this.model.save();
+        e.returnValue = "Saving your contens";
+        return e.returnValue;
+      }
+      return undefined;
+    });
     return this;
   }
 
@@ -84,11 +93,6 @@ class Controller {
     }
   }
 
-  insertSpaceHandler(e) {
-    let spaces = Array(e.getOption("indentUnit") + 1).join(" ");
-    e.replaceSelection(spaces);
-  }
-
   fullscreenHandler(e) {
     this.view.fullscreenEvent.notify();
   }
@@ -97,12 +101,10 @@ class Controller {
     return [
       new Keymap("'@'", this.insertCommandCharHandler.bind(this),
                  "Insert Command Char or @"),
-      new Keymap("Tab", this.insertSpaceHandler.bind(this),
-                 "Insert Spaces. (The number of spaces inserted is specified by indentUnit)"),
       new Keymap('Shift-Ctrl-Enter', this.fullscreenHandler.bind(this),
                  "Enter Fullscreen"),
-      new Keymap('Shift-Ctrl-P', this.preview.bind(this),
-                 "Open/Close Preview"),
+      new Keymap('Shift-Ctrl-P', this.autorender.bind(this),
+                 "Open/Close Autorender"),
       new Keymap('Ctrl-Space', "autocomplete",
                  "Autocomplete Tag Names From pollen.rkt"),
     ];
@@ -120,30 +122,30 @@ class Controller {
     this.model.changeEditorSettings(settings);
   }
 
-  preview() {
-    let $preview = this.view.$preview;
-    $preview.toggleClass("hide");
-    if ($preview.hasClass("hide")) {
+  autorender() {
+    let $autorender = this.view.$autorender;
+    $autorender.toggleClass("hide");
+    if ($autorender.hasClass("hide")) {
       this.view.placeEditorOnCenter();
     } else {
-      this.view.showPreviewLoader();
-      this.model.renderPreview();
+      this.view.showAutorenderLoader();
+      this.model.autorendering();
       this.view.placeEditorOnRight();
     }
   }
 
   /**
-   * When the doc is saved and preview is opened, try to refresh the
-   * preview when syntax is correct. Note that view also has a
+   * When the doc is saved and autorender is opened, try to refresh the
+   * autorender when syntax is correct. Note that view also has a
    * saveStatusChange handler, but that one only updates the text of
    * save status view.
    */
   saveStatusChange(sender, status) {
     if (status == 'saved'
-        && ! this.view.$preview.hasClass("hide")
+        && ! this.view.$autorender.hasClass("hide")
         && this.model.syntaxCheck()) {
-      if (this.model.editor.options.autoReloadPreview) {
-        this.model.renderPreview();
+      if (this.model.editor.options.autorender) {
+        this.model.autorendering();
       }
     }
   }

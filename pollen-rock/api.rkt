@@ -15,8 +15,9 @@
 (require "http-util.rkt")
 (require "fs-watch.rkt")
 (require "libs/rpc.rkt")
+(require "logger.rkt")
 
-(provide api-post-handler)
+(provide api-post-handler check-path-safety)
 
 
 ;; request user-defined tag information
@@ -26,11 +27,20 @@
 (struct VariableTag (name val) #:transparent)
 (struct ProcedureTag (name arity keywords) #:transparent)
 
+;;; if the given path is not inside webroot, i.e. is outside of
+;;; webroot folder (or is the webroot if strict is true), this
+;;; function raises error.
+(define/contract (check-path-safety path [strict true])
+  (->* (resource?) (boolean?) void?)
+  (unless (is-in-folder? path (path->string webroot) strict)
+    (raise-user-error (format "path ~a is not in project root" path))))
 
 ;; TODO: To save a big file on a slow disk will cause problem.
 ;;       It seems what we need here is a producer-consumer queue.
 (define (save-handler text resource)
+  (log-api-debug "save '~a'" resource)
   (define filepath (append-path webroot resource))
+  (check-path-safety filepath)
   (cond [(not (file-exists? filepath)) #f]
         [else
          (call-with-atomic-output-file filepath
@@ -39,8 +49,10 @@
              #t))]))
 
 (define (render-handler resource)
+  (log-api-debug "render '~a'" resource)
   (define file-path (path->complete-path
                      (append-path webroot resource)))
+  (check-path-safety (path->string file-path))
   (cond [(is-pollen-source? resource)
          (render-to-file-if-needed file-path)
          (resource->output-path resource)]
@@ -49,7 +61,9 @@
 ;; seconds is the last modify seconds that the frontend knows about
 ;; this file
 (define (watchfile-handler resource last-seen-seconds)
+  (log-api-debug "watch changes on ~a" resource)
   (define filepath (append-path webroot resource))
+  (check-path-safety filepath)
   (define ans
     (make-hasheq `((rendered-resource . ,(resource->output-path resource))
                    (seconds . 0))))
@@ -101,6 +115,7 @@
 ;; `current-load-relative-directory`, or sevlet defines
 ;; `current-directory` to user's working directory.
 (define (get-pollen-setup resource)
+  (log-api-debug "get-pollen-setup for '~a'" resource)
   (let [(tags (extract-module-info
                  '(pollen/setup (submod "pollen.rkt" setup))))]
     (define vars (filter VariableTag? tags))
@@ -109,6 +124,7 @@
                               (VariableTag-val v))) vars))))
 
 (define (get-pollen-tags resource)
+  (log-api-debug "get-pollen-tag for '~a'" resource)
   (define tags (extract-module-info '("pollen.rkt")))
   (make-hasheq
     (map (lambda (v)
@@ -121,6 +137,64 @@
                   (error "Unknown tag type")]))
          tags)))
 
+;;; list directory. This function returns a hash where 'directory and
+;;; 'non-directory are the only two keys points to a list of names.
+;;; Returned names are suitable for URL redirection.
+(define (ls-handler resource)
+  (log-api-debug "ls '~a'" resource)
+  (define disk-path (append-path webroot resource))
+  (check-path-safety disk-path false)
+  (unless (directory-exists? disk-path)
+    (raise-user-error 'ls "~a not found" disk-path))
+  ;; we don't use (directory-list ... #:build? #t) here because
+  ;; we also needs pass an absolute path (another resource) back
+  (define filenames (map path->string (directory-list disk-path)))
+  (define-values (dirs files)
+    (partition (lambda (name) (directory-exists? (append-path disk-path name)))
+               filenames))
+  (hasheq 'directory dirs
+          'non-directory files))
+
+(define (create-new-file-handler resource)
+  (log-api-debug "create new file '~a'" resource)
+  (define disk-path (append-path webroot resource))
+  (check-path-safety disk-path)
+  (with-output-to-file disk-path
+    (lambda ()
+      (when (string-suffix? disk-path ".pm")
+        (displayln "#lang pollen")
+        (displayln ""))
+      (display "")
+      #t)
+    #:mode 'text
+    #:exists 'error))
+
+(define (create-directory-handler resource)
+  (log-api-debug "create new directory '~a'" resource)
+  (define disk-path (append-path webroot resource))
+  (check-path-safety disk-path)
+  (make-directory disk-path)
+  #t)
+
+(define/contract (rename-file-or-directory-handler src dst)
+  (-> resource? resource? boolean?)
+  (log-api-debug "rename '~a' to '~a'" src dst)
+  (define src-path (append-path webroot src))
+  (define dst-path (append-path webroot dst))
+  (check-path-safety src-path)
+  (check-path-safety dst-path)
+  ;; (println (format "~a => ~a" src-path dst-path))
+  (rename-file-or-directory src-path dst-path)
+  #t)
+
+(define/contract (delete-handler resource)
+  (-> resource? boolean?)
+  (log-api-debug "delete '~a'" resource)
+  (define disk-path (append-path webroot resource))
+  (check-path-safety disk-path)
+  (delete-directory/files disk-path #:must-exist? true)
+  #t)
+
 ;;; Main handler for POST api request
 (define api-post-handler
   (export-rpc-handler
@@ -128,4 +202,36 @@
          #"render" render-handler
          #"get-pollen-setup" get-pollen-setup
          #"get-pollen-tags" get-pollen-tags
-         #"watchfile" watchfile-handler)))
+         #"watchfile" watchfile-handler
+         #"ls" ls-handler
+         #"touch" create-new-file-handler
+         #"mkdir" create-directory-handler
+         #"mv" rename-file-or-directory-handler
+         #"rm" delete-handler)))
+
+(module+ test
+  (require rackunit)
+  (require net/url-string)
+  (require json)
+
+  (define (rpc-request id method params)
+    (make-request
+     #"POST" (string->url "http://localhost:8000") empty
+     (delay
+       (list (make-binding:form #"method" method)
+             (make-binding:form #"params" params)
+             (make-binding:form #"id" id)))
+     #"fake post raw"
+     "0.0.0.0" 8000
+     "0.0.0.0"))
+
+  (define (check-response-field-equal? response field expected)
+    (define (get-response-json response)
+      (define output (call-with-output-string (response-output response)))
+      (string->jsexpr output))
+    (define json (get-response-json response))
+    (check-equal? (hash-ref json field false) expected))
+
+  (let [(response (api-post-handler (rpc-request #"1" #"ls" #"[\"/abc\"]")))]
+    (check-response-field-equal? response 'result (json-null))
+    (check-response-field-equal? response 'error "ls: /abc not found")))

@@ -57,9 +57,7 @@ file `pollen.rkt`, and serves you better than tranditional editors
 
 ## Project Management
 
-(Not yet implemented)
-
-Pollen-Rock is also going to provide a simple interface to add, rename,
+Pollen-Rock also provides a simple interface to add, rename,
 delete files in your pollen projects.
 
 ## Installation
@@ -77,19 +75,24 @@ Run `raco pollen-rock` in your pollen project root directory.
 
 ```
 $ raco pollen-rock
-Your Web application is running at http://localhost:8000.
-Stop this program at any time to terminate the Web Server.
+Welcome to Pollen Rock 0.5.0 (Racket 6.8)
+Project root is /home/user/pollen-doc
+Pollen Editor is running at http://localhost:8000 (accessible by all machines on your network)
+Ctrl-C at any time to terminate Pollen Rock.
 ```
 
 Open http://localhost:8000 in your browser. Your browser will display an index page that lists all files in your project.
 
+To secure your server, use `--local` option to limit server access to local apps.
+
 ### Use built-in editor
 
-The built-in editor supports only Racket (.rkt), HTML (.html), pollen files (.pm, .pp, .p). When you click a file name on the index page, server opens the editor only when the opening file is editable (supported). Otherwise your browser will display a page showing simple plain text.
+The built-in editor supports only Racket (.rkt), HTML (.html), pollen files (.pm, .pp, .p). You can open supported file with the built-in editor on index page. Clicking an icon on the right of the file name opens the editor.
 
-The editor comes with preview and auto reload preview when you modifies the file. You can turn off auto reload preview in settings.
+The editor comes with render and auto-render when you modifies the file. You can turn off auto render in settings.
 
-You can also see what key bindings are provided in settings. For example, autocomplete by default is `Ctrl-Space` (only when the cursor is after a command char). `@` is used to insert either a command char or a `@`.
+You can also see what key bindings are provided in settings. For example, autocomplete by default is `Ctrl-Space` (only when the cursor is after
+a command char). `@` is used to insert either a command char or a `@`.
 
 (Key binding customization is not implemented so far)
 
@@ -97,14 +100,27 @@ You can also see what key bindings are provided in settings. For example, autoco
 
 When the built-in editor is not sufficient for you, you can always switch back to your favorite editor. Pollen-Rock can watch changes made to pollen files, and refresh the rendered HTML in your browser.
 
-On the index page, pollen files will have a **watch** icon on the right. Clicking the icon will open a rendered page. When you make changes to the watching file, the rendered page will refresh automatically.
+On the index page, pollen source file has an icon on the right to open rendered page. Server will watch changes on source files and auto refresh
+the auto rendered page.
 
 ## Known Issues
 
  - Opening multiple built-in editors to edit the same file will result in data loss.
  - Editor settings are ephemeral; closing browser will reset all settings.
+ - Render panel on ipad won't scroll :(
 
 # ChangeLog
+## 0.5.0
+Features
+ - Support create/rename/delete project files on index page
+ - Make editor fonts available locally on the server (network font dependencies are removed)
+ - Add server side logging
+ - Add `--local` option for secure access
+
+Bug Fixes
+ - fixed a bug that could cause data lose when user closes browser immediately after typing.
+ - fixed a bug that TAB replaces select region with a TAB; TAB now indents a selected region
+
 ## 0.4.1
 Features
 

@@ -1,0 +1,89 @@
+html {
+    font-family: "Source Sans Pro", sans-serif;
+    font-size: 16px;
+}
+
+@media only screen and (max-width: 767px) {
+}
+
+body {
+    background-color: #fafbfc;
+}
+
+#wrapper {
+    max-width: 768px;
+    margin: 0 auto;
+}
+
+.item-left {
+    flex: 1;
+}
+
+.not-pollen-source .item-left {
+    color: #DDD;
+}
+
+.op {
+    color: #777;
+}
+
+.collection-item a {
+    color: #555;
+}
+
+.op:hover, .collection-item a:hover {
+    color: rgba(0,0,0,87);
+    cursor: pointer;
+}
+
+.material-icons {
+    line-height: 1.5rem;
+    font-size: inherit;
+}
+
+.table-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.expand-item, .expand-less, .expanding .expand-more {
+    display: none;
+}
+
+.expanding .expand-item, .expanding .expand-less {
+    display: inline-block;
+}
+
+.op {
+    margin-left: 0.5rem;
+}
+
+/* .divier will have space only when the whole list is expanded */
+.expanding .op.divider {
+    margin-left: 0.8rem;
+}
+
+.op.divider {
+    width: 0;
+    margin-left: 0rem;
+}
+
+.rm-mode, .rm-mode:hover {
+    color: red !important;
+}
+
+.item-left-renaming {
+    flex: 1;
+}
+.item-right-renaming, .item-left-renaming {
+    display: none;
+}
+
+.mv-mode .item-right-renaming, .mv-mode .item-left-renaming {
+    display: inline-block;
+}
+
+.mv-mode .item-right, .mv-mode .item-left {
+    display: none;
+}
+

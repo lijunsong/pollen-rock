@@ -11,7 +11,7 @@
 (define build-deps '("scribble-lib" "racket-doc"))
 ;(define scribblings '(("scribblings/pollen-rock.scrbl" ())))
 (define pkg-desc "pollen-rock is a Pollen server and an in-browser editor for Pollen publishing system.")
-(define version "0.4.1")
+(define version "0.5.0")
 (define pkg-authors '("Junsong Li"))
 
 (define raco-commands

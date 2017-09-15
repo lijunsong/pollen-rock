@@ -58,6 +58,11 @@
 ;;
 ;; exports is a hash table maps from the desired names to procedures. Procedure
 ;; can be any racket function, as long as it returns a jsexpr
+;;
+;; NOTE: the incoming params must be a list representing parameters of
+;; the procedure. For example, when the calling procedure takes 1
+;; string, the params will be #"[\"para\"]" (see tests for more
+;; examples).
 (define/contract (export-rpc-handler exports)
   (-> (hash/c bytes? procedure?)
       (-> request? response?))
@@ -125,11 +130,11 @@
      (hash #"add" +
            #"my-append" pollen-append)))
 
-  (define (get-response-json response)
-    (define output (call-with-output-string (response-output response)))
-    (string->jsexpr output))
-
   (define (check-response-field-equal? response field expected)
+    (define (get-response-json response)
+      (define output (call-with-output-string (response-output response)))
+      (string->jsexpr output))
+
     (define json (get-response-json response))
     (check-equal? (hash-ref json field false) expected))
 

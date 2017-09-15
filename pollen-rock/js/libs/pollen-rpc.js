@@ -51,7 +51,7 @@ class JsonRPC {
           reject(new RPCErrorVal(res.id, res.error));
         }
       }).fail(function(e) {
-        reject(new RPCErrorVal(self.id, '$.post failed'));
+        reject(new RPCErrorVal(self.id, 'RPC $.post failed. Is server down?'));
       });
     });
   }

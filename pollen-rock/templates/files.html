@@ -6,27 +6,81 @@
     <title>Pollen Rock</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
-    <link rel="stylesheet" href="/css/index.css">
+
+    <link rel="stylesheet" href="/css/pr-icons.css">
+    <link rel="stylesheet" href="/css/pr-fonts.css">
+    <link rel="stylesheet" href="/css/materialize.min.css">
+    <link rel="stylesheet" href="/css/files.css">
   </head>
 
   <body>
-    <div class="container">
-      <div class="header">
-        @(xexpr->string breadcrumb)
+    <div id="wrapper">
+      <div id="folder-wrapper" class="indexing">
+        <ul class="collection with-header">
+          <li class="table-name collection-header valign-wrapper">
+            <div class="item-left"> Folders </div>
+            <div class="item-right tooltipped op" id="add-folder" data-tooltip="add new folder"><i class="material-icons">add</i></div>
+          </li>
+        </ul>
       </div>
-      <div class="folders">
-        @(if (not (empty? folders)) "<h3>Folders</h3>" "")
-        @(if (empty? folders)
-        ""
-        (xexpr->string folders))
-      </div>
-      <div class="files">
-        @(if (not (empty? files)) "<h3>Files</h3>" "")
-        @(if (empty? files)
-        ""
-        (xexpr->string files))
+
+      <div id="file-wrapper" class="indexing">
+        <ul class="collection with-header">
+          <li class="table-name collection-header valign-wrapper">
+            <div class="item-left"> Files </div>
+            <div class="item-right tooltipped op" id="add-file" data-tooltip="Add new file"><i class="material-icons">add</i></div>
+          </li>
+        </ul>
       </div>
     </div>
+
+    <template id="tpl-add-file-or-folder-input">
+      <li class="collection-item valign-wrapper">
+        <div class="item-left">
+          <div class="input-field">
+            <input type="text" class="add-new" id="add-new" autocomplete="off">
+            <label for="add-new"></label>
+          </div>
+        </div>
+        <div class="item-right op"><i class="material-icons">cancel</i> </div>
+      </li>
+    </template>
+    <template id="tpl-item-right">
+      <span class="op tooltipped"></span>
+    </template>
+    <template id="tpl-collection-item">
+      <li class="collection-item valign-wrapper">
+        <div class="item-left"></div>
+        <div class="item-right">
+          <span class="op divider"></span>
+          <span class="op expand-item fs-rename tooltipped" data-tooltip="Rename">
+            <i class="material-icons">edit</i>
+          </span>
+          <span class="op expand-item fs-delete tooltipped" data-tooltip="Click twice to delete">
+            <i class="material-icons">delete</i>
+          </span>
+          <span class="op expand-less"><i class="material-icons">chevron_left</i></span>
+          <span class="op expand-more tooltipped" data-tooltip="more options">
+            <i class="material-icons">expand_more</i>
+          </span>
+        </div>
+        <div class="item-left-renaming">
+        </div>
+        <div class="item-right-renaming">
+          <span class="op rename-cancel tooltipped" data-tooltip="cancel"><i class="material-icons">cancel</i></span>
+        </div>
+      </li>
+    </template>
+    <template id="tpl-rename-input-field">
+      <div class="input-field">
+        <input type="text" id="rename-to" class="" autocomplete="off">
+        <label for="rename-to">Rename <span class="rename-from"></span></label>
+      </div>
+    </template>
+    <script src="/js/libs/jquery-3.1.1.min.js"></script>
+    <script src="/js/libs/materialize.min.js"></script>
+    <script src="/js/libs/pollen-rpc.js"></script>
+    <script src="/js/event.js"></script>
+   <script src="/js/files.js"></script>
   </body>
 </html>
