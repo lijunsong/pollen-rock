@@ -117,6 +117,10 @@ Features
  - Add server side logging
  - Add `--local` option for secure access
 
+Bug Fixes
+ - fixed a bug that could cause data lose when user closes browser immediately after typing.
+ - fixed a bug that TAB replaces select region with a TAB; TAB now indents a selected region
+
 ## 0.4.1
 Features
 
