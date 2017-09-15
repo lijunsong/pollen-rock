@@ -23,6 +23,7 @@ class Model {
     this.rpc = new PollenRockRPC("/api");
     this.resource = resource.replace(/%20/g, ' ');
     this.pollenSuffix = [".pm", ".p", ".pp", ".ptree"];
+    this.racketSuffix = [".rkt", ".scm"];
     this.files = {};
 
     // notify with an object containing directory and non-directory
@@ -44,8 +45,8 @@ class Model {
     });*/
   }
 
-  isPollenSource(filename) {
-    for (let suf of this.pollenSuffix) {
+  hasSuffix(filename, suffixList) {
+    for (let suf of suffixList) {
       if (filename.endsWith(suf)) {
         return true;
       }
@@ -305,24 +306,28 @@ class View {
     for (let name of lists) {
       let url = this.makeFileURL(name);
       let itemLeft = name;
-      let itemRight;
-      let isSource = this.model.isPollenSource(name);
-      if (isSource) {
+      let itemRight = [];
+      let isPollenSource = this.model.hasSuffix(name, this.model.pollenSuffix);
+      let isRacketSource = this.model.hasSuffix(name, this.model.racketSuffix);
+      if (isPollenSource || isRacketSource) {
         // add pollen source operations
         let editOp = $(this.$itemRightTemplate.html())
             .attr('data-tooltip', 'open editor to edit this file')
             .append($('<a>', {href: `/edit${url}`})
                     .append(this.icon('code')));
+        itemRight.push(editOp);
+      }
+      if (isPollenSource) {
         let viewOp = $(this.$itemRightTemplate.html())
             .attr('data-tooltip', 'render this file')
             .append($('<a>', {href: `/watchfile${url}`})
                     .append(this.icon('visibility')));
-        itemRight = [editOp, viewOp];
+        itemRight.push(viewOp);
       }
 
       let item = $(this.$itemTemplate.html())
           .attr('data', name)
-          .addClass(isSource ? "is-pollen-source" : "not-pollen-source");
+          .addClass((isPollenSource||isRacketSource) ? "is-pollen-source" : "not-pollen-source");
       item.find('.item-left').append(itemLeft);
       item.find('.item-right').prepend(itemRight);
       result.push(item);
