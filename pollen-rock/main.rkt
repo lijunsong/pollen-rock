@@ -59,10 +59,10 @@
   (define content (file->bytes filepath))
   (response/text (include-template "templates/editor.html")))
 
+;; No need to check path safety here; browser ensures no access to parent folder.
 (define (watchfile-handler req url)
   (define resource (path-elements->resource url))
   (log-web-request-info "watch ~a" resource)
-  (check-path-safety resource)
   (response/text (include-template "templates/watchfile.html")))
 
 (define-values (server-dispatch url)
