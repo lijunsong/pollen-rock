@@ -29,7 +29,7 @@
 
 ;;; check if path is in folder
 (define/contract (is-in-folder? path folder [strict false])
-  (->* (resource? resource?) (boolean?) boolean?)
+  (->* (complete-path? complete-path?) (boolean?) boolean?)
   (define s-path (append-path path "."))
   (define s-folder (append-path folder "."))
   (if ((if strict <= <) (string-length s-path) (string-length s-folder))

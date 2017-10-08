@@ -31,7 +31,7 @@
 ;;; webroot folder (or is the webroot if strict is true), this
 ;;; function raises error.
 (define/contract (check-path-safety path [strict true])
-  (->* (resource?) (boolean?) void?)
+  (->* (complete-path?) (boolean?) void?)
   (unless (is-in-folder? path (path->string webroot) strict)
     (raise-user-error (format "path ~a is not in project root" path))))
 
