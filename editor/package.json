@@ -1,0 +1,38 @@
+{
+  "name": "editor-src",
+  "version": "0.0.1",
+  "description": "Pollen-rock in-browser editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "api": "node api.js",
+    "build": "webpack",
+    "client": "webpack-dev-server --port 3000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lijunsong/pollen-rock.git"
+  },
+  "keywords": [
+    "pollen",
+    "editor"
+  ],
+  "author": "Junsong Li",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lijunsong/pollen-rock/issues"
+  },
+  "homepage": "https://github.com/lijunsong/pollen-rock#readme",
+  "dependencies": {
+    "ace-css": "^1.1.0",
+    "css-loader": "^0.28.7",
+    "elm-webpack-loader": "^4.3.1",
+    "file-loader": "^1.1.5",
+    "font-awesome": "^4.7.0",
+    "json-server": "^0.12.0",
+    "style-loader": "^0.19.0",
+    "url-loader": "^0.6.2",
+    "webpack": "^3.7.1",
+    "webpack-dev-server": "^2.9.1"
+  }
+}

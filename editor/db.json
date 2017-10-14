@@ -1,0 +1,36 @@
+{
+  "files-api": [
+    {
+      "fileName": "name1",
+      "fileType": "d"
+    },
+    {
+      "fileName": "name2",
+      "fileType": "d"
+    },
+    {
+      "fileName": "name3",
+      "fileType": "d"
+    },
+    {
+      "fileName": "fileName4",
+      "fileType": "d"
+    },
+    {
+      "fileName": "fileName5",
+      "fileType": "f"
+    },
+    {
+      "fileName": "fileName6",
+      "fileType": "f"
+    },
+    {
+      "fileName": "fileName",
+      "fileType": "f"
+    },
+    {
+      "fileName": "fileName6",
+      "fileType": "f"
+    }
+  ]
+}
