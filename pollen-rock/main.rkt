@@ -5,6 +5,7 @@
 (require web-server/templates)
 (require web-server/dispatchers/dispatch)
 (require web-server/dispatch)
+
 (require setup/getinfo)
 (require pollen/file)
 (require pollen/render)
@@ -16,19 +17,12 @@
 (require "logger.rkt")
 (require racket/cmdline)
 (require racket/logging)
+(require "restful.rkt")
 
-
-;;; Debug use
-(define (print-request req)
-  (let ((uri (request-uri req)))
-    (println (format "query: ~a" (url-query uri)))
-    (println (format "path: ~a" (url-path uri)))
-    (println (format "bindings: ~a" (request-bindings/raw req)))
-    (println (format "post-data: ~a" (request-post-data/raw req)))))
 
 (define (test-handler req trimmed-url)
   (print-request req)
-  (println (format "url: ~s, resource: ~s" trimmed-url (request->resource req)))
+  (log-web-request-debug "url: ~s, resource: ~s" trimmed-url (request->resource req))
   (response/xexpr `(html (p "test!"))))
 
 ;; Handler for indexing a local folder or file
@@ -65,12 +59,35 @@
   (log-web-request-info "watch ~a" resource)
   (response/text (include-template "templates/watchfile.html")))
 
+#|
 (define-values (server-dispatch url)
   (dispatch-rules
    [("edit" (string-arg) ...) edit-handler]
    [("api") #:method "post" api-post-handler]
    [("watchfile" (string-arg) ...) watchfile-handler]
    [((string-arg) ...) index-handler]))
+|#
+
+;;;; --------------------------------------------------------
+
+(define (return-file-handler req matched-url)
+  (define resource (request->resource req))
+  (define filepath (append-path webroot resource))
+  (log-web-request-debug "accessing ~a" filepath)
+  ;; allow access webroot
+  (check-path-safety filepath false)
+  (let ((file-path (path->complete-path filepath)))
+    (let ((pollen-source (get-source file-path)))
+      (when pollen-source
+        (render-to-file-if-needed pollen-source))
+      (next-dispatcher))))
+
+(define-values (server-dispatch url)
+  (dispatch-rules
+   [((string-arg) ...) return-file-handler]
+   [("rest" "v1" (string-arg) (string-arg) ...) #:method "post"
+    restful-main-handler]))
+
 
 ;; add runtimeroot to serve pollen-rock's static files when indexing.
 ;; add webroot to serve users' own static files

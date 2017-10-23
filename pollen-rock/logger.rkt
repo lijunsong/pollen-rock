@@ -6,6 +6,7 @@
 
 (define-logger web-request)
 (define-logger api)
+(define-logger rest)
 
 (define all-levels '(none fatal error warning info debug))
 
@@ -13,12 +14,13 @@
 (define (start-logging-threads)
   (define web-request-rc (make-log-receiver web-request-logger (log-level)))
   (define api-rc (make-log-receiver api-logger (log-level)))
+  (define rest-rc (make-log-receiver rest-logger (log-level)))
 
   (void
    (thread
     (lambda ()
       (let loop ()
-        (define v (sync web-request-rc api-rc))
+        (define v (sync web-request-rc api-rc rest-rc))
         (define level (vector-ref v 0))
         (printf "[~a] ~a\n" level (vector-ref v 1))
         (loop))))))

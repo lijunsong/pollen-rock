@@ -4,6 +4,7 @@
 (require web-server/http/request-structs)  ;request
 (require web-server/http/response-structs) ;response
 (require net/url-structs)                  ;url
+(require "logger.rkt")                     ;logger
 
 (provide (all-defined-out))
 
@@ -26,3 +27,11 @@
    TEXT/HTML-MIME-TYPE
    empty
    ans))
+
+;;; Debug use
+(define (print-request req)
+  (let ((uri (request-uri req)))
+     (log-web-request-debug "query: ~a" (url-query uri))
+     (log-web-request-debug "path: ~a" (url-path uri))
+     (log-web-request-debug "bindings: ~a" (request-bindings/raw req))
+     (log-web-request-debug "post-data: ~a" (request-post-data/raw req))))
