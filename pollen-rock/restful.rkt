@@ -21,7 +21,11 @@
   (print-request req)
   (define ans
     (match type
-      ["fs" (fs-handler req matched-url)]))
+      ["fs" (fs-handler req matched-url (hash #"mv" mv-op
+                                              #"mkdir" mkdir-op
+                                              #"rm" rm-op
+                                              #"echo" echo-op
+                                              #"ls" ls-op))]))
   ;;; convert ans to jsexp
   (response/text (jsexpr->bytes ans)))
 
@@ -35,33 +39,34 @@
 
 
 ;;;; POST /fs/$path
-;; file operations
-(define (fs-handler req matched-url)
-  (struct fsop (op need-data?) #:transparent)
-  ;; fs-ops - a map mapping from op names to FsOps
-  (define fs-ops
-    (hash #"mv" (fsop mv-op true)
-          #"mkdir" (fsop mkdir-op false)
-          #"rm" (fsop rm-op false)
-          #"cat" (fsop cat-op true)
-          #"ls" (fsop ls-op false)))
+
+;; select matched handler from `handler-map` to respond to the `req`.
+;; the value of handler-map must be taking one or two positional
+;; arguments. If it takes one argument, matched-url will be converted
+;; to a resource and passed into the function. If two arguments,
+;; `req` binding `data` will be passed as the second argument.
+(define/contract (fs-handler req matched-url handler-map)
+  (-> request? (listof string?) (hash/c bytes? any/c) jsexpr?)
   ;; prepare op arguments
   (define src (path-elements->resource matched-url))
   (define bindings (request-bindings/raw req))
   (define op-name (extract-bindings #"op" bindings))
-  (define op (hash-ref fs-ops op-name false))
+  (define op (hash-ref handler-map op-name false))
   ;; run ops
   (cond [(not op)
-         (fs-answer 1 "op field not found")]
-        [(fsop-need-data? op)
+         (fs-answer 1 "op field unknown")]
+        [(= (procedure-arity op) 2)
          (let [(data (extract-bindings #"data" bindings))]
-           ((op-sanity-checker (fsop-op op)) src data))]
+           ((op-sanity-checker op) src data))]
+        [(= (procedure-arity op) 1)
+         ((op-sanity-checker op) src)]
         [else
-         ((op-sanity-checker (fsop-op op)) src)]))
+         (fs-answer 1 "internal error. Arity isn't 1 or 2.")]))
 
-
-;; Return a function that will convert and check the arguments passed
-;; to the given func before calling it.
+;; Sanity check all arguments passed to the given function
+;;
+;; TOOD: define our own exn here and let func throws exception (fs
+;; exception, our own exception, and catch those exceptions here)
 (define (op-sanity-checker func)
   (define (arg->string arg)
     (if (bytes? arg)
@@ -70,9 +75,15 @@
   (define (fs-op-with-handlers op)
     (lambda args
       (with-handlers
-          ([exn:fail:filesystem? (lambda (e) (fs-answer 2 "fs error"))])
-        (apply op args)
-        (fs-answer 0))))
+          ([exn:fail:filesystem:errno?
+            (lambda (e)
+              (fs-answer (car (exn:fail:filesystem:errno-errno e))
+                         (exn-message e)))]
+           [exn:fail:filesystem? (lambda (e) (fs-answer 2 (exn-message e)))])
+        (let [(ret (apply op args))]
+          (if (void? ret)
+              (fs-answer 0)
+              ret)))))
   (lambda args
     (define string-args (map arg->string args))
     (if (andmap non-empty-string? string-args)
@@ -101,17 +112,17 @@
 
 
 (define/contract (mv-op src dst)
-  (-> string? string? jsexpr?)
+  (-> string? string? void?)
   (define src-full (append-path webroot src))
   (define dst-full (append-path webroot dst))
   (log-rest-debug "mv-op ~a ~a" src-full dst-full)
   (rename-file-or-directory src-full dst-full))
 
 
-(define/contract (cat-op src data)
-  (-> string? string? jsexpr?)
+(define/contract (echo-op src data)
+  (-> string? string? void?)
   (define p (append-path webroot src))
-  (log-rest-debug "cat-op ~a [text of length ~d]" p (string-length data))
+  (log-rest-debug "echo-op ~a [text of length ~s]" p (string-length data))
   (call-with-atomic-output-file p
     (lambda (out path)
       (display data out))))
@@ -122,3 +133,21 @@
   (define p (append-path webroot src))
   (log-rest-debug "ls-op ~a" p)
   (map path->string (directory-list p)))
+
+
+
+;;;; POST /render/$path
+#|
+(define/contract (render-answer errno)
+  (-> ... jsexpr?)
+  (hasheq 'errno errno))
+
+
+(define (render-handler req matched-url)
+  (define filepath (append-path (path-elements->resource matched-url)))
+  (cond [(is-pollen-source? filepath)
+         (render-to-file-if-needed filepath)
+         (render-answer 0)]
+        [else
+         (render-answer 1)]))
+|#
