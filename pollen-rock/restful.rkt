@@ -6,6 +6,8 @@
 (require "util.rkt")
 (require "http-util.rkt")
 (require "logger.rkt")
+(require (prefix-in pollen: pollen/file))
+(require (prefix-in pollen: pollen/render))
 
 (provide (all-defined-out))
 
@@ -145,17 +147,29 @@
 
 
 ;;;; POST /render/$path
-#|
-(define/contract (render-answer errno)
-  (-> ... jsexpr?)
-  (hasheq 'errno errno))
 
+;; when errno if 1, location must be false
+(define/contract (render-answer errno location)
+  (-> integer? (or/c false? string?) jsexpr?)
+  (hasheq 'errno errno
+          'location location))
 
-(define (render-handler req matched-url)
-  (define filepath (append-path (path-elements->resource matched-url)))
-  (cond [(is-pollen-source? filepath)
-         (render-to-file-if-needed filepath)
-         (render-answer 0)]
+;; take a matched url parts, render the file on disk.
+;; renderer must return bool to indicate the success of rendering.
+(define/contract (render-handler req matched-url renderer)
+  (-> request? (listof string?) (-> string? boolean?) jsexpr?)
+  (define url-parts (path-elements->resource matched-url))
+  (define source-path (append-path webroot url-parts))
+  (cond [(is-pollen-source? source-path)
+         (with-handlers
+             ([exn:fail? (lambda (e) (render-answer 1 false))])
+           (if (renderer source-path)
+               (render-answer 0 (path->string (pollen:->output-path url-parts)))
+               (render-answer 1)))]
         [else
-         (render-answer 1)]))
-|#
+         (render-answer 0 url-parts)]))
+
+(define/contract (handle-render source-path)
+  (-> string? boolean?)
+  (pollen:render-to-file-if-needed source-path)
+  true)

@@ -5,6 +5,8 @@
 (require web-server/http/request-structs)
 (require web-server/http/response-structs)
 (require "restful.rkt")
+(require "config.rkt")
+(require "util.rkt")
 
 ;;; test /fs/$path
 
@@ -104,3 +106,45 @@
                            (check-equal? src "/src/path1")
                            (check-equal? dst "/dst"))))
  (fs-answer 0))
+
+
+;;;; test render-handler
+(define/contract (make-render-request src)
+  (-> bytes? request?)
+  (make-request
+   #"POST" (string->url (format "http://localhost:8000/rest/render~a" src)) empty
+   (delay empty)
+   #"fake post not used"
+   "0.0.0.0"
+   8000
+   "0.0.0.0"))
+
+(define render-request (make-render-request #"/blog/1.html.pm"))
+
+;; test render-handler passes the correct source-path
+(check-equal?
+ (render-answer 0 "/blog/1.html")
+ (render-handler
+  render-request
+  (list "blog" "1.html.pm")
+  (lambda (source-path)
+    (check-equal? source-path (append-path webroot "/blog/1.html.pm"))
+    true)))
+
+(check-equal?
+ (render-answer 0 "/blog/1.html")
+ (render-handler
+  render-request
+  (list "blog" "1.html")
+  (lambda (source-path)
+    (check-equal? source-path (append-path webroot "/blog/1.html"))
+    true)))
+
+;; test render-handler returns jsexp when renderer throws exceptions
+(check-equal?
+ (render-answer 1 false)
+ (render-handler
+  render-request
+  (list "blog" "1.html.pm")
+  (lambda (source-path)
+    (raise (make-exn:fail:filesystem:exists "s" (current-continuation-marks))))))
