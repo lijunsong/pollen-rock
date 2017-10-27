@@ -7,7 +7,7 @@
 (require "http-util.rkt")
 (require "logger.rkt")
 
-(provide (prefix-out restful- (all-defined-out)))
+(provide (all-defined-out))
 
 ;; To add more handlers for different route, add restful route in
 ;; main-handler, and define a sub-handler accepting request and
@@ -21,11 +21,7 @@
   (print-request req)
   (define ans
     (match type
-      ["fs" (fs-handler req matched-url (hash #"mv" mv-op
-                                              #"mkdir" mkdir-op
-                                              #"rm" rm-op
-                                              #"echo" echo-op
-                                              #"ls" ls-op))]))
+      ["fs" (fs-handler req matched-url (get-op-hash))]))
   ;;; convert ans to jsexp
   (response/text (jsexpr->bytes ans)))
 
@@ -39,29 +35,45 @@
 
 
 ;;;; POST /fs/$path
+(define (get-op-hash)
+  (hash #"mv" mv-op
+        #"mkdir" mkdir-op
+        #"rm" rm-op
+        #"echo" echo-op
+        #"ls" ls-op))
+
 
 ;; select matched handler from `handler-map` to respond to the `req`.
 ;; the value of handler-map must be taking one or two positional
 ;; arguments. If it takes one argument, matched-url will be converted
 ;; to a resource and passed into the function. If two arguments,
 ;; `req` binding `data` will be passed as the second argument.
-(define/contract (fs-handler req matched-url handler-map)
-  (-> request? (listof string?) (hash/c bytes? any/c) jsexpr?)
-  ;; prepare op arguments
-  (define src (path-elements->resource matched-url))
+(define (fs-handler req matched-url op-hash)
+  (define url-path (path-elements->resource matched-url))
   (define bindings (request-bindings/raw req))
-  (define op-name (extract-bindings #"op" bindings))
-  (define op (hash-ref handler-map op-name false))
-  ;; run ops
+  (define fs-keys (list #"op" #"data"))
+  (define binding-assoc (map (lambda (k)
+                              (cons k
+                                    (extract-bindings k bindings)))
+                             fs-keys))
+  (define binding-hash (make-hash binding-assoc))
+  (handle-filesystem-op url-path binding-hash op-hash))
+
+
+(define (handle-filesystem-op url-path binding-hash op-hash)
+  (define op (hash-ref op-hash
+                       (hash-ref binding-hash #"op" false)
+                       false))
+  (define data (hash-ref binding-hash #"data" false))
   (cond [(not op)
-         (fs-answer 1 "op field unknown")]
+         (fs-answer 1 "unknown op")]
         [(= (procedure-arity op) 2)
-         (let [(data (extract-bindings #"data" bindings))]
-           ((op-sanity-checker op) src data))]
+         ((op-sanity-checker op) url-path data)]
         [(= (procedure-arity op) 1)
-         ((op-sanity-checker op) src)]
+         ((op-sanity-checker op) url-path)]
         [else
-         (fs-answer 1 "internal error. Arity isn't 1 or 2.")]))
+          (fs-answer 1 "internal error. arity isn't 1 or 2")]))
+
 
 ;; Sanity check all arguments passed to the given function
 ;;
@@ -75,15 +87,11 @@
   (define (fs-op-with-handlers op)
     (lambda args
       (with-handlers
-          ([exn:fail:filesystem:errno?
-            (lambda (e)
-              (fs-answer (car (exn:fail:filesystem:errno-errno e))
-                         (exn-message e)))]
-           [exn:fail:filesystem? (lambda (e) (fs-answer 2 (exn-message e)))])
+          ([exn:fail:filesystem? (lambda (e) (fs-answer 1 (exn-message e)))])
         (let [(ret (apply op args))]
           (if (void? ret)
               (fs-answer 0)
-              ret)))))
+              (fs-answer 0 ret))))))
   (lambda args
     (define string-args (map arg->string args))
     (if (andmap non-empty-string? string-args)
