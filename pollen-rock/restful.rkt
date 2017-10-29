@@ -206,48 +206,25 @@
   (when (file-watch file-path update-mtime last-seen-seconds)
     ans))
 
-;;;; POST that requires modules inspection
+;;;; GET /config/$path
+(define/contract (config-answer errno tags)
+  (-> integer? (listof (hash/c symbol? jsexpr?)) jsexpr?)
+  (hash 'errno errno
+        'tags tags))
 
-;; If variable is either char, string, or bool, val stores its value,
-;; otherwise is (json-null).
-(struct var-tag (name val) #:transparent)
-;; proc-tag - stores proc information
-(struct proc-tag (name arity kw) #:transparent)
 
-(define/contract (extract-module-info modules)
-  (-> (listof (or/c string? symbol? list?))
-      (listof (or/c var-tag? proc-tag?)))
-  (define (val->string v)
-    (cond [(list? v)
-           (map val->string v)]
-          [(boolean? v) v]
-          [else
-           (with-handlers
-               [(exn:fail? (lambda _ unknown-val))]
-             (->string v))]))
-  (define unknown-val (json-null))
-  (define ns (make-base-empty-namespace))
-  (for ([m modules])
-    (with-handlers
-        ([exn:fail? (lambda _ (void))])
-      (parameterize ([current-namespace ns])
-        (namespace-require m))))
-  (define ids (namespace-mapped-symbols ns))
-  (define vals  (map (lambda (s)
-                       (namespace-variable-value
-                        s true (lambda() unknown-val) ns))
-                     ids))
+(define INJECT-CONFIG-FILENAME ".POLLEN-GET-CONFIG.rkt")
+(define/contract (get-config-handler req url-parts config-getter)
+  (-> request? (listof string?)
+      (-> path-string? jsexpr?) jsexpr?)
+  ;; we get source path relative to webroot in order to inject files
+  ;; into the same folder of that of the source path.
+  (define parent-path (drop-right url-parts 1))
+  (define config-path
+    (build-path parent-path INJECT-CONFIG-FILENAME))
+  (config-getter config-path))
 
-  (map (lambda (name v)
-         (if (procedure? v)
-             (let ([arity (procedure-arity v)])
-               (define-values (_ kws) (procedure-keywords v))
-               (proc-tag name (if (arity-at-least? arity)
-                                  (arity-at-least-value arity)
-                                  arity)
-                         kws))
-             (var-tag name (val->string v))))
-       ids
-       vals))
+(define (get-config module-path)
+  (define module-tags (extract-module-info module-path))
+  
 
-;;;; POST /config/$path
