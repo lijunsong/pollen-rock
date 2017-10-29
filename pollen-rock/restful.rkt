@@ -8,22 +8,24 @@
 (require "logger.rkt")
 (require (prefix-in pollen: pollen/file))
 (require (prefix-in pollen: pollen/render))
+(require (only-in "fs-watch.rkt" file-watch))
+(require sugar)
 
 (provide (all-defined-out))
 
 ;; To add more handlers for different route, add restful route in
 ;; main-handler, and define a sub-handler accepting request and
-;; matched-url (path elements)
+;; url-parts (path elements)
 ;;
 ;; NOTE: sub handlers must return a Jsexpr
 
 
 ;; main handler dispatch request to different handlers.
-(define (main-handler req type matched-url)
+(define (main-handler req type url-parts)
   (print-request req)
   (define ans
     (match type
-      ["fs" (fs-handler req matched-url (get-op-hash))]))
+      ["fs" (fs-handler req url-parts (get-op-hash))]))
   ;;; convert ans to jsexp
   (response/text (jsexpr->bytes ans)))
 
@@ -47,11 +49,11 @@
 
 ;; select matched handler from `handler-map` to respond to the `req`.
 ;; the value of handler-map must be taking one or two positional
-;; arguments. If it takes one argument, matched-url will be converted
+;; arguments. If it takes one argument, url-parts will be converted
 ;; to a resource and passed into the function. If two arguments,
 ;; `req` binding `data` will be passed as the second argument.
-(define (fs-handler req matched-url op-hash)
-  (define url-path (path-elements->resource matched-url))
+(define (fs-handler req url-parts op-hash)
+  (define url-path (path-elements->resource url-parts))
   (define bindings (request-bindings/raw req))
   (define fs-keys (list #"op" #"data"))
   (define binding-assoc (map (lambda (k)
@@ -156,20 +158,96 @@
 
 ;; take a matched url parts, render the file on disk.
 ;; renderer must return bool to indicate the success of rendering.
-(define/contract (render-handler req matched-url renderer)
+(define/contract (render-handler req url-parts renderer)
   (-> request? (listof string?) (-> string? boolean?) jsexpr?)
-  (define url-parts (path-elements->resource matched-url))
-  (define source-path (append-path webroot url-parts))
+  (define url-path (path-elements->resource url-parts))
+  (define source-path (append-path webroot url-path))
   (cond [(is-pollen-source? source-path)
          (with-handlers
              ([exn:fail? (lambda (e) (render-answer 1 false))])
            (if (renderer source-path)
-               (render-answer 0 (path->string (pollen:->output-path url-parts)))
+               (render-answer 0 (path->string (pollen:->output-path url-path)))
                (render-answer 1)))]
         [else
-         (render-answer 0 url-parts)]))
+         (render-answer 0 url-path)]))
 
 (define/contract (handle-render source-path)
   (-> string? boolean?)
   (pollen:render-to-file-if-needed source-path)
   true)
+
+;;;; POST /watch/$path
+(define/contract (watch-answer errno mtime)
+  (-> integer? integer? jsexpr?)
+  (hasheq 'errno errno
+          'mtime mtime))
+
+(define/contract (watch-handler req url-parts watching)
+  (-> request? (listof string?)
+      (-> string? (or/c false? integer?) jsexpr?) jsexpr?)
+  (define url-path (path-elements->resource url-parts))
+  (define file-path (append-path webroot url-path))
+  (define bindings (request-bindings/raw req))
+  ;; we may or may not get mtime from request
+  (define mtime (extract-bindings #"mtime" bindings))
+  (with-handlers
+      ([exn:fail:filesystem? (lambda (e) (watch-answer 1 0))])
+    (define int-mtime (string->number (bytes->string/utf-8 mtime)))
+    (watching file-path int-mtime)))
+
+(define/contract (watching-file file-path last-seen-seconds)
+  (-> string? (or/c false? integer?) jsexpr?)
+  (define ans (watch-answer 0 0))
+  ;; when the file is changed, update this ans, and
+  ;; return ans.
+
+  (define (update-mtime _ last-mod)
+    (hash-set! ans 'mtime last-mod))
+  (when (file-watch file-path update-mtime last-seen-seconds)
+    ans))
+
+;;;; POST that requires modules inspection
+
+;; If variable is either char, string, or bool, val stores its value,
+;; otherwise is (json-null).
+(struct var-tag (name val) #:transparent)
+;; proc-tag - stores proc information
+(struct proc-tag (name arity kw) #:transparent)
+
+(define/contract (extract-module-info modules)
+  (-> (listof (or/c string? symbol? list?))
+      (listof (or/c var-tag? proc-tag?)))
+  (define (val->string v)
+    (cond [(list? v)
+           (map val->string v)]
+          [(boolean? v) v]
+          [else
+           (with-handlers
+               [(exn:fail? (lambda _ unknown-val))]
+             (->string v))]))
+  (define unknown-val (json-null))
+  (define ns (make-base-empty-namespace))
+  (for ([m modules])
+    (with-handlers
+        ([exn:fail? (lambda _ (void))])
+      (parameterize ([current-namespace ns])
+        (namespace-require m))))
+  (define ids (namespace-mapped-symbols ns))
+  (define vals  (map (lambda (s)
+                       (namespace-variable-value
+                        s true (lambda() unknown-val) ns))
+                     ids))
+
+  (map (lambda (name v)
+         (if (procedure? v)
+             (let ([arity (procedure-arity v)])
+               (define-values (_ kws) (procedure-keywords v))
+               (proc-tag name (if (arity-at-least? arity)
+                                  (arity-at-least-value arity)
+                                  arity)
+                         kws))
+             (var-tag name (val->string v))))
+       ids
+       vals))
+
+;;;; POST /config/$path

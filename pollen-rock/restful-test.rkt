@@ -8,21 +8,29 @@
 (require "config.rkt")
 (require "util.rkt")
 
-;;; test /fs/$path
 
-(define/contract (make-fs-request src opname data)
-  (-> bytes? bytes? (or/c bytes? false?) request?)
-  (make-request
-   #"POST" (string->url (format "http://localhost:8000/rest/fs~a" src)) empty
-   (delay
-     (cons (make-binding:form #"op" opname)
-           (if (false? data) empty (list (make-binding:form #"data" data)))))
+(define/contract (make-test-request kind url-parts binding-hash)
+  (-> string? (listof string?) (hash/c bytes? bytes?) request?)
+  (let [(bindings (hash-map binding-hash
+                            (lambda (k v)
+                              (make-binding:form k v))))]
+    (make-request
+     #"POST" (string->url
+              (format "http://localhost:8000/rest/~a~a"
+                      kind
+                      (path-elements->resource url-parts)))
+     empty
+     (delay bindings)
    #"fake post not used"
    "0.0.0.0"
    8000
-   "0.0.0.0"))
+   "0.0.0.0")))
 
-(define mv-bad-request (make-fs-request #"/src/path1" #"mv" false))
+
+;;; test /fs/$path
+(define mv-bad-request
+  (make-test-request "fs" (list "src" "path1")
+                     (hash #"op" #"mv")))
 
 ;; helper check functions
 (define (check-fs-answer-errno-equal? a b)
@@ -39,6 +47,7 @@
   (hash #"op" #"mv")
   (hash #"mv" (lambda (src dst)
                 (void)))))
+
 (check-fs-answer-errno-equal?
  (fs-answer 1 "")
  (handle-filesystem-op
@@ -55,6 +64,7 @@
   (hash #"op" #"myop" #"data" #"second-arg")
   (hash #"myop" (lambda (src)
                   (check-equal? src "/src")))))
+
 (check-fs-answer-errno-equal?
  (fs-answer 0)
  (handle-filesystem-op
@@ -99,9 +109,14 @@
 
 ;;;; test fs-handler
 ;; exercise the full path from accepting request to handle request
-(define mv-request (make-fs-request #"/src/path1" #"mv" #"/dst"))
+(define mv-request-url-parts (list "src" "path1"))
+(define mv-request
+  (make-test-request "fs" mv-request-url-parts
+                     (hash #"op" #"mv"
+                           #"data" #"/dst")))
+
 (check-equal?
- (fs-handler mv-request (list "src" "path1")
+ (fs-handler mv-request mv-request-url-parts
              (hash #"mv" (lambda (src dst)
                            (check-equal? src "/src/path1")
                            (check-equal? dst "/dst"))))
@@ -109,35 +124,19 @@
 
 
 ;;;; test render-handler
-(define/contract (make-render-request src)
-  (-> bytes? request?)
-  (make-request
-   #"POST" (string->url (format "http://localhost:8000/rest/render~a" src)) empty
-   (delay empty)
-   #"fake post not used"
-   "0.0.0.0"
-   8000
-   "0.0.0.0"))
-
-(define render-request (make-render-request #"/blog/1.html.pm"))
+(define render-url-parts (list "blog" "1.html.pm"))
+(define render-request
+  (make-test-request "render" render-url-parts
+                     (hash)))
 
 ;; test render-handler passes the correct source-path
 (check-equal?
  (render-answer 0 "/blog/1.html")
  (render-handler
   render-request
-  (list "blog" "1.html.pm")
+  render-url-parts
   (lambda (source-path)
     (check-equal? source-path (append-path webroot "/blog/1.html.pm"))
-    true)))
-
-(check-equal?
- (render-answer 0 "/blog/1.html")
- (render-handler
-  render-request
-  (list "blog" "1.html")
-  (lambda (source-path)
-    (check-equal? source-path (append-path webroot "/blog/1.html"))
     true)))
 
 ;; test render-handler returns jsexp when renderer throws exceptions
@@ -145,6 +144,47 @@
  (render-answer 1 false)
  (render-handler
   render-request
-  (list "blog" "1.html.pm")
+  render-url-parts
   (lambda (source-path)
     (raise (make-exn:fail:filesystem:exists "s" (current-continuation-marks))))))
+
+;;;; test watch-handler
+
+(define/contract (make-watch-request src)
+  (-> bytes? request?)
+  (make-request
+   #"POST" (string->url (format "http://localhost:8000/rest/watch~a" src)) empty
+   (delay (list (make-binding:form #"mtime" #"100")))
+   #"fake post not used"
+   "0.0.0.0"
+   8000
+   "0.0.0.0"))
+
+
+(define watch-request-url-parts
+  (list "watch" "this" "file.txt"))
+
+(define watch-request
+  (make-test-request "watch" watch-request-url-parts
+                     (hash #"mtime" #"100")))
+
+;; test watch-handler returns jsexp when the watching file doesn't exist
+(check-equal?
+ (watch-answer 1 0)
+ (watch-handler watch-request (list "watch" "this" "file.txt")
+                (lambda (path mtime)
+                  (raise (make-exn:fail:filesystem
+                          "exists"
+                          (current-continuation-marks)))
+                  (watch-answer 0 0))))
+
+;; test watch-handler passes correct path and mtime to watching function
+(check-equal?
+ (watch-answer 0 1001)
+ (watch-handler watch-request (list "watch" "this" "file.txt")
+                (lambda (path mtime)
+                  (check-true (string-contains? path "/watch/this/file.txt"))
+                  (check-equal? mtime 100)
+                  (watch-answer 0 1001))))
+
+;;;;
