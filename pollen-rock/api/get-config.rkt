@@ -38,28 +38,21 @@
 
 (define/contract (var->json name val)
   (-> string? any/c jsexpr?)
-  (define checks (list (list boolean? identity)
-                       (list number? identity)
-                       (list string? identity)
-                       (list symbol? identity)
-                       (list struct? (lambda _ (json-null)))
-                       ;; the last one always succeeds
-                       (list (lambda _ #t) (lambda _ (json-null)))))
-  (define (remove-? symbol)
-    (let [(s (symbol->string symbol))]
-      (string-trim s #\? #:right? true)))
-  (define (identify current-check all-checks)
-    (let [(identify-type (first current-check))
-          (identify-val  (second current-check))]
-      (if (identify-type val)
-          (hasheq 'name name
-                  'kind "variable"
-                  'value (identify-val val)
-                  'type (remove-? (object-name identify-type)))
-          (identify (first all-checks) (rest all-checks)))))
-  (identify (first checks) (rest checks)))
+  (define value-and-type
+    (cond [(boolean? val) `(,val "boolean")]
+          [(number? val)  `(,val "number")]
+          [(string? val)  `(,val "string")]
+          [(and (symbol? val) (not (eq? val (json-null))))
+           (list (symbol->string val) "symbol")]
+          [else
+           (list (json-null) (json-null))]))
+  (hasheq 'name name
+          'kind "variable"
+          'value (first value-and-type)
+          'type  (second value-and-type)))
 
-(define/contract (extract-module-info modules)
+
+(define/contract (extract-module-bindings modules)
   (-> (listof (or/c string? symbol? list?))
       (listof jsexpr?))
   (define ns (make-base-empty-namespace))
@@ -76,7 +69,9 @@
 
   (map (lambda (name v) (if (procedure? v)
                             (procedure->json v)
-                            (var->json name v))) ids vals))
+                            (var->json name v)))
+       (map symbol->string ids)
+       vals))
 
 (module+ test
   (require rackunit)
@@ -146,18 +141,93 @@
     (provide (all-defined-out))
 
     (define bool-id true)
-    (define int-id 99)
+    (define num-id 99.9)
     (define str-id "hello")
     (define sym-id 'my-symbol)
-    (define float-id 12.3)
     (struct point (x y) #:transparent)
-    ;; foo has three positional arguments, 2 keyword arguments
-    (define (foo a b [c 3] #:kw1 kw1 #:kw2 kw2)
-      1)
-
-    ;; bar has two positional arguments, and takes arbitrary
-    ;; number of arguments afterwards
+    (define mypoint (point 1 2))
+    (define (foo a b [c 3] #:kw1 kw1 #:kw2 [kw2 1])
+      (+ a b c))
     (define (bar a b . c)
-      1))
-  ;; test extract-module-info extracts all exported identifiers
+      1)
+    (define (zoo a #:kw1 kw1)
+      2))
+
+  (define/contract (search-name name json-list)
+    (-> string? (listof jsexpr?) jsexpr?)
+    (define elms
+      (filter (lambda (json)
+                (equal? (hash-ref json 'name ) name)) json-list))
+    (if (empty? elms)
+        (json-null)
+        (first elms)))
+
+  ;; test extract-module-bindings extracts all exported identifiers
+  (define all-bindings
+    (extract-module-bindings (list (quote-module-path p))))
+
+  (let [(bool-id (search-name "bool-id" all-bindings))]
+    (check-equal? bool-id (hasheq 'name "bool-id"
+                                  'kind "variable"
+                                  'value true
+                                  'type "boolean")))
+
+  (let [(num-id (search-name "num-id" all-bindings))]
+    (check-equal? num-id (hasheq 'name "num-id"
+                                 'kind "variable"
+                                 'value 99.9
+                                 'type "number")))
+
+  (let [(sym-id (search-name "sym-id" all-bindings))]
+    (check-equal? sym-id (hasheq 'name "sym-id"
+                                 'kind "variable"
+                                 'value "my-symbol"
+                                 'type "symbol")))
+
+  (let [(sym-id (search-name "sym-id" all-bindings))]
+    (check-equal? sym-id (hasheq 'name "sym-id"
+                                 'kind "variable"
+                                 'value "my-symbol"
+                                 'type "symbol")))
+
+  (let [(mypoint (search-name "mypoint" all-bindings))]
+    (check-equal? mypoint (hasheq 'name "mypoint"
+                                  'kind "variable"
+                                  'value (json-null)
+                                  'type (json-null))))
+
+  (let [(point (search-name "point" all-bindings))]
+    (check-equal? point (hasheq 'name "point"
+                                'kind "variable"
+                                'value (json-null)
+                                'type (json-null))))
+
+  (let [(bar (search-name "bar" all-bindings))]
+    (check-equal? bar (hasheq 'name "bar"
+                              'kind "procedure"
+                              'arity 2
+                              'arity-at-least true
+                              'required-keywords empty
+                              'all-keywords empty)))
+
+  #|
+  ;; racket module thinks foo is a syntax object. Looks like
+  ;; a racket bug.
+  (let [(foo (search-name "foo" all-bindings))]
+    (check-equal? foo (hasheq 'name "foo"
+                              'kind "procedure"
+                              'arity 2
+                              'arity-at-least true
+                              'required-keywords (list "kw1")
+                              'all-keywords (list "kw1" "kw2"))))
+
+  (let [(zoo (search-name "zoo" all-bindings))]
+    (check-equal? zoo (hasheq 'name "zoo"
+                              'kind "procedure"
+                              'arity 1
+                              'arity-at-least false
+                              'required-keywords '("kw1")
+                              'all-keywords '("kw1" "kw2"))))
+  |#
+
 )
