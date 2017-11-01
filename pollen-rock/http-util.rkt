@@ -1,12 +1,40 @@
 #lang racket
 
+(require web-server/http/request-structs)  ; request
+(require web-server/http/response-structs) ; response
+(require net/url-structs)                  ; url
+(require net/url-string)
+(require "logger.rkt")                     ; logger
 (require "util.rkt")
-(require web-server/http/request-structs)  ;request
-(require web-server/http/response-structs) ;response
-(require net/url-structs)                  ;url
-(require "logger.rkt")                     ;logger
 
 (provide (all-defined-out))
+
+
+(define/contract (extract-bindings key bindings)
+  (-> bytes? (listof binding?) (or/c false? bytes?))
+  (let [(form (bindings-assq key bindings))]
+    (if form
+        (binding:form-value form)
+        false)))
+
+
+(define/contract (make-test-request kind url-parts binding-hash)
+  (-> string? (listof string?) (hash/c bytes? bytes?) request?)
+  (let [(bindings (hash-map binding-hash
+                            (lambda (k v)
+                              (make-binding:form k v))))]
+    (make-request
+     #"POST" (string->url
+              (format "http://localhost:8000/rest/~a~a"
+                      kind
+                      (path-elements->resource url-parts)))
+     empty
+     (delay bindings)
+   #"fake post not used"
+   "0.0.0.0"
+   8000
+   "0.0.0.0")))
+
 
 ;; extract resource from a request
 (define/contract (request->resource req)
