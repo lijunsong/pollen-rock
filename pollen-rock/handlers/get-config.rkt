@@ -1,5 +1,14 @@
 #lang racket
 
+(require json)
+(require web-server/http/request-structs)
+(require "expose-module.rkt")
+
+(provide get-config-handler
+         config-answer
+         get-config)
+
+
 ;;;; GET /config/$path
 (define/contract (config-answer errno tags)
   (-> integer? (listof (hash/c symbol? jsexpr?)) jsexpr?)
@@ -16,47 +25,62 @@
 ;; it later.
 (define/contract (get-config-handler req url-parts config-getter)
   (-> request? (listof string?)
-      (-> path-string? (listof jsexpr?)) jsexpr?)
-  (define setup-path (get-pollen-setup-path url-parts))
+      (-> (or/c path-string? symbol?) (listof jsexpr?)) jsexpr?)
+  (define setup-path (search-pollen/setup url-parts))
   (config-answer 0 (config-getter setup-path)))
 
 ;; find out the right pollen.rkt path for the given url.
 ;; This function also returns 'pollen/setup if no pollen.rkt is found
-;; TODO: make this take a predicate to swap file-exists.
-(define/contract (get-pollen-setup-path url-parts)
-  (-> (listof string?) (or/c path-string? 'pollen/setup))
-  (define setup-path-parts
-    (cons webroot (append url-parts (list "pollen.rkt"))))
-  (define setup-path (apply build-path webroot))
-  (cond [(file-exists? setup-path) setup-path]
+(define/contract (search-pollen/setup url-parts [found? file-exists?])
+  (->* ((listof string?)) (procedure?) (or/c path? 'pollen/setup))
+  (define setup-path-parts (append url-parts (list "pollen.rkt")))
+  (define setup-path (apply build-path setup-path-parts))
+  (cond [(found? setup-path) setup-path]
         [(empty? url-parts) 'pollen/setup]
         [else
-         (get-pollen-setup-path (drop-right url-parts 1))]))
+         (search-pollen/setup (drop-right url-parts 1) found?)]))
 
 (define/contract (get-config module-path)
-  (-> path-string? (listof jsexpr?))
+  (-> (or/c path-string? symbol?) (listof jsexpr?))
   (define config-json (extract-module-bindings module-path))
   config-json)
 
 
 (module+ test
-;;;; GET config
-(define config-request-url-parts
-  (list "path1" "path2" "test.html.pp"))
-(define config-request
-  (make-test-request "config" config-request-url-parts
-                     (make-hash)))
+  (require rackunit)
+  (require "../http-util.rkt")
 
-(check-equal?
- (config-answer 0 empty)
- (get-config-handler config-request config-request-url-parts
-                     (lambda (module-path)
-                       (check-equal? module-path
-                                     (apply build-path
-                                            (reverse
-                                             (cons INJECT-CONFIG-FILENAME
-                                                   (rest (reverse config-request-url-parts))))))
-                       empty)))
+  ;; unit test search-pollen/setup
+  (check-equal?
+   'pollen/setup
+   (search-pollen/setup '("dir1" "dir2" "dir3") (lambda _ false)))
+
+  (check-equal?
+   (search-pollen/setup '("dir1" "dir2" "dir3")
+                        (lambda (p) ;; pretend dir1/pollen.rkt is found
+                          (equal? p (build-path "dir1"  "pollen.rkt"))))
+   (build-path "dir1" "pollen.rkt"))
+
+  (check-equal?
+   (search-pollen/setup '("dir1" "dir2" "dir3")
+                        (lambda (p) ;; pretend pollen.rkt is found
+                          (equal? p (build-path "pollen.rkt"))))
+   (build-path "pollen.rkt"))
+
+  ;; GET config
+  (define config-request-url-parts
+    (list "path1" "path2" "test.html.pp"))
+  (define config-request
+    (make-test-request "config" config-request-url-parts
+                       (make-hash)))
+
+  (check-equal?
+   (config-answer 0 empty)
+   (get-config-handler
+    config-request
+    config-request-url-parts
+    (lambda _
+      (list))))
 
 
   )

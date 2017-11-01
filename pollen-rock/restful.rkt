@@ -10,7 +10,7 @@
 (require (prefix-in pollen: pollen/render))
 (require (only-in "fs-watch.rkt" file-watch))
 (require sugar)
-(require "api/get-config.rkt")
+(require "handlers/fs.rkt")
 
 (provide (all-defined-out))
 

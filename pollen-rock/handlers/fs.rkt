@@ -8,6 +8,8 @@
 (require json)
 (require web-server/http/request-structs)
 
+(provide fs-handler get-op-hash)
+
 
 ;; return spec for file operation
 (define/contract (fs-answer errno [message (json-null)])
