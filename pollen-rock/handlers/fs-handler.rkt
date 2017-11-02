@@ -31,6 +31,7 @@
                                     (get-binding-value k bindings)))
                              fs-keys))
   (define binding-hash (make-hash binding-assoc))
+  (log-rest-debug "binding-hash is ~s" binding-hash)
   (handle-filesystem-op url-path binding-hash op-hash))
 
 
@@ -95,7 +96,7 @@
 
 (define/contract (write-op src data)
   (-> relative-path? bytes? void?)
-  (log-rest-debug "write-op ~a [text of length ~s]" src (string-length data))
+  (log-rest-debug "write-op ~a [text of length ~s]" src (bytes-length data))
   (call-with-atomic-output-file src
     (lambda (out path)
       (display data out))))
