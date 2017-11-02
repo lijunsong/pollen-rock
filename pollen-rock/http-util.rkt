@@ -9,7 +9,7 @@
 (provide (all-defined-out))
 
 
-(define/contract (extract-bindings key bindings)
+(define/contract (get-binding-value key bindings)
   (-> bytes? (listof binding?) (or/c false? bytes?))
   (let [(form (bindings-assq key bindings))]
     (if form
@@ -49,7 +49,7 @@
    empty
    ans))
 
-;;; Debug use
+;; Debug use
 (define (print-request req)
   (let ((uri (request-uri req)))
      (log-web-request-debug "query: ~a" (url-query uri))

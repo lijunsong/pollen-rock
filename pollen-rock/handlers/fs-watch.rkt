@@ -1,12 +1,14 @@
 #lang racket
 
-(require openssl/md5)
+; (require openssl/md5)
 (provide file-watch)
 
-(define (file-checksum filepath)
-  (with-input-from-file filepath
-    (lambda ()
-      (md5 (current-input-port)))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (define (file-checksum filepath)    ;;
+;;   (with-input-from-file filepath    ;;
+;;     (lambda ()                      ;;
+;;       (md5 (current-input-port))))) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (directory-list-all folderpath)
   (define (list-all-files folder)

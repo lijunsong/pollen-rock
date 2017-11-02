@@ -2,15 +2,12 @@
 
 (require web-server/http/request-structs)
 (require json)
-(require "config.rkt")
-(require "util.rkt")
-(require "http-util.rkt")
-(require "logger.rkt")
-(require (prefix-in pollen: pollen/file))
-(require (prefix-in pollen: pollen/render))
-(require (only-in "fs-watch.rkt" file-watch))
-(require sugar)
-(require "handlers/fs.rkt")
+(require "http-util.rkt"
+         "logger.rkt"
+         "handlers/fs-handler.rkt"
+         "handlers/get-config-handler.rkt"
+         "handlers/render-handler.rkt"
+         "handlers/watch-handler.rkt")
 
 (provide (all-defined-out))
 
@@ -26,10 +23,9 @@
   (print-request req)
   (define ans
     (match type
-      ["fs" (fs-handler req url-parts (get-op-hash))]))
+      ["fs" (fs-handler req url-parts (get-op-hash))]
+      ["config" (get-config-handler req url-parts do-get-config)]
+      ["watch" (watch-handler req url-parts do-watch)]
+      ["render" (render-handler req url-parts do-render)]))
   ;;; convert ans to jsexp
   (response/text (jsexpr->bytes ans)))
-
-
-
-

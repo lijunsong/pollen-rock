@@ -9,85 +9,41 @@
 (require setup/getinfo)
 (require pollen/file)
 (require pollen/render)
-(require xml)
 (require "config.rkt")
-(require "util.rkt")
-(require "api.rkt")
 (require "http-util.rkt")
 (require "logger.rkt")
 (require racket/cmdline)
 (require racket/logging)
-(require "restful.rkt")
 
+(require (prefix-in restful: "restful.rkt"))
 
-(define (test-handler req trimmed-url)
-  (print-request req)
-  (log-web-request-debug "url: ~s, resource: ~s" trimmed-url (request->resource req))
-  (response/xexpr `(html (p "test!"))))
+(provide start-servlet)
 
-;; Handler for indexing a local folder or file
-;;
-;; if the req is not referring to a folder, test if its pollen
-;; source. If not, yield to next dispatcher
-(define (index-handler req _)
-  (define resource (request->resource req))
-  (define filepath (append-path webroot resource))
-  (log-web-request-debug "indexing ~a" filepath)
-  ;; allow referring webroot
-  (check-path-safety filepath false)
-  (cond [(directory-exists? (append-path webroot resource))
-         (log-web-request-info "indexing ~a" filepath)
-         (response/text (include-template "templates/files.html"))]
-        [else
-         (define file-path (path->complete-path filepath))
-         (let ((pollen-source (get-source file-path)))
-           (unless (eq? pollen-source #f)
-             (render-to-file-if-needed pollen-source))
-           (next-dispatcher))]))
-
-(define (edit-handler req trimmed-url)
-  (define resource (path-elements->resource trimmed-url))
-  (define filepath (append-path webroot resource))
-  (log-web-request-info "edit ~a" filepath)
-  (check-path-safety filepath)
-  (define content (file->bytes filepath))
-  (response/text (include-template "templates/editor.html")))
-
-;; No need to check path safety here; browser ensures no access to parent folder.
-(define (watchfile-handler req url)
-  (define resource (path-elements->resource url))
-  (log-web-request-info "watch ~a" resource)
-  (response/text (include-template "templates/watchfile.html")))
-
-#|
-(define-values (server-dispatch url)
-  (dispatch-rules
-   [("edit" (string-arg) ...) edit-handler]
-   [("api") #:method "post" api-post-handler]
-   [("watchfile" (string-arg) ...) watchfile-handler]
-   [((string-arg) ...) index-handler]))
-|#
-
-;;;; --------------------------------------------------------
-
-(define (return-file-handler req matched-url)
-  (define resource (request->resource req))
-  (define filepath (append-path webroot resource))
+(define (static-file-handler req url-parts)
+  (define filepath (apply build-path url-parts))
   (log-web-request-debug "accessing ~a" filepath)
-  ;; allow access webroot
-  (check-path-safety filepath false)
-  (let ((file-path (path->complete-path filepath)))
-    (let ((pollen-source (get-source file-path)))
-      (when pollen-source
-        (render-to-file-if-needed pollen-source))
-      (next-dispatcher))))
+  (let ((pollen-source (get-source filepath)))
+    (when pollen-source
+      (render-to-file-if-needed pollen-source))
+    (next-dispatcher)))
 
 (define-values (server-dispatch url)
   (dispatch-rules
-   [((string-arg) ...) return-file-handler]
-   [("rest" "v1" (string-arg) (string-arg) ...) #:method "post"
-    restful-main-handler]))
+   [("rest" (string-arg) (string-arg) ...) #:method "post"
+    restful:main-handler]
+   [((string-arg) ...) static-file-handler]))
 
+
+(define (start-servlet ip port)
+  (serve/servlet server-dispatch
+                 #:command-line? #t
+                 #:banner? #f
+                 #:port port
+                 #:listen-ip ip
+                 #:launch-browser? #f
+                 #:servlet-regexp #rx""
+                 #:extra-files-paths (list webroot runtimeroot)
+                 #:servlet-current-directory webroot))
 
 ;; add runtimeroot to serve pollen-rock's static files when indexing.
 ;; add webroot to serve users' own static files
@@ -117,25 +73,19 @@
    (lambda (f) (void))
    '())
 
-  (displayln (format "Welcome to Pollen Rock ~a (Racket ~a)"
-                     ((get-info/full (build-path runtimeroot 'up)) 'version)
-                     (version)))
-  (displayln (format "Project root is ~a" webroot))
-  (displayln (format "Pollen Editor is running at http://localhost:~a (accessible by ~a)"
-                     (server-port)
-                     (if (listen-ip) "only this machine" "all machines on your network")))
+  (printf "Welcome to Pollen Rock ~a (Racket ~a)\n"
+          ((get-info/full (build-path runtimeroot 'up)) 'version)
+          (version))
+  (printf "Project root is ~a\n" webroot)
+  (printf "Pollen Editor is running at http://localhost:~a (accessible by ~a)\n"
+          (server-port)
+          (if (listen-ip)
+              "only this machine"
+              "all machines on your network"))
   (displayln "Ctrl-C at any time to terminate Pollen Rock.")
 
   (start-logging-threads)
-  (serve/servlet server-dispatch
-                 #:command-line? #t
-                 #:banner? #f
-                 #:port (server-port)
-                 #:listen-ip (listen-ip)
-                 #:launch-browser? #f
-                 #:servlet-regexp #rx""
-                 #:extra-files-paths (list webroot runtimeroot)
-                 #:servlet-current-directory webroot))
+  (start-servlet (listen-ip) (server-port)))
 
 (module+ main
   (start-server))

@@ -6,7 +6,7 @@
 
 (provide get-config-handler
          config-answer
-         get-config)
+         do-get-config)
 
 
 ;;;; GET /config/$path
@@ -40,7 +40,7 @@
         [else
          (search-pollen/setup (drop-right url-parts 1) found?)]))
 
-(define/contract (get-config module-path)
+(define/contract (do-get-config module-path)
   (-> (or/c path-string? symbol?) (listof jsexpr?))
   (define config-json (extract-module-bindings module-path))
   config-json)

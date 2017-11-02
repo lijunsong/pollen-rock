@@ -28,7 +28,7 @@
   (define fs-keys (list #"op" #"data"))
   (define binding-assoc (map (lambda (k)
                               (cons k
-                                    (extract-bindings k bindings)))
+                                    (get-binding-value k bindings)))
                              fs-keys))
   (define binding-hash (make-hash binding-assoc))
   (handle-filesystem-op url-path binding-hash op-hash))
@@ -41,7 +41,7 @@
   (define op (hash-ref op-hash opname false))
   (define data (hash-ref binding-hash #"data" false))
   (cond [(not op)
-         (fs-answer 1 "unknown op")]
+         (fs-answer 1 (format "unknown op ~a" opname))]
         [(and (= (procedure-arity op) 2) (not data))
          (fs-answer 1 (format "~a: data parameter not found" opname))]
         [(= (procedure-arity op) 2)
@@ -93,9 +93,9 @@
   (rename-file-or-directory src dst))
 
 
-(define/contract (echo-op src data)
+(define/contract (write-op src data)
   (-> relative-path? bytes? void?)
-  (log-rest-debug "echo-op ~a [text of length ~s]" src (string-length data))
+  (log-rest-debug "write-op ~a [text of length ~s]" src (string-length data))
   (call-with-atomic-output-file src
     (lambda (out path)
       (display data out))))
@@ -111,7 +111,7 @@
   (hash #"mv" mv-op
         #"mkdir" mkdir-op
         #"rm" rm-op
-        #"echo" echo-op
+        #"write" write-op
         #"ls" ls-op))
 
 (module+ test

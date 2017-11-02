@@ -8,6 +8,8 @@
 
 (require "../http-util.rkt")
 
+(provide render-handler do-render)
+
 ;;;; POST /render/$path
 
 ;; when errno if 1, location must be false
@@ -31,7 +33,7 @@
             (render-answer 0 output-url)
             (render-answer 1 false)))))
 
-(define/contract (handle-render source-path)
+(define/contract (do-render source-path)
   (-> path? boolean?)
   (pollen:render-to-file-if-needed source-path)
   true)
