@@ -5,7 +5,6 @@
 (require net/url-structs)                  ; url
 (require net/url-string)
 (require "logger.rkt")                     ; logger
-(require "util.rkt")
 
 (provide (all-defined-out))
 
@@ -25,9 +24,10 @@
                               (make-binding:form k v))))]
     (make-request
      #"POST" (string->url
-              (format "http://localhost:8000/rest/~a~a"
+              (format "http://localhost:8000/rest/~a/~a"
                       kind
-                      (path-elements->resource url-parts)))
+                      (relative-path->relative-url-string
+                       (apply build-path url-parts))))
      empty
      (delay bindings)
    #"fake post not used"
@@ -35,13 +35,6 @@
    8000
    "0.0.0.0")))
 
-
-;; extract resource from a request
-(define/contract (request->resource req)
-  (-> request? resource?)
-  (define uri (request-uri req))
-  (define string-list (map path/param-path (url-path uri)))
-  (path-elements->resource string-list))
 
 ;; construct a response contains only text
 ;; example: (response/text "1" "2" "3")
