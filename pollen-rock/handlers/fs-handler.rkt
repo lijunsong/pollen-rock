@@ -86,7 +86,7 @@
 (define/contract (rm-op src)
   (-> relative-path? void?)
   (log-rest-debug "rm-op ~a" src)
-  (delete-directory src))
+  (delete-directory/files src))
 
 
 (define/contract (mv-op src data)
