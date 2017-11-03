@@ -62,6 +62,7 @@
 
 ;;;;;;;;;;;;;;;; BEGIN TESTING ;;;;;;;;;;;;;;;;;;
 (define root-path "test-root")
+(define old-current-directory (current-directory))
 
 ;; remove the test project root and create a new one
 (delete-directory/files root-path #:must-exist? false)
@@ -70,10 +71,13 @@
 ;; NOTE: really important! Switch into root-path to test
 (current-directory root-path)
 
+;; start pollen-rock server
 (define server (launch-pollen-rock))
-;; wait for project up
+
+;; wait for server up
 (sleep 3)
 
+;; connect to the server
 (define conn (http-conn))
 (http-conn-open! conn HOST #:port PORT)
 
@@ -81,20 +85,20 @@
 (define (check-fs-errno response errno)
   (check-equal? (hash-ref response 'errno) errno))
 
-;;;; test mkdir: dst doesn't exist
+;; test mkdir: dst doesn't exist
 (post-check conn "rest/fs/folder1"
             `((op . "mkdir"))
             (lambda (response)
               (check-fs-errno response 0)))
 (check-true (directory-exists? "folder1"))
 
-;;;; test mkdir: dst exists
+;; test mkdir: dst exists
 (post-check conn "rest/fs/folder1"
             `((op . "mkdir"))
             (lambda (response)
               (check-fs-errno response 1)))
 
-;;;; test write: src not exists
+;; test write: src not exists
 (post-check conn "/rest/fs/file1.html.pm"
             `((op . "write")
               (data . "test string"))
@@ -105,7 +109,7 @@
   (check-equal? (file->string "file1.html.pm")
                 "test string"))
 
-;;;; test write: src exists. overwrite
+;; test write: src exists. overwrite
 (post-check conn "/rest/fs/file1.html.pm"
             `((op . "write")
               (data . "second pass"))
@@ -116,7 +120,7 @@
   (check-equal? (file->string "file1.html.pm")
                 "second pass"))
 
-;;;; test write: src is a directory.
+;; test write: src is a directory.
 (post-check conn "/rest/fs/folder1"
             `((op . "write")
               (data . "second pass"))
@@ -127,11 +131,47 @@
   (check-equal? (file->string "file1.html.pm")
                 "second pass"))
 
-;; test mv: src exists; dst not.
+;; test mv: src folder exists; dst not. equivalent to rename
+(post-check conn "rest/fs/folder1"
+            `((op . "mv")
+              (data . "folder2"))
+            (lambda (response)
+              (check-fs-errno response 0)))
+(check-true (not (directory-exists? "folder1")))
+(check-true (directory-exists? "folder2"))
+
+;; test mv: src file exists; dst not. equivalent to rename
+(post-check conn "rest/fs/file1.html.pm"
+            `((op . "mv")
+              (data . "file2.html.pm"))
+            (lambda (response)
+              (check-fs-errno response 0)))
+(check-true (not (file-exists? "file1.html.pm")))
+(check-true (file-exists? "file2.html.pm"))
 
 
+;; test mv: src doesn't exists
+(post-check conn "rest/fs/unknown-folder1"
+            `((op . "mv")
+              (data . "unknown-folder2"))
+            (lambda (response)
+              (check-fs-errno response 1)))
+
+;; test mv: src exists; dst exists
+(post-check conn "rest/fs/folder1"
+            `((op . "mkdir"))
+            (lambda (response)
+              (check-fs-errno response 0)))
+
+(post-check conn "rest/fs/folder1"
+            `((op . "mv")
+              (data . "folder2"))
+            (lambda (response)
+              (check-fs-errno response 1)))
+
+;; test rm remove the folder
 
 
-;;;; test /rest/fs
-                                        ;(define ret (port->bytes in))
-                                        ;(display ret)
+;; Clean the test folder
+; (parameterize [(current-directory old-current-directory)]
+;  (delete-directory/files root-path #:must-exist? false))
