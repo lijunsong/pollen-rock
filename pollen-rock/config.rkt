@@ -12,5 +12,4 @@
 (define log-level (make-parameter 'info))
 
 ;;; Web root for looking for resources
-(define webroot (current-directory))
 (define-runtime-path runtimeroot ".")

@@ -42,8 +42,8 @@
                  #:listen-ip ip
                  #:launch-browser? #f
                  #:servlet-regexp #rx""
-                 #:extra-files-paths (list webroot runtimeroot)
-                 #:servlet-current-directory webroot))
+                 #:extra-files-paths (list (current-directory) runtimeroot)
+                 #:servlet-current-directory (current-directory)))
 
 ;; add runtimeroot to serve pollen-rock's static files when indexing.
 ;; add webroot to serve users' own static files
@@ -76,7 +76,7 @@
   (printf "Welcome to Pollen Rock ~a (Racket ~a)\n"
           ((get-info/full (build-path runtimeroot 'up)) 'version)
           (version))
-  (printf "Project root is ~a\n" webroot)
+  (printf "Project root is ~a\n" (current-directory))
   (printf "Pollen Editor is running at http://localhost:~a (accessible by ~a)\n"
           (server-port)
           (if (listen-ip)
