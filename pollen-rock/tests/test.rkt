@@ -82,139 +82,165 @@
 (http-conn-open! conn HOST #:port PORT)
 
 
-(define (check-fs-errno response errno)
-  (check-equal? (hash-ref response 'errno) errno))
+;; actual: jsexpr returned as response from the server
+;; errno: the expected errno in actual
+(define-check (check-errno actual errno)
+  (when (not (jsexpr? actual))
+    (fail-check (format "not a json: ~s" actual)))
+  (let [(actual-no (hash-ref actual 'errno false))]
+    (when (eq? actual-no false)
+      (fail-check (format "json doesn't has 'errno field: ~s" actual )))
+    (when (not (equal? actual-no errno))
+      (fail-check (format "expected errno is ~a, but is ~a"
+                          errno actual-no)))))
 
-;; test mkdir: dst doesn't exist
-(post-check conn "rest/fs/folder1"
-            `((op . "mkdir"))
-            (lambda (res)
-              (check-fs-errno res 0)))
-(check-true (directory-exists? "folder1"))
+(test-case
+ "mkdir when dest doesn't exist"
+ (post-check conn "rest/fs/folder1"
+             `((op . "mkdir"))
+             (lambda (res)
+               (check-errno res 0)))
+ (check-true (directory-exists? "folder1")))
 
-;; test mkdir: dst exists
-(post-check conn "rest/fs/folder1"
-            `((op . "mkdir"))
-            (lambda (res)
-              (check-fs-errno res 1)))
+(test-case
+ "mkdir when dest exists"
+ (post-check conn "rest/fs/folder1"
+             `((op . "mkdir"))
+             (lambda (res)
+               (check-errno res 1))))
 
-;; test write: src not exists
-(post-check conn "/rest/fs/file1.html.pm"
-            `((op . "write")
-              (data . "test string"))
-            (lambda (res)
-              (check-fs-errno res 0)))
-(check-true (file-exists? "file1.html.pm"))
-(when (file-exists? "file1.html.pm")
-  (check-equal? (file->string "file1.html.pm")
-                "test string"))
+(test-case
+ "write when src doesn't exist"
+ (post-check conn "/rest/fs/file1.html.pm"
+             `((op . "write")
+               (data . "test string"))
+             (lambda (res)
+               (check-errno res 0)))
+ (check-true (file-exists? "file1.html.pm"))
+ (check-equal? (file->string "file1.html.pm")
+               "test string"))
 
 ;; test write: src exists. overwrite
-(post-check conn "/rest/fs/file1.html.pm"
-            `((op . "write")
-              (data . ,CODE))
-            (lambda (res)
-              (check-fs-errno res 0)))
-(check-true (file-exists? "file1.html.pm"))
-(when (file-exists? "file1.html.pm")
-  (check-equal? (file->string "file1.html.pm")
-                CODE))
+(test-case
+ "write when src exists (overwrite)"
+ (post-check conn "/rest/fs/file1.html.pm"
+             `((op . "write")
+               (data . ,CODE))
+             (lambda (res)
+               (check-errno res 0)))
+ (check-true (file-exists? "file1.html.pm"))
+ (check-equal? (file->string "file1.html.pm")
+               CODE))
 
 ;; test write: src is a directory.
-(post-check conn "/rest/fs/folder1"
-            `((op . "write")
-              (data . "second pass"))
-            (lambda (res)
-              (check-fs-errno res 1)))
-(check-true (file-exists? "file1.html.pm"))
-(when (file-exists? "file1.html.pm")
-  (check-equal? (file->string "file1.html.pm")
-                CODE))
+(test-case
+ "write to a directory"
+ (post-check conn "/rest/fs/folder1"
+             `((op . "write")
+               (data . "second pass"))
+             (lambda (res)
+               (check-errno res 1)))
+ (check-true (file-exists? "file1.html.pm"))
+ (check-equal? (file->string "file1.html.pm")
+               CODE))
 
 ;; test mv: src folder exists; dst does not. equivalent to rename
-(post-check conn "/rest/fs/folder1"
-            `((op . "mv")
-              (data . "folder2"))
-            (lambda (res)
-              (check-fs-errno res 0)))
-(check-true (not (directory-exists? "folder1")))
-(check-true (directory-exists? "folder2"))
+(test-case
+ "mv folder when src exists and dest doesn't"
+ (post-check conn "/rest/fs/folder1"
+             `((op . "mv")
+               (data . "folder2"))
+             (lambda (res)
+               (check-errno res 0)))
+ (check-pred (negate directory-exists?) "folder1")
+ (check-pred directory-exists? "folder2"))
 
 ;; test mv: src file exists; dst does not. equivalent to rename
-(post-check conn "/rest/fs/file1.html.pm"
-            `((op . "mv")
-              (data . "file2.html.pm"))
-            (lambda (res)
-              (check-fs-errno res 0)))
-(check-true (not (file-exists? "file1.html.pm")))
-(check-true (file-exists? "file2.html.pm"))
+(test-case
+ "mv file when src eixsts and dest doesn't"
+ (post-check conn "/rest/fs/file1.html.pm"
+             `((op . "mv")
+               (data . "file2.html.pm"))
+             (lambda (res)
+               (check-errno res 0)))
+ (check-pred (negate file-exists?) "file1.html.pm")
+ (check-pred file-exists? "file2.html.pm"))
 
 
 ;; test mv: src doesn't exist
-(post-check conn "/rest/fs/unknown-folder1"
-            `((op . "mv")
-              (data . "unknown-folder2"))
-            (lambda (res)
-              (check-fs-errno res 1)))
+(test-case
+ "mv when src doesn't exist"
+ (post-check conn "/rest/fs/unknown-folder1"
+             `((op . "mv")
+               (data . "unknown-folder2"))
+             (lambda (res)
+               (check-errno res 1))))
 
-;; test mv: src exists; dst exists
-(post-check conn "/rest/fs/folder1"
-            `((op . "mkdir"))
-            (lambda (res)
-              (check-fs-errno res 0)))
-                                        ; and then do mv
-(post-check conn "/rest/fs/folder1"
-            `((op . "mv")
-              (data . "folder2"))
-            (lambda (res)
-              (check-fs-errno res 1)))
+(test-case
+ "mv when src and dst both exist"
+ (post-check conn "/rest/fs/folder1"
+             `((op . "mkdir"))
+             (lambda (res)
+               (check-errno res 0)))
 
-;; test rm: src doesn't exist
-(post-check conn "/rest/fs/folder3"
-            `((op . "rm"))
-            (lambda (res)
-              (check-fs-errno res 1)))
+ (post-check conn "/rest/fs/folder1"
+             `((op . "mv")
+               (data . "folder2"))
+             (lambda (res)
+               (check-errno res 1))))
+
+(test-case
+ "rm when src doesn't exist"
+ (post-check conn "/rest/fs/folder3"
+             `((op . "rm"))
+             (lambda (res)
+               (check-errno res 1))))
 
 ;; test rm: src exists
-;; create directory and files
-(post-check conn "/rest/fs/folder3"
-            `((op . "mkdir"))
-            (lambda (res)
-              (check-fs-errno res 0)))
-(post-check conn "/rest/fs/folder3/a-file.txt"
-            `((op . "write")
-              (data . "some data"))
-            (lambda (res)
-              (check-fs-errno res 0)))
+(test-case
+ "rm when src exists"
+ (post-check conn "/rest/fs/folder3"
+             `((op . "mkdir"))
+             (lambda (res)
+               (check-errno res 0)))
+ (post-check conn "/rest/fs/folder3/a-file.txt"
+             `((op . "write")
+               (data . "some data"))
+             (lambda (res)
+               (check-errno res 0)))
 
-(post-check conn "/rest/fs/folder3"
-            `((op . "rm"))
-            (lambda (res)
-              (check-fs-errno res 0)))
-(check-true (not (directory-exists? "folder3")))
+ (post-check conn "/rest/fs/folder3"
+             `((op . "rm"))
+             (lambda (res)
+               (check-errno res 0)))
+ (check-pred (negate directory-exists?) "folder3"))
+
+;; TODO: rm "rest/fs/." / rm "/rest/fs//"
 
 ;; test ls: src exists
-(let ([n-files 10])
-  (post-check conn "/rest/fs/folder4"
-              `((op . "mkdir"))
-              (lambda (res) (check-fs-errno res 0)))
-  (for [(i (range n-files))]
-    (post-check conn (format "/rest/fs/folder4/file~a.txt" i)
-                `((op . "write")
-                  (data . "data"))
-                (lambda (res) (check-fs-errno res 0))))
-  (post-check
-   conn "/rest/fs/folder4"
-   `((op . "ls"))
-   (lambda (res)
-     (define files (hash-ref res 'message false))
-     (if (not (list? files))
-         (fail (format "No list found. Reponse is ~s" res))
-         (check-equal?
-          (sort files string<?)
-          (map (lambda (i)
-                 (format "file~a.txt" i))
-               (range n-files)))))))
+(test-case
+ "ls when src exists"
+ (define n-files 10)
+ (post-check conn "/rest/fs/folder4"
+             `((op . "mkdir"))
+             (lambda (res) (check-errno res 0)))
+ (for [(i (range n-files))]
+   (post-check conn (format "/rest/fs/folder4/file~a.txt" i)
+               `((op . "write")
+                 (data . "data"))
+               (lambda (res) (check-errno res 0))))
+ (post-check
+  conn "/rest/fs/folder4"
+  `((op . "ls"))
+  (lambda (res)
+    (define files (hash-ref res 'message false))
+    (if (not (list? files))
+        (fail (format "No list found. Reponse is ~s" res))
+        (check-equal?
+         (sort files string<?)
+         (map (lambda (i)
+                (format "file~a.txt" i))
+              (range n-files)))))))
 
 
 ;; Clean the test folder
