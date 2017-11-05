@@ -20,17 +20,22 @@
 (provide start-servlet)
 
 (define (static-file-handler req url-parts)
-  (define filepath (apply build-path url-parts))
-  (log-web-request-debug "accessing ~a" filepath)
+  (log-web-request-debug "accessing ~s" url-parts)
+  (define filepath
+    (apply build-path (cons (current-directory)
+                            url-parts)))
   (let ((pollen-source (get-source filepath)))
     (when pollen-source
       (render-to-file-if-needed pollen-source))
     (next-dispatcher)))
 
+
 (define-values (server-dispatch url)
   (dispatch-rules
    [("rest" (string-arg) (string-arg) ...) #:method "post"
-    restful:main-handler]
+    restful:main-post-handler]
+   [("rest" (string-arg) (string-arg) ...)
+    restful:main-get-handler]
    [((string-arg) ...) static-file-handler]))
 
 
@@ -61,6 +66,10 @@
        ,(lambda (flag)
           (listen-ip "127.0.0.1"))
        ("Make pollen server accessible by only this machine")]
+      [("--start-dir")
+       ,(lambda (flag start-dir)
+          (current-directory start-dir))
+       ("Set server's working dir (default is current dir)" "start-dir")]
       [("--log-level")
        ,(lambda (flag level)
           (let [(level-sym (string->symbol level))]

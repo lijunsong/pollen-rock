@@ -8,86 +8,21 @@
 (require rackunit)
 (require json)
 (require racket/port)
+(require racket/file)
 (require net/http-client)
 (require net/uri-codec)
 
 (require "../config.rkt")
 (require "../main.rkt")
 (require "../handlers/fs-handler.rkt")
+(require "test-utils.rkt")
 
 (provide (all-defined-out))
-
-(define HOST "127.0.0.1")
-                                        ;(define PORT 34732)
-(define PORT 8000)
 
 (define/contract (launch-pollen-rock)
   (-> thread?)
   (thread
    (lambda _ (start-servlet HOST PORT))))
-
-(define/contract (get-conn)
-  (-> http-conn?)
-  (define conn (http-conn))
-  (http-conn-open! conn HOST #:port PORT)
-  conn)
-
-
-;; check the status is not 500
-(define-simple-check (check-status-not-500? status)
-  (define status-str
-    (if (bytes? status) (bytes->string/utf-8 status) status))
-  (not (string-contains? status-str "500")))
-
-;; check servlet status contains the given code
-(define-binary-check (check-status-contains? status code)
-  (define status-str
-    (if (bytes? status) (bytes->string/utf-8 status) status))
-  (string-contains? status-str (number->string code)))
-
-;; Post to the uri with data in alist. check will be called with the
-;; response converted to jsexpr. The status of the response is also
-;; checked.
-(define/contract (check-post-request hc uri alist check)
-  (-> http-conn? string? (listof (cons/c symbol? string?))
-      (-> jsexpr? void?) void?)
-  (check-not-exn
-   (lambda ()
-     (let-values
-         ([(status headers in)
-           (http-conn-sendrecv!
-            hc uri #:method #"POST"
-            #:headers (list "Content-Type: application/x-www-form-urlencoded")
-            #:data (alist->form-urlencoded alist))])
-       (define ans (port->string in))
-       ;; no server error should occur
-       (check-status-not-500? status)
-       (check (string->jsexpr ans))))))
-
-
-;; Check the return result of get method on uri.  The status of the
-;; reponse is also checked.
-(define/contract (check-get-request hc uri check)
-  (-> http-conn? string? (-> string? void?) void?)
-  (check-not-exn
-   (lambda ()
-     (let-values
-         ([(status headers in)
-           (http-conn-sendrecv!
-            hc uri #:method #"GET")])
-       ;; no server error should occur
-       (check-status-not-500? status)
-       (check (port->string in))))))
-
-;; check if the server would contain code for a get request to uri
-(define-check (check-get-status-contains? hc uri code)
-  (check-not-exn
-   (lambda ()
-     (let-values
-         ([(status headers in)
-           (http-conn-sendrecv!
-            hc uri #:method #"GET")])
-       (check-status-contains? status code)))))
 
 (define CODE "#lang racket
 (provide (all-defined-out))
@@ -96,8 +31,14 @@
   `(mytag ,x ,@y))
 ")
 
+;; similar to shell "echo v > path"
+(define (create-file path v)
+  (display-to-file v path
+                   #:mode 'text
+                   #:exists 'replace))
+
 ;;;;;;;;;;;;;;;; BEGIN TESTING POST ;;;;;;;;;;;;;;;;;;
-(define root-path "test-root")
+(define root-path "project-root")
 (define old-current-directory (current-directory))
 
 ;; remove the test project root and create a new one
@@ -280,34 +221,65 @@
 
 ;;;;;;;;;;;;;;;; BEGIN TESTING GET ;;;;;;;;;;;;;;;;;;
 
-
-(define conn-get (get-conn))
-
+#|
 (test-case
  "check server doesn't crash for GET /"
- ;; (check-get-status-contains? conn-get "/" 200)
- true)
+ (define conn-get (get-conn))
+ (check-get-status-contains? conn-get "/" 200))
+
+(test-case
+ "check server doesn't crash for GET a directory"
+ (define conn-get (get-conn))
+ (check-get-status-contains? conn-get "/" 200))
+|#
 
 (test-case
  "check server doesn't crash for GET a pm file"
 
- (define PM-CONTENT "#lang pollen
-
-This is a file for testing!")
-
+ (define conn (get-conn))
+ (define PM-CONTENT "#lang pollen\nThis is a file for testing!")
 
  (check-post-request
-  conn-get "/rest/fs/file1.html.pm"
+  conn "/rest/fs/file1.html.pm"
   `((op . "write")
-    (write . ,PM-CONTENT))
+    (data . ,PM-CONTENT))
   (lambda (res) (check-errno res 0)))
 
- (printf "live? ~a\n" (http-conn-live? conn-get))
- (printf "liveable? ~a\n" (http-conn-liveable? conn-get))
+;; TODO: also check the returned contents
+ (check-get-response-status conn "/file1.html.pm" 200))
 
- (check-get-status-contains? conn-get "/file1.html.pm" 200))
+(test-case
+ "get config of a pm file"
+ (define conn (get-conn))
+ (check-get-response
+  conn "/rest/config/file1.html.pm"
+  (lambda (status headers contents)
+    (check-status-not-500? status)
+    (check-equal? (bytes->jsexpr contents) (make-hash)))))
 
 
+(test-case
+ "watch handler shouldn't return if there is no change to the file"
+ (define conn (get-conn))
+ (create-file "file1.html.pm" CODE)
+ (define ans (get-request/timeout conn "/rest/watch/file1.html.pm" 3))
+ ;; if request is timed out, the result is false.
+ (check-false ans))
+
+(test-case
+ "watch handler should return only when file has changed"
+ (define conn (get-conn))
+ (create-file "file1.html.pm" CODE)
+
+ ;; touch thread sleeps 2 seconds and then touchs a file. The main
+ ;; thread watches the file and will be timed out for 4 seconds. The
+ ;; get-request/timeout should return http response instead false (the
+ ;; timeout value)
+ (define touch-th (thread (lambda ()
+                            (sleep 2)
+                            (create-file "file1.html.pm" CODE))))
+ (define ans (get-request/timeout conn "/rest/watch/file1.html.pm" 4))
+ (check-not-false ans))
 
 
 

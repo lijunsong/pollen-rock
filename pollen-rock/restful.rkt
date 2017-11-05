@@ -20,11 +20,18 @@
 
 
 ;; main handler dispatch request to different handlers.
-(define (main-handler req type url-parts)
-  (print-request req)
+(define (main-post-handler req type url-parts)
   (define ans
     (match type
       ["fs" (fs-handler req url-parts (get-op-hash))]
+      ;; dump handler for testing
+      ["dump" (dump-handler req url-parts)]))
+  ;;; convert ans to jsexp
+  (response/text (jsexpr->bytes ans)))
+
+(define (main-get-handler req type url-parts)
+  (define ans
+    (match type
       ["config" (get-config-handler req url-parts do-get-config)]
       ["watch" (watch-handler req url-parts do-watch)]
       ["render" (render-handler req url-parts do-render)]

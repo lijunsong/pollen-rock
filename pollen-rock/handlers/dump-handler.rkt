@@ -9,4 +9,4 @@
 (define (dump-handler req url-parts)
   (print-request req)
   (log-rest-debug "url: ~s" url-parts)
-  (response/xexpr `(html (p "test!"))))
+  "from dump-handler")
