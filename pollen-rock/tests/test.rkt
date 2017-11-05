@@ -31,11 +31,29 @@
   `(mytag ,x ,@y))
 ")
 
+
 ;; similar to shell "echo v > path"
 (define (create-file path v)
   (display-to-file v path
                    #:mode 'text
                    #:exists 'replace))
+
+
+;; given a list of tags extract the tag matched with the name . See a
+;; hash specified in tags-answer inside tags-handler.rkt.
+(define/contract (get-tag-by-name tags name)
+  (-> (listof (hash/c symbol? jsexpr?)) string? (or/c false hash?))
+  (cond [(empty? tags) false]
+        [else
+         (define tag-val (first tags))
+         (define tag-name (hash-ref tag-val 'name false))
+         (cond [(false? tag-name)
+                ;; tag must have name property inside.
+                (error 'get-tag-by-name (format "malformed tags: ~a" tags))]
+               [(equal? tag-name name) tag-val]
+               [else
+                (get-tag-by-name (rest tags) name)])]))
+
 
 ;;;;;;;;;;;;;;;; BEGIN TESTING POST ;;;;;;;;;;;;;;;;;;
 (define root-path "project-root")
@@ -222,6 +240,9 @@
 ;;;;;;;;;;;;;;;; BEGIN TESTING GET ;;;;;;;;;;;;;;;;;;
 
 #|
+
+TODO: implement front end and see what the result is supposed to be.
+
 (test-case
  "check server doesn't crash for GET /"
  (define conn-get (get-conn))
@@ -259,6 +280,41 @@
 
 
 (test-case
+ "get config when pollen.rkt has errors"
+ (define conn (get-conn))
+ (create-file "pollen.rkt" (format "~a\n(define (foo" CODE))
+ (create-file "file2.html.pm" "#lang pollen\nhello")
+ (check-get-response
+  conn "/rest/config/file2.html.pm"
+  (lambda (status headers contents)
+    (check-status-not-500? status)
+    ;; TODO: see TODO in tags-handler, check errno 1
+    (check-errno (bytes->jsexpr contents) 0))))
+
+
+(test-case
+ "get tags returns correct tag"
+ (define conn (get-conn))
+ (create-file "pollen.rkt" CODE)
+ (create-file "file2.html.pm" "#lang pollen\nhello")
+ (check-get-response
+  conn "/rest/tags/file2.html.pm"
+  (lambda (status headers contents)
+    (check-status-not-500? status)
+    (define tags-ans (bytes->jsexpr contents))
+    (check-errno tags-ans 0)
+    (define tags (hash-ref tags-ans 'tags false))
+    (check-not-false tags)
+    (let [(tag (get-tag-by-name tags "tag0"))]
+      (check-equal? (hash-ref tag 'kind false) "procedure")
+      (check-equal? (hash-ref tag 'arity false) 1)
+      (check-equal? (hash-ref tag 'arity-at-least false) true))
+    (let [(tag (get-tag-by-name tags "x"))]
+      (check-equal? (hash-ref tag 'kind false) "variable")
+      (check-equal? (hash-ref tag 'value false) 1)
+      (check-equal? (hash-ref tag 'type false) "number")))))
+
+(test-case
  "watch handler shouldn't return if there is no change to the file"
  (define conn (get-conn))
  (create-file "file1.html.pm" CODE)
@@ -284,5 +340,5 @@
 
 
 ;; Clean the test folder
-; (parameterize [(current-directory old-current-directory)]
-;  (delete-directory/files root-path #:must-exist? false))
+(parameterize [(current-directory old-current-directory)]
+  (delete-directory/files root-path #:must-exist? false))

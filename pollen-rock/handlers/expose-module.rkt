@@ -54,7 +54,7 @@
 
 
 (define/contract (extract-module-bindings modules)
-  (-> (listof (or/c string? symbol? list?))
+  (-> (listof (or/c path-string? symbol? list?))
       (listof jsexpr?))
   (define ns (make-base-empty-namespace))
   (for ([m modules])
@@ -73,11 +73,6 @@
                             (var->json name v)))
        (map symbol->string ids)
        vals))
-
-
-
-
-
 
 
 (module+ test

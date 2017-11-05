@@ -6,6 +6,7 @@
          "logger.rkt"
          "handlers/fs-handler.rkt"
          "handlers/get-config-handler.rkt"
+         "handlers/tags-handler.rkt"
          "handlers/render-handler.rkt"
          "handlers/watch-handler.rkt"
          "handlers/dump-handler.rkt")
@@ -33,6 +34,7 @@
   (define ans
     (match type
       ["config" (get-config-handler req url-parts do-get-config)]
+      ["tags" (get-config-handler req url-parts do-get-tags)]
       ["watch" (watch-handler req url-parts do-watch)]
       ["render" (render-handler req url-parts do-render)]
       ;; dump handler for testing
