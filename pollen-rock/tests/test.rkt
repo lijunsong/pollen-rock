@@ -255,7 +255,7 @@
   conn "/rest/config/file1.html.pm"
   (lambda (status headers contents)
     (check-status-not-500? status)
-    (check-equal? (bytes->jsexpr contents) (make-hash)))))
+    (check-errno (bytes->jsexpr contents) 0))))
 
 
 (test-case

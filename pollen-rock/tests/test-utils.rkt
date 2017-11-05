@@ -45,27 +45,27 @@
             hc uri #:method #"POST"
             #:headers (list "Content-Type: application/x-www-form-urlencoded")
             #:data (alist->form-urlencoded alist))])
-       (define ans (port->string in))
+       (define ans (port->bytes in))
        ;; no server error should occur
        (check-status-not-500? status)
-       (check (string->jsexpr ans))))))
+       (check (bytes->jsexpr ans))))))
 
 
 ;; In a given procedure, check the response status, headers and body
 ;; of get method on uri. The status of the reponse is also checked.
 (define/contract (check-get-response hc uri check)
-  (-> http-conn? string? (-> bytes? (listof bytes?) string? void?) void?)
+  (-> http-conn? string? (-> bytes? (listof bytes?) bytes? void?) void?)
   (check-not-exn
    (lambda ()
      (let-values
          ([(status headers in)
            (http-conn-sendrecv!
             hc uri #:method #"GET")])
-       (check status headers (port->string in))))))
+       (check status headers (port->bytes in))))))
 
 ;; Check the response contents in a given procedure
 (define/contract (check-get-response-contents hc uri check)
-  (-> http-conn? string? (-> string? void?) void?)
+  (-> http-conn? string? (-> bytes? void?) void?)
   (check-get-response hc uri
                      (lambda (status headers contents)
                        (check contents))))

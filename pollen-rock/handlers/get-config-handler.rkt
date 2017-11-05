@@ -42,7 +42,8 @@
 
 (define/contract (do-get-config module-path)
   (-> (or/c path-string? symbol?) (listof jsexpr?))
-  (define config-json (extract-module-bindings module-path))
+  (define config-json (extract-module-bindings
+                       (list module-path)))
   config-json)
 
 

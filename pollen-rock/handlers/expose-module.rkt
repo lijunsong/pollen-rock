@@ -42,6 +42,7 @@
     (cond [(boolean? val) `(,val "boolean")]
           [(number? val)  `(,val "number")]
           [(string? val)  `(,val "string")]
+          [(char? val)    `(,(make-string 1 val) "char")]
           [(and (symbol? val) (not (eq? val (json-null))))
            (list (symbol->string val) "symbol")]
           [else
@@ -149,6 +150,7 @@
     (define bool-id true)
     (define num-id 99.9)
     (define str-id "hello")
+    (define char-id #\x)
     (define sym-id 'my-symbol)
     (struct point (x y) #:transparent)
     (define mypoint (point 1 2))
@@ -190,11 +192,11 @@
                                  'value "my-symbol"
                                  'type "symbol")))
 
-  (let [(sym-id (search-name "sym-id" all-bindings))]
-    (check-equal? sym-id (hasheq 'name "sym-id"
+  (let [(sym-id (search-name "char-id" all-bindings))]
+    (check-equal? sym-id (hasheq 'name "char-id"
                                  'kind "variable"
-                                 'value "my-symbol"
-                                 'type "symbol")))
+                                 'value "x"
+                                 'type "char")))
 
   (let [(mypoint (search-name "mypoint" all-bindings))]
     (check-equal? mypoint (hasheq 'name "mypoint"
