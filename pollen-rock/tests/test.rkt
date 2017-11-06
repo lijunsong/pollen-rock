@@ -38,6 +38,11 @@
                    #:mode 'text
                    #:exists 'replace))
 
+;; similar to shell "mkdir -p path"
+(define (create-directory path)
+  (unless (directory-exists? path)
+    (make-directory path)))
+
 
 ;; given a list of tags extract the tag matched with the name . See a
 ;; hash specified in tags-answer inside tags-handler.rkt.
@@ -214,14 +219,14 @@
 (test-case
  "ls when src exists"
  (define n-files 10)
- (check-post-request conn-post "/rest/fs/folder4"
-             `((op . "mkdir"))
-             (lambda (res) (check-errno res 0)))
- (for [(i (range n-files))]
-   (check-post-request conn-post (format "/rest/fs/folder4/file~a.txt" i)
-               `((op . "write")
-                 (data . "data"))
-               (lambda (res) (check-errno res 0))))
+
+ (create-directory "folder4")
+ (create-directory "folder4/folderx")
+ (create-file (format "folder4/file1.txt") "data")
+ (create-file (format "folder4/file2.txt") "data")
+
+ ;; ls list the directory. Directories will has suffix / in directory
+ ;; name. File will have file name as is.
  (check-post-request
   conn-post "/rest/fs/folder4"
   `((op . "ls"))
@@ -231,9 +236,7 @@
         (fail (format "No list found. Reponse is ~s" res))
         (check-equal?
          (sort files string<?)
-         (map (lambda (i)
-                (format "file~a.txt" i))
-              (range n-files)))))))
+         (list "file1.txt" "file2.txt" "folderx/"))))))
 
 
 

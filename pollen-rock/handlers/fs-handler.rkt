@@ -106,7 +106,12 @@
 (define/contract (ls-op src)
   (-> relative-path? jsexpr?)
   (log-rest-debug "ls-op ~a" src)
-  (map path->string (directory-list src)))
+  (define names (map path->string (directory-list src)))
+  (map (lambda (n)
+         (if (directory-exists? (build-path src n))
+             (string-append n "/")
+             n))
+       names))
 
 
 ;;;; POST /fs/$path
