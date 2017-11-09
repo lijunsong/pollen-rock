@@ -43,4 +43,9 @@ module.exports = {
 
     noParse: /\.elm$/,
   },
+  devServer: {
+    historyApiFallback: true, // always fallback to / for routing
+    host: "0.0.0.0",
+    port: 8000,
+  },
 };
