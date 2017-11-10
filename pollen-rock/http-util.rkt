@@ -46,7 +46,8 @@
   (response/full
    200 #"Okay" (current-seconds)
    TEXT/HTML-MIME-TYPE
-   empty
+   ;; allow any domain to do anything
+   (list (make-header #"Access-Control-Allow-Origin" #"*"))
    ans))
 
 ;; Debug use
