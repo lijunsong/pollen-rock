@@ -1,0 +1,58 @@
+{
+  "folder": [
+    {
+      "path": "",
+      "items": [
+        "path1/",
+        "path2/",
+        "path3/"
+      ]
+    },
+    {
+      "path": "path1/",
+      "items": [
+        "pollen.rkt"
+      ]
+    },
+    {
+      "path": "path2/",
+      "items": [
+        "path2-file1.html.pm",
+        "path2-file2.html.pp",
+        "path2-file3.html.pmd",
+        "path2-file4.css",
+        "path2-file5.pdf"
+      ]
+    },
+    {
+      "path": "path3/",
+      "items": [
+        "path4/",
+        "path4-file1.html.pm",
+        "pollen.rkt"
+      ]
+    },
+    {
+      "path": "path3/path4/",
+      "items": [
+        "path4-file1.html.pm"
+      ]
+    }
+  ],
+  "_comment": [
+    "The db constructs path like this",
+    "/path1/",
+    "    |- pollen.rkt",
+    "/path2/",
+    "    |- path2-file1.html.pm",
+    "    |- path2-file2.html.pp",
+    "    |- path2-file3.html.pmd",
+    "    |- path2-file4.css",
+    "    |- path2-file5.pdf",
+    "/path3/",
+    "    |- path4/",
+    "          |- path4-file1.html.pm",
+    "    |- path3-file1.html.pm",
+    "    |- pollen.rkt"
+  ]
+}
