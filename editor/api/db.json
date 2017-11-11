@@ -39,6 +39,50 @@
       ]
     }
   ],
+  "tags": [
+    {
+      "path": "path2/path2-file1.html.pm",
+      "errno":0,
+      "tags": [
+        {
+          "arity-at-least" : true,
+          "kind" : "procedure",
+          "arity" : 1,
+          "required-keywords" : [],
+          "name" : "tag0",
+          "all-keywords" : []
+        },
+        {
+          "kind" : "variable",
+          "name" : "x",
+          "type" : "number",
+          "value":1
+        }
+      ]
+    }
+  ],
+  "config": [
+    {
+      "path": "path2/path2-file1.html.pm",
+      "errno":0,
+      "tags": [
+        {
+          "arity-at-least" : true,
+          "kind" : "procedure",
+          "arity" : 1,
+          "required-keywords" : [],
+          "name" : "tag0",
+          "all-keywords" : []
+        },
+        {
+          "kind" : "variable",
+          "name" : "x",
+          "type" : "number",
+          "value":1
+        }
+      ]
+    }
+  ],
   "_comment": [
     "The db constructs path like this",
     "/path1/",

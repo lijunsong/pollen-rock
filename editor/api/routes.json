@@ -1,4 +1,6 @@
 {
   "/rest/*": "/$1",
-  "/folder/*": "/folder?singular=1&path=$1"
+  "/folder/*": "/folder?singular=1&path=$1",
+  "/tags/*": "/tags?singular=1&path=$1",
+  "/config/*": "/config?singular=1&path=$1"
 }
