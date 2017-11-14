@@ -1,0 +1,22 @@
+Workflow
+========
+
+1. install node packages in package.json
+2. install elm packages in elm-package.json
+3. npm run-script client
+4. npm run-script api
+
+Directory
+=========
+
+api/
+    json-server which contains fake API that responds to GET, POST. Running command is in package.json
+src/
+    Elm source
+dist/
+    The editor app generated from elm.
+
+NOTES
+=====
+To debug routes `export DEBUG=express-urlrewrite` before running api.
+
