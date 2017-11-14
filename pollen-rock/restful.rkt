@@ -5,6 +5,7 @@
 (require "http-util.rkt"
          "logger.rkt"
          "handlers/fs-handler.rkt"
+         "handlers/get-contents-handler.rkt"
          "handlers/get-config-handler.rkt"
          "handlers/tags-handler.rkt"
          "handlers/render-handler.rkt"
@@ -33,6 +34,7 @@
 (define (main-get-handler req type url-parts)
   (define ans
     (match type
+      ["fs" (get-contents-handler req url-parts)]
       ["config" (get-config-handler req url-parts do-get-config)]
       ["tags" (get-config-handler req url-parts do-get-tags)]
       ["watch" (watch-handler req url-parts do-watch)]

@@ -215,31 +215,6 @@
 
 ;; TODO: rm "rest/fs/." / rm "/rest/fs//"
 
-;; test ls: src exists
-(test-case
- "ls when src exists"
- (define n-files 10)
-
- (create-directory "folder4")
- (create-directory "folder4/folderx")
- (create-file (format "folder4/file1.txt") "data")
- (create-file (format "folder4/file2.txt") "data")
-
- ;; ls list the directory. Directories will has suffix / in directory
- ;; name. File will have file name as is.
- (check-post-request
-  conn-post "/rest/fs/folder4"
-  `((op . "ls"))
-  (lambda (res)
-    (define files (hash-ref res 'message false))
-    (if (not (list? files))
-        (fail (format "No list found. Reponse is ~s" res))
-        (check-equal?
-         (sort files string<?)
-         (list "file1.txt" "file2.txt" "folderx/"))))))
-
-
-
 ;;;;;;;;;;;;;;;; BEGIN TESTING GET ;;;;;;;;;;;;;;;;;;
 
 #|
@@ -257,20 +232,72 @@ TODO: implement front end and see what the result is supposed to be.
  (check-get-status-contains? conn-get "/" 200))
 |#
 
+;; test ls: src exists
+(test-case
+ "ls when src exists"
+ (define conn (get-conn))
+ (define n-files 10)
+
+ (create-directory "folder4")
+ (create-directory "folder4/folderx")
+ (create-file (format "folder4/file1.txt") "data")
+ (create-file (format "folder4/file2.txt") "data")
+
+ ;; ls list the directory. Directories will has suffix / in directory
+ ;; name. File will have file name as is.
+ (check-get-response conn "/rest/fs/folder4"
+  (lambda (status headers contents)
+    (define res (bytes->jsexpr contents))
+    (define files (hash-ref res 'items false))
+    (if (not (list? files))
+        (fail (format "No list found. Reponse is ~s" res))
+        (check-equal?
+         (sort files string<?)
+         (list "file1.txt" "file2.txt" "folderx/"))))))
+
+(test-case
+ "ls when src doesn't exist"
+ (define conn (get-conn))
+
+ (check-get-response
+  conn "/rest/fs/folder10000"
+  (lambda (status headers contents)
+    (check-errno (bytes->jsexpr contents) 1))))
+
+(test-case
+ "ls / (/ seems a exception for url-parts passed to handlers)"
+ (define conn (get-conn))
+
+ (check-get-response
+  conn "/rest/fs/"
+  (lambda (status headers contents)
+    (check-errno (bytes->jsexpr contents) 0))))
+
+(test-case
+ "Get file contents when src exist"
+ (define conn (get-conn))
+
+ (create-file "file101" "mydata")
+
+ (check-get-response
+  conn "/rest/fs/file101"
+  (lambda (status headers contents)
+    (define res (bytes->jsexpr contents))
+    (check-equal? (hash-ref res 'contents false)
+                  "mydata"))))
+
+
 (test-case
  "check server doesn't crash for GET a pm file"
 
  (define conn (get-conn))
  (define PM-CONTENT "#lang pollen\nThis is a file for testing!")
 
- (check-post-request
-  conn "/rest/fs/file1.html.pm"
-  `((op . "write")
-    (data . ,PM-CONTENT))
-  (lambda (res) (check-errno res 0)))
+ (create-file "file1.html.pm" PM-CONTENT)
 
 ;; TODO: also check the returned contents
  (check-get-response-status conn "/file1.html.pm" 200))
+
 
 (test-case
  "get config of a pm file"
