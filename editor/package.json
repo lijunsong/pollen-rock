@@ -6,9 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
-    "client": "webpack-dev-server --public --host ttybook.local --port 8001",
+    "client": "webpack-dev-server --public ttybook.local --port 8001",
 	"api": "json-server --watch api/db.json --middlewares api/singular.js --port 4000 --routes api/routes.json",
-	"go": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug"
+	"server": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug"
   },
   "repository": {
     "type": "git",
