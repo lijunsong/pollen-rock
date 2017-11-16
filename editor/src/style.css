@@ -1,0 +1,8 @@
+.light-border {
+    border-color: #EEE;
+}
+
+.header {
+    margin: 2rem 0;
+    border-bottom: 1px solid #EEE
+}

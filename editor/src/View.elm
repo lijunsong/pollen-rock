@@ -9,16 +9,24 @@ import Util
 
 indexPage : String -> Model -> Html Msg
 indexPage path model =
-    div [ class "clearfix mxn2" ]
-        [ nav path
-        , list path model
+    div [ class "clearfix" ]
+        [ div [ class "sm-col-12 md-col-8 lg-col-4 mx-auto" ]
+            [ nav path
+            , list path model
+            ]
         ]
 
 
 nav : String -> Html Msg
 nav path =
-    div []
-        [ div [ class "px2 col-8 mx-auto" ] [ text path ] ]
+    let
+        contents =
+            if String.isEmpty path then
+                "Home"
+            else
+                path
+    in
+        div [ class "p1 header" ] [ text contents ]
 
 
 itemView parent item =
@@ -32,7 +40,7 @@ itemView parent item =
                 File name ->
                     text name
     in
-        div [ class "border" ]
+        div [ class "p1 light-border border-bottom" ]
             [ row ]
 
 
@@ -46,7 +54,7 @@ list path model =
             text "Loading"
 
         RemoteData.Success (FolderContents items) ->
-            div [ class "px2 col-8 mx-auto" ]
+            div []
                 (List.map (\item -> itemView path item) items)
 
         RemoteData.Success (FileContents contents) ->

@@ -11,8 +11,8 @@ import Util
 initialModel : Route -> Model
 initialModel route =
     { route = route
-    , fsContents = RemoteData.NotAsked
-    , fsOpAnswer = RemoteData.NotAsked
+    , fsContents = RemoteData.Loading
+    , fsOpAnswer = RemoteData.Loading
     }
 
 
