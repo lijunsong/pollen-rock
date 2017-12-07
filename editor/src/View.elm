@@ -28,7 +28,7 @@ nav path =
     in
         div [ class "p1 header" ] [ text contents ]
 
-
+itemView : String -> FolderItem -> Html msg
 itemView parent item =
     let
         row =

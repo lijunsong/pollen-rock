@@ -3,4 +3,3 @@ node_modules
 elm.js
 npm-debug.log
 .DS_Store
-dist
