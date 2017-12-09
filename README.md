@@ -10,7 +10,7 @@ suggestions are welcome.
 ## Pollen Server
 
 The main contribution of Pollen-Rock is its rendering server: the
-server can respond to various HTTP POST requests in [JSON RPC](http://json-rpc.org/);
+server can respond to various HTTP POST requests in [JSON RPC](http://jsonrpc.org/);
 your program can dynamically fetch useful project specific information
 from the server.
 
