@@ -5,10 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
-    "client": "webpack-dev-server --public ttybook.local --port 8001",
-	"api": "json-server --watch api/db.json --middlewares api/singular.js --port 4000 --routes api/routes.json",
-	"server": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug"
+    "start": "run-p server:** elm:**",
+    "build": "npm run elm",
+    "server:http": "http-server public -p 5000",
+    "server:json": "json-server --watch mock/db.json --middlewares mock/singular.js --port 4000 --routes mock/routes.json",
+    "server:racket": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug --port 8000",
+    "elm": "elm-make src/Main.elm --output=public/main.js",
+    "elm:dev": "elm-live src/Main.elm --output=public/main.js --open --port=7000 --dir=public --pushstate",
+    "elm:reactor": "elm-reactor --port 9000"
   },
   "repository": {
     "type": "git",
@@ -19,24 +23,19 @@
     "editor"
   ],
   "author": "Junsong Li",
-  "license": "ISC",
+  "license": "LGPL",
   "bugs": {
     "url": "https://github.com/lijunsong/pollen-rock/issues"
   },
   "homepage": "https://github.com/lijunsong/pollen-rock#readme",
   "dependencies": {
-    "ace-css": "^1.1.0",
-    "css-loader": "^0.28.7",
-    "elm-webpack-loader": "^4.3.1",
-    "file-loader": "^1.1.5",
-    "font-awesome": "^4.7.0",
-    "json-server": "^0.12.0",
-    "style-loader": "^0.19.0",
-    "url-loader": "^0.6.2",
-    "webpack": "^3.7.1",
-    "webpack-dev-server": "^2.9.1"
+    "font-awesome": "^4.7.0"
   },
   "devDependencies": {
-    "elm-live": "^2.7.5"
+    "elm": "^0.18.0",
+    "elm-live": "^2.7.5",
+    "http-server": "^0.10.0",
+    "json-server": "^0.12.0",
+    "npm-run-all": "^4.1.2"
   }
 }

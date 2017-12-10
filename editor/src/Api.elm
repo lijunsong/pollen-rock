@@ -68,7 +68,7 @@ fsGetAnswerDecoder =
 
 urlBase : String
 urlBase =
-    "http://ttybook.local:8000"
+    "http://localhost:8000"
 
 
 apiUrl : String
