@@ -25,7 +25,9 @@
 ;; a path and passed into the function. If two arguments, `req`
 ;; binding `data` will be passed as bytes to the second argument.
 (define (fs-handler req url-parts op-hash)
-  (define url-path (apply build-path url-parts))
+  (define url-path (if (empty? url-parts)
+                       (build-path ".")
+                       (apply build-path url-parts)))
   (define bindings (request-bindings/raw req))
   (define fs-keys (list #"op" #"data"))
   (define binding-assoc (map (lambda (k)

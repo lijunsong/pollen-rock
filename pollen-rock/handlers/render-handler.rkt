@@ -5,7 +5,9 @@
 (require (prefix-in pollen: pollen/file))
 (require (prefix-in pollen: pollen/render))
 (require web-server/http/request-structs)
+(require racket/exn)
 
+(require "../logger.rkt")
 (require "../http-util.rkt")
 
 (provide render-handler do-render)
@@ -25,13 +27,22 @@
   (define source-path (apply build-path url-parts))
   (define output-path (pollen:->output-path source-path))
   (define output-url (relative-path->relative-url-string output-path))
-  (if (equal? source-path output-path)
-      (render-answer 0 output-url)
-      (with-handlers
-          ([exn:fail? (lambda (e) (render-answer 1 false))])
-        (if (renderer source-path)
-            (render-answer 0 output-url)
-            (render-answer 1 false)))))
+  (with-handlers
+      ([exn:fail? (lambda (e)
+                    (log-rest-debug
+                     "exception occurred when rendering ~a: ~a"
+                     source-path (exn->string e))
+                    (render-answer 1 false))])
+    (cond [(equal? source-path output-path)
+           (log-rest-debug "No need to render file ~a" output-path)
+           (render-answer 0 output-url)]
+          [(renderer (build-path (current-directory) source-path))
+           (log-rest-debug "rendered file ~a -> ~a"
+                           source-path output-url)
+           (render-answer 0 output-url)]
+          [else
+           (log-rest-debug "Failed to render file ~a" source-path)
+           (render-answer 1 false)])))
 
 (define/contract (do-render source-path)
   (-> path? boolean?)

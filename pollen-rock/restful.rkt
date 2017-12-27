@@ -22,7 +22,8 @@
 
 
 ;; main handler dispatch request to different handlers.
-(define (main-post-handler req type url-parts)
+(define (main-post-handler req type url-parts-raw)
+  (define url-parts (filter non-empty-string? url-parts-raw))
   (define ans
     (match type
       ["fs" (fs-handler req url-parts (get-op-hash))]
@@ -31,7 +32,8 @@
   ;;; convert ans to jsexp
   (response/text (jsexpr->bytes ans)))
 
-(define (main-get-handler req type url-parts)
+(define (main-get-handler req type url-parts-raw)
+  (define url-parts (filter non-empty-string? url-parts-raw))
   (define ans
     (match type
       ["fs" (get-contents-handler req url-parts)]
