@@ -128,7 +128,7 @@ toString api =
 
 serverUrl : String
 serverUrl =
-    "http://ttybook.ddns.net:9000"
+    "http://localhost:8000"
 
 
 apiUrl : String
