@@ -1,4 +1,4 @@
-module Api exposing (ls, mv)
+module Api exposing (listDirectory, readFile, move)
 
 {-| encode <http://pietrograndi.com/porting-an-api-service-from-js-to-elm/>
 
@@ -13,24 +13,33 @@ import Models exposing (..)
 import Json.Decode as Json
 import Http
 import RemoteData exposing (WebData)
+import Util
 
 
-{-| fs operation (mv, rm, mkdir) answers contain errno and message.
+-- Decoders: This section defines decoders for all Pollen-rock server
+-- json response. These decoders follows Pollen-rock RESTful API
+-- specification
+
+
+{-| The decoder to convert Json response of /rest/fs POST request to
+FsPostResponse
 -}
-fsOpAnswerDecoder : Json.Decoder FsOpAnswer
-fsOpAnswerDecoder =
-    Json.map2 FsOpAnswer
+fsPostResponseDecoder : Json.Decoder FsPostResponse
+fsPostResponseDecoder =
+    Json.map2 FsPostResponse
         (Json.field "errno" Json.int)
         (Json.field "message" Json.string)
 
 
-{-| Response decoder of GET (a directory).
+{-| One of many decoders for FsGetResponse. This one decodes
+response when the resource is a directory. Note that `/` will be
+dropped from directory name.
 
-`/` will be dropped from directory name
+Also see @docs fsGetResponseDecoder
 
 -}
-folderItemDecoder : Json.Decoder FolderItem
-folderItemDecoder =
+fsGetResponseFolderItemDecoder : Json.Decoder FolderItem
+fsGetResponseFolderItemDecoder =
     Json.string
         |> Json.andThen
             (\str ->
@@ -41,10 +50,14 @@ folderItemDecoder =
             )
 
 
-{-| Response decoder of GET when server can't fullfil the request.
+{-| One of many decoders for FsGetResponse. This one decodes
+response when request error occurs.
+
+Also see @docs fsGetResponseDecoder
+
 -}
-fsGetErrorDecoder : Json.Decoder FsContentsAnswer
-fsGetErrorDecoder =
+fsGetResponseErrorDecoder : Json.Decoder FsGetResponse
+fsGetResponseErrorDecoder =
     Json.field "errno" Json.int
         |> Json.andThen
             (\errno ->
@@ -55,27 +68,77 @@ fsGetErrorDecoder =
             )
 
 
-{-| Decoder of GET /fs/$path.
+{-| The decoder to convert Json response of /rest/fs GET request to
+FsGetResponse
 -}
-fsGetAnswerDecoder : Json.Decoder FsContentsAnswer
-fsGetAnswerDecoder =
+fsGetResponseDecoder : Json.Decoder FsGetResponse
+fsGetResponseDecoder =
     Json.oneOf
-        [ Json.map FolderContents (Json.field "items" (Json.list folderItemDecoder))
+        [ Json.map FolderContents
+            (Json.field "items" (Json.list fsGetResponseFolderItemDecoder))
         , Json.map FileContents (Json.field "contents" (Json.string))
-        , fsGetErrorDecoder
+        , fsGetResponseErrorDecoder
         ]
 
 
-urlBase : String
-urlBase =
-    "http://localhost:8000"
+queryResponseDecoder : Json.Decoder PollenQueryResponse
+queryResponseDecoder =
+    Json.oneOf
+        [ Json.map (\d -> FsGet d) fsGetResponseDecoder
+        , Json.map (\d -> FsPost d) fsPostResponseDecoder
+        ]
+
+
+
+-- High level APIs
+
+
+{-| According to Pollen-rock docs, Pollen-rock server supports the
+following APIs
+-}
+type PollenRockAPI
+    = APIfs
+    | APItags
+    | APIconfig
+    | APIwatch
+    | APIrender
+
+
+{-| Convert the API names to actual string that is suitable for url
+concatenation
+-}
+toString : PollenRockAPI -> String
+toString api =
+    case api of
+        APIfs ->
+            "fs"
+
+        APItags ->
+            "tags"
+
+        APIconfig ->
+            "config"
+
+        APIwatch ->
+            "watch"
+
+        APIrender ->
+            "render"
+
+
+serverUrl : String
+serverUrl =
+    "http://ttybook.ddns.net:9000"
 
 
 apiUrl : String
 apiUrl =
-    urlBase ++ "/rest"
+    serverUrl ++ "/rest"
 
 
+{-| Encode a list of key-value pair to
+application/x-www-form-urlencoded form
+-}
 encodeParams : List ( String, String ) -> String
 encodeParams kvList =
     let
@@ -86,14 +149,20 @@ encodeParams kvList =
             (List.map encodeParam kvList)
 
 
-apiPost :
-    String
-    -> List ( String, String )
+{-| Do HTTP POST to `whichAPI` with `body`, with request on
+`resource`. The return JSON will be decoded using `decoder`.
+
+Note that body will be encoded in x-www-form-urlencoded
+
+-}
+post :
+    PollenRockAPI
     -> Json.Decoder a
+    -> List ( String, String )
     -> String
     -> Http.Request a
-apiPost whichAPI body decoder srcPath =
-    Http.post (String.join "/" [ apiUrl, whichAPI, srcPath ])
+post whichAPI decoder body resource =
+    Http.post (Util.concatUrl [ apiUrl, toString whichAPI, resource ])
         (Http.stringBody
             "application/x-www-form-urlencoded"
             (encodeParams body)
@@ -101,44 +170,33 @@ apiPost whichAPI body decoder srcPath =
         decoder
 
 
-apiGet : String -> Json.Decoder a -> String -> Http.Request a
-apiGet whichAPI decoder srcPath =
-    Http.get (String.join "/" [ apiUrl, whichAPI, srcPath ]) decoder
+{-| Do HTTP GET to `whichAPI`, with request on `resource`. The
+return JSON will be decoded using `decoder`.
+-}
+get : PollenRockAPI -> Json.Decoder a -> String -> Http.Request a
+get whichAPI decoder resource =
+    Http.get (Util.concatUrl [ apiUrl, toString whichAPI, resource ]) decoder
 
 
-apiFsPost :
-    List ( String, String )
-    -> Json.Decoder a
-    -> String
-    -> Http.Request a
-apiFsPost =
-    apiPost "fs"
-
-
-apiFsGet : Json.Decoder a -> String -> Http.Request a
-apiFsGet =
-    apiGet "fs"
-
-
-apiFsMv : String -> String -> Http.Request FsOpAnswer
-apiFsMv src dst =
-    apiFsPost [ ( "op", "mv" ), ( "data", dst ) ] fsOpAnswerDecoder src
-
-
-apiFsLs : String -> Http.Request FsContentsAnswer
-apiFsLs =
-    apiFsGet fsGetAnswerDecoder
-
-
-ls : String -> Cmd Msg
-ls src =
-    apiFsLs src
+listDirectory : String -> Cmd Msg
+listDirectory srcPath =
+    get APIfs queryResponseDecoder srcPath
         |> RemoteData.sendRequest
-        |> Cmd.map OnListFolder
+        |> Cmd.map OnPollenResponseReceive
 
 
-mv : String -> String -> Cmd Msg
-mv src dst =
-    apiFsMv src dst
+readFile : String -> Cmd Msg
+readFile srcPath =
+    get APIfs queryResponseDecoder srcPath
         |> RemoteData.sendRequest
-        |> Cmd.map OnMoveItem
+        |> Cmd.map OnPollenResponseReceive
+
+
+move : String -> String -> Cmd Msg
+move srcPath dstPath =
+    post APIfs
+        queryResponseDecoder
+        [ ( "op", "mv" ), ( "data", dstPath ) ]
+        srcPath
+        |> RemoteData.sendRequest
+        |> Cmd.map OnPollenResponseReceive

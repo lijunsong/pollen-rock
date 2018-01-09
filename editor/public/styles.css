@@ -1,8 +1,46 @@
-.light-border {
-    border-color: #EEE;
+html {
+    font-family: "sf mono", "source code pro", "ubuntu";
 }
 
-.header {
+a {
+    text-decoration: none;
+    color: #CB122A;
+}
+
+a:hover {
+    color: #ED344C;
+}
+
+/* style of the dashboard */
+#dashboard-main {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+#dashboard-header {
     margin: 2rem 0;
-    border-bottom: 1px solid #EEE
+    border-bottom: 1px solid #EEE;
+    font-size: 1.2rem;
+    padding-bottom: 0.5rem;
+    color: #EEE;
+}
+#dashboard-header .dashboard-header-sep {
+    padding: 0 0.3rem 0 0.3rem;
+}
+#dashboard-header a {
+    color: #EEE;
+}
+#dashboard-header a:last-child {
+    color: #CB122A;
+}
+#dashboard-header a:hover {
+    color: #ED344C;
+}
+
+
+.dashboard-list-item {
+    padding: 1rem 0 1rem 0;
+}
+.dashboard-list-item:hover {
+    background-color: #FBFBFB;
 }

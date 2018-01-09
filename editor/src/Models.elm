@@ -5,9 +5,22 @@ import Navigation exposing (Location)
 
 
 type Route
-    = IndexRoute String
+    = DashboardRoute String
     | EditorRoute String
     | NotFoundRoute
+
+
+routerResourceString : Route -> String
+routerResourceString route =
+    case route of
+        DashboardRoute _ ->
+            "dashboard"
+
+        EditorRoute _ ->
+            "editor"
+
+        _ ->
+            "404"
 
 
 type FolderItem
@@ -15,32 +28,49 @@ type FolderItem
     | File String
 
 
-{-|
-Response of GET of /fs/$path
+
+-- Response to filesystem query
+
+
+{-| Response of GET of /fs/$path. If `$path` is a folder on disk, the
+answer is FolderContents. If a file, the answer is FileContents.
 -}
-type FsContentsAnswer
+type FsGetResponse
     = FolderContents (List FolderItem)
     | FileContents String
     | FsError Int
 
 
-{-|
-Response of filesystem operation  POST to /fs/$path
+{-| Response of POST to /fs/$path
 -}
-type alias FsOpAnswer =
-    { errno: Int
-    , message: String
+type alias FsPostResponse =
+    { errno : Int
+    , message : String
     }
+
+
+{-| Pollen-rock response type. This type contains all reponse types
+from the Pollen-rock server.
+-}
+type PollenQueryResponse
+    = FsGet FsGetResponse
+    | FsPost FsPostResponse
+
+
+
+-- Model
 
 
 type alias Model =
-    { route: Route
-    , fsContents: (WebData FsContentsAnswer)
-    , fsOpAnswer: (WebData FsOpAnswer)
+    { route : Route
+    , pollenQueryResponse : WebData PollenQueryResponse
     }
 
+
+
 -- Messages
+
+
 type Msg
     = OnLocationChange Location
-    | OnListFolder (WebData FsContentsAnswer)
-    | OnMoveItem (WebData FsOpAnswer)
+    | OnPollenResponseReceive (WebData PollenQueryResponse)

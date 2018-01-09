@@ -11,19 +11,22 @@ import Util
 initialModel : Route -> Model
 initialModel route =
     { route = route
-    , fsContents = RemoteData.Loading
-    , fsOpAnswer = RemoteData.Loading
+    , pollenQueryResponse = RemoteData.NotAsked
     }
 
 
-{-| /fs/path1/path2/path3/<folder>s
-/editor/path1/path2/path3/<pollen-source>
+{-| Convert a string url path to corresponding Route. Currently it
+supports
+
+  - DashboardRoute: /dashboard/$path
+  - EditorRoute: /editor/$path
+
 -}
 parsePath : String -> Route
 parsePath urlPath =
     case Util.splitUrl urlPath of
-        "fs" :: rest ->
-            IndexRoute <| Util.concatUrl rest
+        "dashboard" :: rest ->
+            DashboardRoute <| Util.concatUrl rest
 
         "editor" :: rest ->
             EditorRoute <| Util.concatUrl rest
@@ -34,35 +37,29 @@ parsePath urlPath =
 
 parseLocation : Location -> Route
 parseLocation location =
-    {- let
-           x =
-               Debug.log "location" location
-       in
-    -}
     parsePath location.pathname
 
 
 
--- Commands
--- {errno, message}
 -- Updates
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        OnLocationChange location ->
-            let
-                newRoute =
-                    parseLocation location
-            in
-                ( { model | route = newRoute }, Cmd.none )
+    let
+        _ =
+            Debug.log "location change: " msg
+    in
+        case msg of
+            OnLocationChange location ->
+                let
+                    newRoute =
+                        parseLocation location
+                in
+                    ( { model | route = newRoute }, Cmd.none )
 
-        OnListFolder data ->
-            ( { model | fsContents = data }, Cmd.none )
-
-        OnMoveItem data ->
-            ( { model | fsOpAnswer = data }, Cmd.none )
+            OnPollenResponseReceive data ->
+                ( { model | pollenQueryResponse = data }, Cmd.none )
 
 
 
@@ -75,18 +72,22 @@ init location =
         currentRoute =
             parseLocation location
 
-        path =
+        msg =
             case currentRoute of
-                IndexRoute p ->
-                    p
+                DashboardRoute p ->
+                    Api.listDirectory p
 
                 EditorRoute p ->
-                    "NYI-editor"
+                    let
+                        _ =
+                            Debug.log "init editor route NYI" p
+                    in
+                        Cmd.none
 
                 NotFoundRoute ->
-                    "NYI-NFR"
+                    Navigation.load "/dashboard"
     in
-        ( initialModel currentRoute, Api.ls path )
+        ( initialModel currentRoute, msg )
 
 
 subscriptions : Model -> Sub Msg

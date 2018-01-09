@@ -2,31 +2,61 @@ module View exposing (view)
 
 import Models exposing (..)
 import RemoteData exposing (WebData)
-import Html exposing (Html, program, div, text, a)
-import Html.Attributes exposing (href, class)
+import Html exposing (Html, program, div, text, a, li, span)
+import Html.Attributes exposing (href, class, name, id)
 import Util
 
 
-indexPage : String -> Model -> Html Msg
-indexPage path model =
-    div [ class "clearfix" ]
-        [ div [ class "sm-col-12 md-col-8 lg-col-4 mx-auto" ]
-            [ nav path
-            , list path model
-            ]
+{-| Entry point of the dashboard page
+-}
+dashboard : String -> Model -> Html Msg
+dashboard path model =
+    div [ id "dashboard-main" ]
+        [ div [ id "dashboard-header" ] [ dashboardHeader model.route ]
+        , div [ id "dashboard-list" ]
+            [ list path model ]
         ]
 
 
-nav : String -> Html Msg
-nav path =
+dashboardHeader : Route -> Html Msg
+dashboardHeader route =
     let
-        contents =
-            if String.isEmpty path then
-                "Home"
-            else
-                path
+        headLinks : List String -> String -> List (Html Msg)
+        headLinks elms urlPath =
+            case elms of
+                [] ->
+                    []
+
+                hd :: [] ->
+                    let
+                        newUrl =
+                            Util.concatUrl [ urlPath, hd ]
+                    in
+                        [ a [ href urlPath ] [ text hd ] ]
+
+                hd :: tl ->
+                    let
+                        newUrl =
+                            Util.concatUrl [ urlPath, hd ]
+                    in
+                        a [ href urlPath ] [ text hd ]
+                            :: span [ class "dashboard-header-sep" ] [ text "/" ]
+                            :: headLinks tl newUrl
     in
-        div [ class "p1 header" ] [ text contents ]
+        case route of
+            DashboardRoute url ->
+                let
+                    _ =
+                        Debug.log "url" url
+
+                    elms =
+                        "root" :: Util.splitUrl url
+                in
+                    div [] (headLinks elms "/dashboard")
+
+            _ ->
+                text ("failed to get route " ++ toString route)
+
 
 itemView : String -> FolderItem -> Html msg
 itemView parent item =
@@ -40,34 +70,35 @@ itemView parent item =
                 File name ->
                     text name
     in
-        div [ class "p1 light-border border-bottom" ]
+        div [ class "dashboard-list-item" ]
             [ row ]
 
 
 list : String -> Model -> Html Msg
 list path model =
-    case model.fsContents of
+    case model.pollenQueryResponse of
         RemoteData.NotAsked ->
             text "Not asked"
 
         RemoteData.Loading ->
             text "Loading"
 
-        RemoteData.Success (FolderContents items) ->
-            div []
-                (List.map (\item -> itemView path item) items)
+        RemoteData.Success (FsGet get) ->
+            case get of
+                FolderContents items ->
+                    div []
+                        (List.map (\item -> itemView path item) items)
 
-        RemoteData.Success (FileContents contents) ->
-            div []
-                [ text "File Contents"
-                , text contents
-                ]
+                FileContents contents ->
+                    div []
+                        [ text contents ]
 
-        RemoteData.Success (FsError errno) ->
-            div []
-                [ text "op error."
-                , text ("errno is " ++ (toString errno))
-                ]
+                FsError code ->
+                    div []
+                        [ text ("error code: " ++ (toString code)) ]
+
+        RemoteData.Success (FsPost res) ->
+            text ("receive post response: " ++ (toString res.errno))
 
         RemoteData.Failure error ->
             text (toString error)
@@ -76,11 +107,18 @@ list path model =
 view : Model -> Html Msg
 view model =
     case model.route of
-        IndexRoute loc ->
-            indexPage loc model
+        DashboardRoute path ->
+            let
+                absPath =
+                    if String.isEmpty path then
+                        "/dashboard"
+                    else
+                        path
+            in
+                dashboard absPath model
 
         EditorRoute loc ->
             div [] [ text "editor route NYI" ]
 
         NotFoundRoute ->
-            div [] [ text "not found" ]
+            div [] [ text "Not supported URL" ]
