@@ -11,5 +11,6 @@
 (define listen-ip (make-parameter #f))
 (define log-level (make-parameter 'info))
 
-;;; Web root for looking for resources
-(define-runtime-path runtimeroot ".")
+;;; Runtime root for the whole project
+(define-runtime-path runtimeroot "..")
+(define editor-root (build-path runtimeroot "editor" "public"))

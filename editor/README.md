@@ -4,6 +4,7 @@
 2. install Elm packages: `elm package install`
 3. Start development environment: `npm start`
 4. Build Elm files: `npm run build`
+5. visit localhost:9000/dashboard to get started
 
 ## Directory
 

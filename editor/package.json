@@ -10,8 +10,8 @@
     "server:http": "http-server public -p 5000",
     "server:json": "json-server --watch mock/db.json --middlewares mock/singular.js --port 4000 --routes mock/routes.json",
     "server:racket": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug --port 8000",
-    "elm": "elm-make src/Main.elm --output=public/main.js",
-    "elm:dev": "elm-live src/Main.elm --output=public/main.js --open --port=7000 --dir=public --pushstate",
+    "elm": "elm-make src/Main.elm --output=public/pollen-rock-assets/main.js",
+    "elm:dev": "elm-live src/Main.elm --output=public/pollen-rock-assets/main.js --open --port=7000 --dir=public --pushstate",
     "elm:reactor": "elm-reactor --port 9000"
   },
   "repository": {

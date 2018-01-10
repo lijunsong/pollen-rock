@@ -128,7 +128,7 @@ toString api =
 
 serverUrl : String
 serverUrl =
-    "http://localhost:8000"
+    ""
 
 
 apiUrl : String
