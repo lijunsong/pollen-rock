@@ -5,14 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "run-p server:** elm:**",
+    "start": "run-p server elm:**",
     "build": "npm run elm",
-    "server:http": "http-server public -p 5000",
-    "server:json": "json-server --watch mock/db.json --middlewares mock/singular.js --port 4000 --routes mock/routes.json",
-    "server:racket": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug --port 8000",
-    "elm": "elm-make src/Main.elm --output=public/pollen-rock-assets/main.js",
-    "elm:dev": "elm-live src/Main.elm --output=public/pollen-rock-assets/main.js --open --port=7000 --dir=public --pushstate",
-    "elm:reactor": "elm-reactor --port 9000"
+    "server": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug --port 8000",
+    "elm:dashboard": "elm-make src/Dashboard.elm --output=public/pollen-rock-assets/dashboard.js",
+    "elm:editor": "elm-make src/Editor.elm --output=public/pollen-rock-assets/editor-control.js",
+    "elm:dashboard:live": "elm-live src/Dashboard.elm --output=public/pollen-rock-assets/dashboard.js --open --port=7000 --dir=public --pushstate",
+    "elm:editor:live": "elm-live src/Editor.elm --output=public/pollen-rock-assets/editor-control.js --open --port=7001 --dir=public --pushstate",
+    "elm:reactor": "elm-reactor --port 8001"
   },
   "repository": {
     "type": "git",

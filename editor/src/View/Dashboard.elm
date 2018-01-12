@@ -9,7 +9,7 @@ import Util
 
 {-| Entry point of the dashboard page
 -}
-view : Model -> Html Msg
+view : DashboardModel -> Html DashboardMsg
 view model =
     div [ id "dashboard-main" ]
         [ div [ id "dashboard-header" ] [ dashboardHeader model.route ]
@@ -20,10 +20,10 @@ view model =
 
 {-| Show breadcrumb
 -}
-dashboardHeader : Route -> Html Msg
+dashboardHeader : Route -> Html DashboardMsg
 dashboardHeader route =
     let
-        headLinks : List String -> String -> List (Html Msg)
+        headLinks : List String -> String -> List (Html DashboardMsg)
         headLinks elms urlPath =
             case elms of
                 [] ->
@@ -108,7 +108,7 @@ sortItems items =
 
 {-| Show all file items
 -}
-page : Model -> Html Msg
+page : DashboardModel -> Html DashboardMsg
 page model =
     let
         path =
@@ -123,14 +123,14 @@ page model =
                     in
                         "invalid"
     in
-        case model.pollenQueryResponse of
+        case model.fsListDirectory of
             RemoteData.NotAsked ->
                 text "Not asked"
 
             RemoteData.Loading ->
                 text "Loading"
 
-            RemoteData.Success (FsGet get) ->
+            RemoteData.Success get ->
                 case get of
                     FolderContents items ->
                         let
@@ -147,9 +147,6 @@ page model =
                     FsError code ->
                         div []
                             [ text ("error code: " ++ (toString code)) ]
-
-            RemoteData.Success (FsPost res) ->
-                text ("receive post response: " ++ (toString res.errno))
 
             RemoteData.Failure error ->
                 text (toString error)

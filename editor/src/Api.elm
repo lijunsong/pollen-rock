@@ -1,4 +1,11 @@
-module Api exposing (listDirectory, readFile, move)
+module Api
+    exposing
+        ( get
+        , post
+        , PollenRockAPI(..)
+        , fsGetResponseDecoder
+        , fsPostResponseDecoder
+        )
 
 {-| encode <http://pietrograndi.com/porting-an-api-service-from-js-to-elm/>
 
@@ -12,7 +19,6 @@ It defines Command in this app.
 import Models exposing (..)
 import Json.Decode as Json
 import Http
-import RemoteData exposing (WebData)
 import Util
 
 
@@ -78,14 +84,6 @@ fsGetResponseDecoder =
             (Json.field "items" (Json.list fsGetResponseFolderItemDecoder))
         , Json.map FileContents (Json.field "contents" (Json.string))
         , fsGetResponseErrorDecoder
-        ]
-
-
-queryResponseDecoder : Json.Decoder PollenQueryResponse
-queryResponseDecoder =
-    Json.oneOf
-        [ Json.map (\d -> FsGet d) fsGetResponseDecoder
-        , Json.map (\d -> FsPost d) fsPostResponseDecoder
         ]
 
 
@@ -176,27 +174,3 @@ return JSON will be decoded using `decoder`.
 get : PollenRockAPI -> Json.Decoder a -> String -> Http.Request a
 get whichAPI decoder resource =
     Http.get (Util.concatUrl [ apiUrl, toString whichAPI, resource ]) decoder
-
-
-listDirectory : String -> Cmd Msg
-listDirectory srcPath =
-    get APIfs queryResponseDecoder srcPath
-        |> RemoteData.sendRequest
-        |> Cmd.map OnPollenResponseReceive
-
-
-readFile : String -> Cmd Msg
-readFile srcPath =
-    get APIfs queryResponseDecoder srcPath
-        |> RemoteData.sendRequest
-        |> Cmd.map OnPollenResponseReceive
-
-
-move : String -> String -> Cmd Msg
-move srcPath dstPath =
-    post APIfs
-        queryResponseDecoder
-        [ ( "op", "mv" ), ( "data", dstPath ) ]
-        srcPath
-        |> RemoteData.sendRequest
-        |> Cmd.map OnPollenResponseReceive

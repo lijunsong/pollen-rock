@@ -2,6 +2,7 @@ module Models exposing (..)
 
 import RemoteData exposing (WebData)
 import Navigation exposing (Location)
+import Util
 
 
 type Route
@@ -10,26 +11,33 @@ type Route
     | NotFoundRoute
 
 
-routerResourceString : Route -> String
-routerResourceString route =
-    case route of
-        DashboardRoute _ ->
-            "dashboard"
+{-| Convert a string url path to corresponding Route. Currently it
+supports
 
-        EditorRoute _ ->
-            "editor"
+  - DashboardRoute: /dashboard/$path
+  - EditorRoute: /editor/$path
+
+-}
+parsePath : String -> Route
+parsePath urlPath =
+    case Util.splitUrl urlPath of
+        "dashboard" :: rest ->
+            DashboardRoute <| Util.concatUrl rest
+
+        "editor" :: rest ->
+            EditorRoute <| Util.concatUrl rest
 
         _ ->
-            "404"
+            NotFoundRoute
+
+
+
+-- Response to filesystem query
 
 
 type FolderItem
     = Directory String
     | File String
-
-
-
--- Response to filesystem query
 
 
 {-| Response of GET of /fs/$path. If `$path` is a folder on disk, the
@@ -49,28 +57,12 @@ type alias FsPostResponse =
     }
 
 
-{-| Pollen-rock response type. This type contains all reponse types
-from the Pollen-rock server.
--}
-type PollenQueryResponse
-    = FsGet FsGetResponse
-    | FsPost FsPostResponse
-
-
-
--- Model
-
-
-type alias Model =
+type alias DashboardModel =
     { route : Route
-    , pollenQueryResponse : WebData PollenQueryResponse
+    , fsListDirectory : WebData FsGetResponse
     }
 
 
-
--- Messages
-
-
-type Msg
+type DashboardMsg
     = OnLocationChange Location
-    | OnPollenResponseReceive (WebData PollenQueryResponse)
+    | OnListDirectory (WebData FsGetResponse)
