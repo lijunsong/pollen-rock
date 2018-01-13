@@ -155,26 +155,31 @@ subscriptions model =
 -- View
 
 
+stateToText : DocState -> String
+stateToText state =
+    case state of
+        DocSaving ->
+            "saving"
+
+        DocSaved ->
+            "saved"
+
+        DocError ->
+            "error"
+
+        DocDirty ->
+            ""
+
+
 view : EditorModel -> Html EditorMsg
 view model =
     let
         state =
-            case model.docState of
-                DocSaving ->
-                    "saving"
-
-                DocSaved ->
-                    "saved"
-
-                DocError ->
-                    "error"
-
-                DocDirty ->
-                    ""
+            stateToText model.docState
     in
-        div []
-            [ text model.filePath
-            , span [ style [ ( "float", "right" ) ] ] [ text (toString model.docState) ]
+        div [ class "editor-header" ]
+            [ span [ class "file-name" ] [ text model.filePath ]
+            , span [ class "doc-state" ] [ text state ]
             ]
 
 

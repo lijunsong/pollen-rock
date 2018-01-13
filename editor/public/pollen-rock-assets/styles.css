@@ -1,5 +1,14 @@
+* {
+    margin: 0;
+    padding: 0;
+}
 html {
-    font-family: "sf mono", "source code pro", "ubuntu";
+    font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+    height: 100%;
+}
+
+body {
+    height: 100%;
 }
 
 a {
@@ -43,4 +52,34 @@ a:hover {
 }
 .dashboard-list-item:hover {
     background-color: #FBFBFB;
+}
+
+/* editor style */
+#container {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+#editorContainer {
+    flex: 2;
+    overflow: auto;
+    width: 600px;
+    margin: 0 auto;
+    border-right: 1px solid #EEE;
+}
+.CodeMirror {
+    height: 100%;
+}
+
+.editor-header {
+    display: flex;
+    padding: 1rem;
+    border-bottom: 1px solid #EEE;
+}
+.file-name {
+    flex: 1;
+    padding-left: 1rem;
+}
+.doc-state {
+    color: #AAA;
 }

@@ -26,6 +26,7 @@ function initEditor() {
   // Elm calls initDoc to set CM content
   app.ports.initDoc.subscribe(function(text) {
     $editor.setValue(text);
+    $editor.refresh();
   });
   // Elm calls askCMContent to get CM content
   app.ports.askCMContent.subscribe(function() {

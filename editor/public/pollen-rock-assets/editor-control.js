@@ -10132,44 +10132,54 @@ var _lijunsong$pollen_rock$Editor$readFile = function (path) {
 		_krisajenkins$remotedata$RemoteData$sendRequest(
 			A3(_lijunsong$pollen_rock$Api$get, _lijunsong$pollen_rock$Api$APIfs, _lijunsong$pollen_rock$Api$fsGetResponseDecoder, path)));
 };
+var _lijunsong$pollen_rock$Editor$stateToText = function (state) {
+	var _p0 = state;
+	switch (_p0.ctor) {
+		case 'DocSaving':
+			return 'saving';
+		case 'DocSaved':
+			return 'saved';
+		case 'DocError':
+			return 'error';
+		default:
+			return '';
+	}
+};
 var _lijunsong$pollen_rock$Editor$view = function (model) {
-	var state = function () {
-		var _p0 = model.docState;
-		switch (_p0.ctor) {
-			case 'DocSaving':
-				return 'saving';
-			case 'DocSaved':
-				return 'saved';
-			case 'DocError':
-				return 'error';
-			default:
-				return '';
-		}
-	}();
+	var state = _lijunsong$pollen_rock$Editor$stateToText(model.docState);
 	return A2(
 		_elm_lang$html$Html$div,
-		{ctor: '[]'},
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html$text(model.filePath),
+			_0: _elm_lang$html$Html_Attributes$class('editor-header'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$span,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('file-name'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(model.filePath),
+					_1: {ctor: '[]'}
+				}),
 			_1: {
 				ctor: '::',
 				_0: A2(
 					_elm_lang$html$Html$span,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$style(
-							{
-								ctor: '::',
-								_0: {ctor: '_Tuple2', _0: 'float', _1: 'right'},
-								_1: {ctor: '[]'}
-							}),
+						_0: _elm_lang$html$Html_Attributes$class('doc-state'),
 						_1: {ctor: '[]'}
 					},
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html$text(
-							_elm_lang$core$Basics$toString(model.docState)),
+						_0: _elm_lang$html$Html$text(state),
 						_1: {ctor: '[]'}
 					}),
 				_1: {ctor: '[]'}
