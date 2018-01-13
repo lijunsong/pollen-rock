@@ -3,6 +3,7 @@ module Models exposing (..)
 import RemoteData exposing (WebData)
 import Navigation exposing (Location)
 import Util
+import Time
 
 
 type Route
@@ -66,3 +67,35 @@ type alias DashboardModel =
 type DashboardMsg
     = OnLocationChange Location
     | OnListDirectory (WebData FsGetResponse)
+
+
+type DocState
+    = DocSaving
+    | DocSaved
+    | DocError
+    | DocDirty
+
+
+{-| The model for editor
+
+  - filePath is used to save the contents.
+  - docState is used to decide if the editor needs to write the doc to
+    the server.
+  - secondCounter counts the seconds, which is reset to 0 whenever user
+    types anything. This is used to implement saving documents N seconds
+    after user stops typing.
+
+-}
+type alias EditorModel =
+    { filePath : String
+    , docState : DocState
+    , unsavedSeconds : Int
+    }
+
+
+type EditorMsg
+    = OnFileRead (WebData FsGetResponse)
+    | OnTick Time.Time
+    | OnGetCMContent String
+    | OnFileSaved (WebData FsPostResponse)
+    | OnCMContentChanged Int

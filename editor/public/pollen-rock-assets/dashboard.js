@@ -9789,6 +9789,10 @@ var _lijunsong$pollen_rock$Models$DashboardModel = F2(
 	function (a, b) {
 		return {route: a, fsListDirectory: b};
 	});
+var _lijunsong$pollen_rock$Models$EditorModel = F3(
+	function (a, b, c) {
+		return {filePath: a, docState: b, unsavedSeconds: c};
+	});
 var _lijunsong$pollen_rock$Models$NotFoundRoute = {ctor: 'NotFoundRoute'};
 var _lijunsong$pollen_rock$Models$EditorRoute = function (a) {
 	return {ctor: 'EditorRoute', _0: a};
@@ -9837,6 +9841,25 @@ var _lijunsong$pollen_rock$Models$OnListDirectory = function (a) {
 };
 var _lijunsong$pollen_rock$Models$OnLocationChange = function (a) {
 	return {ctor: 'OnLocationChange', _0: a};
+};
+var _lijunsong$pollen_rock$Models$DocDirty = {ctor: 'DocDirty'};
+var _lijunsong$pollen_rock$Models$DocError = {ctor: 'DocError'};
+var _lijunsong$pollen_rock$Models$DocSaved = {ctor: 'DocSaved'};
+var _lijunsong$pollen_rock$Models$DocSaving = {ctor: 'DocSaving'};
+var _lijunsong$pollen_rock$Models$OnCMContentChanged = function (a) {
+	return {ctor: 'OnCMContentChanged', _0: a};
+};
+var _lijunsong$pollen_rock$Models$OnFileSaved = function (a) {
+	return {ctor: 'OnFileSaved', _0: a};
+};
+var _lijunsong$pollen_rock$Models$OnGetCMContent = function (a) {
+	return {ctor: 'OnGetCMContent', _0: a};
+};
+var _lijunsong$pollen_rock$Models$OnTick = function (a) {
+	return {ctor: 'OnTick', _0: a};
+};
+var _lijunsong$pollen_rock$Models$OnFileRead = function (a) {
+	return {ctor: 'OnFileRead', _0: a};
 };
 
 var _lijunsong$pollen_rock$Api$encodeParams = function (kvList) {

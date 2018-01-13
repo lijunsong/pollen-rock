@@ -234,7 +234,7 @@ request parameter:
 response parameter:
 @paramlist[
  @param[#:name "errno" #:type "int"]{0 means no error}
- @param[#:name "message" #:type "string or null"]{Extra message from server}
+ @param[#:name "message" #:type "string"]{Extra message from server}
  ]
 
 Examples: Create directory @code{dir3}, and move @code{dir3} to @code{dir4}.
@@ -243,7 +243,7 @@ Examples: Create directory @code{dir3}, and move @code{dir3} to @code{dir4}.
 $ curl -X POST -d "op=mkdir" http://localhost:8000/rest/fs/dir3
 {
     "errno": 0,
-    "message": null
+    "message": ""
 }
 $ curl http://localhost:8000/rest/fs/
 {
@@ -261,7 +261,7 @@ $ curl http://localhost:8000/rest/fs/
 $ curl -X POST -d "op=mv&data=dir4" http://localhost:8000/rest/fs/dir3
 {
     "errno": 0,
-    "message": null
+    "message": ""
 }
 }|
 

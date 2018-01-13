@@ -14,7 +14,7 @@
 
 
 ;; return spec for file operation
-(define/contract (fs-answer errno [message (json-null)])
+(define/contract (fs-answer errno [message ""])
   (->* (integer?) (jsexpr?) jsexpr?)
   (hasheq 'errno errno
           'message message))
