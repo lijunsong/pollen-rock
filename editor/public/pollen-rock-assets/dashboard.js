@@ -9836,6 +9836,12 @@ var _lijunsong$pollen_rock$Models$FileContents = function (a) {
 var _lijunsong$pollen_rock$Models$FolderContents = function (a) {
 	return {ctor: 'FolderContents', _0: a};
 };
+var _lijunsong$pollen_rock$Models$RenderFailure = function (a) {
+	return {ctor: 'RenderFailure', _0: a};
+};
+var _lijunsong$pollen_rock$Models$RenderSuccess = function (a) {
+	return {ctor: 'RenderSuccess', _0: a};
+};
 var _lijunsong$pollen_rock$Models$OnListDirectory = function (a) {
 	return {ctor: 'OnListDirectory', _0: a};
 };
@@ -9846,6 +9852,10 @@ var _lijunsong$pollen_rock$Models$DocDirty = {ctor: 'DocDirty'};
 var _lijunsong$pollen_rock$Models$DocError = {ctor: 'DocError'};
 var _lijunsong$pollen_rock$Models$DocSaved = {ctor: 'DocSaved'};
 var _lijunsong$pollen_rock$Models$DocSaving = {ctor: 'DocSaving'};
+var _lijunsong$pollen_rock$Models$OnRendered = function (a) {
+	return {ctor: 'OnRendered', _0: a};
+};
+var _lijunsong$pollen_rock$Models$Render = {ctor: 'Render'};
 var _lijunsong$pollen_rock$Models$OnCMContentChanged = function (a) {
 	return {ctor: 'OnCMContentChanged', _0: a};
 };
@@ -9939,6 +9949,16 @@ var _lijunsong$pollen_rock$Api$get = F3(
 				}),
 			decoder);
 	});
+var _lijunsong$pollen_rock$Api$renderResponseDecoder = A2(
+	_elm_lang$core$Json_Decode$andThen,
+	function (errno) {
+		return (!_elm_lang$core$Native_Utils.eq(errno, 0)) ? _elm_lang$core$Json_Decode$succeed(
+			_lijunsong$pollen_rock$Models$RenderFailure(errno)) : A2(
+			_elm_lang$core$Json_Decode$map,
+			_lijunsong$pollen_rock$Models$RenderSuccess,
+			A2(_elm_lang$core$Json_Decode$field, 'location', _elm_lang$core$Json_Decode$string));
+	},
+	A2(_elm_lang$core$Json_Decode$field, 'errno', _elm_lang$core$Json_Decode$int));
 var _lijunsong$pollen_rock$Api$fsGetResponseErrorDecoder = A2(
 	_elm_lang$core$Json_Decode$andThen,
 	function (errno) {

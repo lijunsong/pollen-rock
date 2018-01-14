@@ -41,6 +41,12 @@ function initEditor() {
       app.ports.markContentsDirty.send(docGeneration);
     }
   });
+  // Elm calls to load rendered result
+  app.ports.liveView.subscribe(function(path) {
+    console.log('liveView ' + path);
+    var frame = document.getElementById('liveViewFrame');
+    frame.src = path;
+  });
 
   $editor.on('cursorActivity', function() {
     app.ports.token.send('cursor!');

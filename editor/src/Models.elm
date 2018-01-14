@@ -58,6 +58,17 @@ type alias FsPostResponse =
     }
 
 
+
+-- Response to Render
+
+
+{-| Response of GET to /render/$path
+-}
+type RenderResponse
+    = RenderSuccess String
+    | RenderFailure Int
+
+
 type alias DashboardModel =
     { route : Route
     , fsListDirectory : WebData FsGetResponse
@@ -99,3 +110,5 @@ type EditorMsg
     | OnGetCMContent String
     | OnFileSaved (WebData FsPostResponse)
     | OnCMContentChanged Int
+    | Render
+    | OnRendered (WebData RenderResponse)

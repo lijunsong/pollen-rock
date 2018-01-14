@@ -83,3 +83,8 @@ a:hover {
 .doc-state {
     color: #AAA;
 }
+#liveViewFrame {
+    resize: auto;
+    width: 100%;
+    border: 1px solid #EEE;
+}

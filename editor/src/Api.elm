@@ -5,6 +5,7 @@ module Api
         , PollenRockAPI(..)
         , fsGetResponseDecoder
         , fsPostResponseDecoder
+        , renderResponseDecoder
         )
 
 {-| encode <http://pietrograndi.com/porting-an-api-service-from-js-to-elm/>
@@ -85,6 +86,21 @@ fsGetResponseDecoder =
         , Json.map FileContents (Json.field "contents" (Json.string))
         , fsGetResponseErrorDecoder
         ]
+
+
+{-| The decoder to convert Json response of /rest/fs POST request to
+FsPostResponse
+-}
+renderResponseDecoder : Json.Decoder RenderResponse
+renderResponseDecoder =
+    Json.field "errno" Json.int
+        |> Json.andThen
+            (\errno ->
+                if errno /= 0 then
+                    Json.succeed (RenderFailure errno)
+                else
+                    Json.map RenderSuccess (Json.field "location" Json.string)
+            )
 
 
 

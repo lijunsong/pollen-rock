@@ -56,6 +56,11 @@ port getCMContent : (String -> msg) -> Sub msg
 port markContentsDirty : (Int -> msg) -> Sub msg
 
 
+{-| ask the browser to load the path in the iframe/webkit
+-}
+port liveView : String -> Cmd msg
+
+
 
 -- Model
 
@@ -114,18 +119,17 @@ update msg model =
 
         OnFileSaved response ->
             case response of
-                RemoteData.Success { errno, message } ->
+                RemoteData.Success result ->
                     let
-                        state =
-                            if errno /= 0 then
-                                DocError
-                            else
-                                DocSaved
-
-                        _ =
-                            Debug.log "file saved state" errno
+                        { errno, message } =
+                            result
                     in
-                        ( { model | docState = state }, Cmd.none )
+                        case errno of
+                            0 ->
+                                ( { model | docState = DocSaved }, renderFile model.filePath )
+
+                            _ ->
+                                ( { model | docState = DocError }, Cmd.none )
 
                 _ ->
                     let
@@ -136,6 +140,26 @@ update msg model =
 
         OnCMContentChanged gen ->
             ( { model | docState = DocDirty, unsavedSeconds = 0 }, Cmd.none )
+
+        Render ->
+            ( model, renderFile model.filePath )
+
+        OnRendered response ->
+            let
+                _ =
+                    Debug.log "render response" response
+            in
+                case response of
+                    RemoteData.Success result ->
+                        case result of
+                            RenderSuccess location ->
+                                ( model, liveView ("/" ++ location) )
+
+                            RenderFailure errno ->
+                                ( model, Cmd.none )
+
+                    _ ->
+                        ( model, Cmd.none )
 
 
 
@@ -180,6 +204,7 @@ view model =
         div [ class "editor-header" ]
             [ span [ class "file-name" ] [ text model.filePath ]
             , span [ class "doc-state" ] [ text state ]
+            , button [ onClick Render ] [ text "Render" ]
             ]
 
 
@@ -199,3 +224,10 @@ writeFile path data =
     Api.post Api.APIfs Api.fsPostResponseDecoder [ ( "op", "write" ), ( "data", data ) ] path
         |> RemoteData.sendRequest
         |> Cmd.map OnFileSaved
+
+
+renderFile : String -> Cmd EditorMsg
+renderFile path =
+    Api.get Api.APIrender Api.renderResponseDecoder path
+        |> RemoteData.sendRequest
+        |> Cmd.map OnRendered
