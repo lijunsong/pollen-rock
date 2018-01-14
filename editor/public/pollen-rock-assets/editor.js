@@ -53,5 +53,32 @@ function initEditor() {
   });
 }
 
+function initLayout() {
+  var element = document.getElementById('liveView');
+  var resizer = document.getElementById('resizer');
+  resizer.addEventListener('mousedown', initResize, false);
+  resizer.style.cursor = 'ns-resize';
+
+  //Window funtion mousemove & mouseup
+  function initResize(e) {
+    console.log("initResize");
+    window.addEventListener('mousemove', Resize, false);
+    window.addEventListener('mouseup', stopResize, false);
+  }
+  //resize the element
+  function Resize(e) {
+    // element.style.width = (e.clientX - element.offsetLeft) + 'px';
+    var h = (document.documentElement.clientHeight - e.clientY) + 'px';
+    element.style.height = h;
+  }
+  //on mouseup remove windows functions mousemove & mouseup
+  function stopResize(e) {
+    console.log("stopResize");
+    window.removeEventListener('mousemove', Resize, false);
+    window.removeEventListener('mouseup', stopResize, false);
+  }
+}
+
 
 initEditor();
+initLayout();

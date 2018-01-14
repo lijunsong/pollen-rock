@@ -201,10 +201,14 @@ view model =
         state =
             stateToText model.docState
     in
-        div [ class "editor-header" ]
-            [ span [ class "file-name" ] [ text model.filePath ]
-            , span [ class "doc-state" ] [ text state ]
-            , button [ onClick Render ] [ text "Render" ]
+        div [ class "editorHeader" ]
+            [ div [ class "headerLeft" ]
+                [ span [ class "fileName" ] [ text model.filePath ]
+                ]
+            , div [ class "headerRight" ]
+                [ span [ class "docState" ] [ text state ]
+                , span [ class "renderBtn", onClick Render ] [ text "render" ]
+                ]
             ]
 
 

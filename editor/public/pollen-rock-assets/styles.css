@@ -71,20 +71,37 @@ a:hover {
     height: 100%;
 }
 
-.editor-header {
+.editorHeader {
     display: flex;
     padding: 1rem;
     border-bottom: 1px solid #EEE;
 }
-.file-name {
+.headerLeft {
     flex: 1;
+}
+.fileName {
     padding-left: 1rem;
 }
-.doc-state {
+.docState {
     color: #AAA;
 }
+#liveView {
+    height: 40%;
+}
+/* pointer-event is necessary because mousemove event would be lost
+   inside iframe when we resize. */
 #liveViewFrame {
     resize: auto;
     width: 100%;
-    border: 1px solid #EEE;
+    height: 100%;
+    border: none;
+    pointer-events: none;
+}
+#resizer {
+    height: 8px;
+    background-color: #EEE;
+    position: relative;
+}
+.renderBtn {
+    margin-left: 1rem;
 }
