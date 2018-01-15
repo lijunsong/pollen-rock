@@ -8,7 +8,7 @@ import Time
 
 type Route
     = DashboardRoute String
-    | EditorRoute String
+    | SettingsRoute
     | NotFoundRoute
 
 
@@ -16,7 +16,7 @@ type Route
 supports
 
   - DashboardRoute: /dashboard/$path
-  - EditorRoute: /editor/$path
+  - EditorSettingsRoute: /editor/$path
 
 -}
 parsePath : String -> Route
@@ -25,8 +25,8 @@ parsePath urlPath =
         "dashboard" :: rest ->
             DashboardRoute <| Util.concatUrl rest
 
-        "editor" :: rest ->
-            EditorRoute <| Util.concatUrl rest
+        "settings" :: [] ->
+            SettingsRoute
 
         _ ->
             NotFoundRoute
@@ -69,22 +69,28 @@ type RenderResponse
     | RenderFailure Int
 
 
+{-| CodeMirror settings
+-}
+type alias Settings =
+    { lineNumbers : Bool
+    , lineWrapping : Bool
+    }
+
+
+{-| The model of Dashboard. It includes the model of general settings
+-}
 type alias DashboardModel =
     { route : Route
     , fsListDirectory : WebData FsGetResponse
+    , settings : Settings
     }
 
 
 type DashboardMsg
     = OnLocationChange Location
+    | OnDashboardGoBack
     | OnListDirectory (WebData FsGetResponse)
-
-
-type DocState
-    = DocSaving
-    | DocSaved
-    | DocError
-    | DocDirty
+    | OnSettingsLineNumberChange
 
 
 {-| The model for editor
@@ -97,6 +103,13 @@ type DocState
     after user stops typing.
 
 -}
+type DocState
+    = DocSaving
+    | DocSaved
+    | DocError
+    | DocDirty
+
+
 type alias EditorModel =
     { filePath : String
     , docState : DocState
@@ -106,6 +119,7 @@ type alias EditorModel =
 
 type EditorMsg
     = OnFileRead (WebData FsGetResponse)
+    | OnEditorGoBack
     | OnTick Time.Time
     | OnGetCMContent String
     | OnFileSaved (WebData FsPostResponse)

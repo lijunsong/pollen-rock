@@ -17,11 +17,9 @@ function initEditor() {
     filePath: getFilePath()
   });
 
+  var settings = getSettings();
   var area = document.getElementById('input');
-  $editor = CodeMirror.fromTextArea(area, {
-    lineNumbers: false,
-    lineWrapping: true
-  });
+  $editor = CodeMirror.fromTextArea(area, settings);
 
   // -- setup --
   // Elm calls initDoc to set CM content

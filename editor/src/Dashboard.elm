@@ -1,47 +1,52 @@
-module Dashboard exposing (..)
+port module Dashboard exposing (..)
 
 import Models exposing (..)
 import RemoteData exposing (WebData)
 import Navigation exposing (Location)
 import Api exposing (PollenRockAPI(..))
-import View.Dashboard
+import View
+import Json.Decode as Json
 
 
 -- MAIN
 
 
-main : Program Never DashboardModel DashboardMsg
+main : Program Settings DashboardModel DashboardMsg
 main =
-    Navigation.program OnLocationChange
+    Navigation.programWithFlags OnLocationChange
         { init = init
-        , view = View.Dashboard.view
+        , view = View.view
         , update = update
         , subscriptions = subscriptions
         }
 
 
-initialModel : Route -> DashboardModel
-initialModel route =
+initModel : Settings -> Route -> DashboardModel
+initModel settings route =
     { route = route
     , fsListDirectory = RemoteData.NotAsked
+    , settings = settings
     }
 
 
-init : Location -> ( DashboardModel, Cmd DashboardMsg )
-init location =
+init : Settings -> Location -> ( DashboardModel, Cmd DashboardMsg )
+init settings location =
     let
         currentRoute =
             parsePath location.pathname
 
-        msg =
-            case currentRoute of
-                DashboardRoute p ->
-                    listDirectory p
-
-                _ ->
-                    Navigation.load "/dashboard"
+        model =
+            initModel settings currentRoute
     in
-        ( initialModel currentRoute, msg )
+        case currentRoute of
+            DashboardRoute p ->
+                ( model, listDirectory p )
+
+            SettingsRoute ->
+                ( model, Cmd.none )
+
+            NotFoundRoute ->
+                ( model, Navigation.load "/dashboard" )
 
 
 
@@ -58,12 +63,29 @@ update msg model =
             in
                 ( { model | route = newRoute }, Cmd.none )
 
+        OnDashboardGoBack ->
+            ( model, Navigation.back 1 )
+
         OnListDirectory data ->
             ( { model | fsListDirectory = data }, Cmd.none )
+
+        OnSettingsLineNumberChange ->
+            let
+                settings =
+                    model.settings
+            in
+                let
+                    newSettings =
+                        { settings | lineNumbers = not settings.lineNumbers }
+                in
+                    ( { model | settings = newSettings }, setSettings newSettings )
 
 
 
 -- Command
+
+
+port setSettings : Settings -> Cmd msg
 
 
 listDirectory : String -> Cmd DashboardMsg

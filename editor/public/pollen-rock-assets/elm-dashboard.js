@@ -9900,18 +9900,20 @@ var _lijunsong$pollen_rock$Models$FsPostResponse = F2(
 	function (a, b) {
 		return {errno: a, message: b};
 	});
-var _lijunsong$pollen_rock$Models$DashboardModel = F2(
+var _lijunsong$pollen_rock$Models$Settings = F2(
 	function (a, b) {
-		return {route: a, fsListDirectory: b};
+		return {lineNumbers: a, lineWrapping: b};
+	});
+var _lijunsong$pollen_rock$Models$DashboardModel = F3(
+	function (a, b, c) {
+		return {route: a, fsListDirectory: b, settings: c};
 	});
 var _lijunsong$pollen_rock$Models$EditorModel = F3(
 	function (a, b, c) {
 		return {filePath: a, docState: b, unsavedSeconds: c};
 	});
 var _lijunsong$pollen_rock$Models$NotFoundRoute = {ctor: 'NotFoundRoute'};
-var _lijunsong$pollen_rock$Models$EditorRoute = function (a) {
-	return {ctor: 'EditorRoute', _0: a};
-};
+var _lijunsong$pollen_rock$Models$SettingsRoute = {ctor: 'SettingsRoute'};
 var _lijunsong$pollen_rock$Models$DashboardRoute = function (a) {
 	return {ctor: 'DashboardRoute', _0: a};
 };
@@ -9924,9 +9926,12 @@ var _lijunsong$pollen_rock$Models$parsePath = function (urlPath) {
 				case 'dashboard':
 					return _lijunsong$pollen_rock$Models$DashboardRoute(
 						_lijunsong$pollen_rock$Util$concatUrl(_p0._1));
-				case 'editor':
-					return _lijunsong$pollen_rock$Models$EditorRoute(
-						_lijunsong$pollen_rock$Util$concatUrl(_p0._1));
+				case 'settings':
+					if (_p0._1.ctor === '[]') {
+						return _lijunsong$pollen_rock$Models$SettingsRoute;
+					} else {
+						break _v0_2;
+					}
 				default:
 					break _v0_2;
 			}
@@ -9957,9 +9962,11 @@ var _lijunsong$pollen_rock$Models$RenderFailure = function (a) {
 var _lijunsong$pollen_rock$Models$RenderSuccess = function (a) {
 	return {ctor: 'RenderSuccess', _0: a};
 };
+var _lijunsong$pollen_rock$Models$OnSettingsLineNumberChange = {ctor: 'OnSettingsLineNumberChange'};
 var _lijunsong$pollen_rock$Models$OnListDirectory = function (a) {
 	return {ctor: 'OnListDirectory', _0: a};
 };
+var _lijunsong$pollen_rock$Models$OnDashboardGoBack = {ctor: 'OnDashboardGoBack'};
 var _lijunsong$pollen_rock$Models$OnLocationChange = function (a) {
 	return {ctor: 'OnLocationChange', _0: a};
 };
@@ -9983,6 +9990,7 @@ var _lijunsong$pollen_rock$Models$OnGetCMContent = function (a) {
 var _lijunsong$pollen_rock$Models$OnTick = function (a) {
 	return {ctor: 'OnTick', _0: a};
 };
+var _lijunsong$pollen_rock$Models$OnEditorGoBack = {ctor: 'OnEditorGoBack'};
 var _lijunsong$pollen_rock$Models$OnFileRead = function (a) {
 	return {ctor: 'OnFileRead', _0: a};
 };
@@ -10124,61 +10132,281 @@ var _lijunsong$pollen_rock$Api$APIconfig = {ctor: 'APIconfig'};
 var _lijunsong$pollen_rock$Api$APItags = {ctor: 'APItags'};
 var _lijunsong$pollen_rock$Api$APIfs = {ctor: 'APIfs'};
 
-var _lijunsong$pollen_rock$Editor$renderFile = function (path) {
-	return A2(
-		_elm_lang$core$Platform_Cmd$map,
-		_lijunsong$pollen_rock$Models$OnRendered,
-		_krisajenkins$remotedata$RemoteData$sendRequest(
-			A3(_lijunsong$pollen_rock$Api$get, _lijunsong$pollen_rock$Api$APIrender, _lijunsong$pollen_rock$Api$renderResponseDecoder, path)));
+var _lijunsong$pollen_rock$View_Dashboard$sortItems = function (items) {
+	var toComparable = function (item) {
+		var _p0 = item;
+		if (_p0.ctor === 'Directory') {
+			return A2(_elm_lang$core$Basics_ops['++'], '0', _p0._0);
+		} else {
+			return A2(_elm_lang$core$Basics_ops['++'], '1', _p0._0);
+		}
+	};
+	return A2(_elm_lang$core$List$sortBy, toComparable, items);
 };
-var _lijunsong$pollen_rock$Editor$writeFile = F2(
-	function (path, data) {
-		return A2(
-			_elm_lang$core$Platform_Cmd$map,
-			_lijunsong$pollen_rock$Models$OnFileSaved,
-			_krisajenkins$remotedata$RemoteData$sendRequest(
-				A4(
-					_lijunsong$pollen_rock$Api$post,
-					_lijunsong$pollen_rock$Api$APIfs,
-					_lijunsong$pollen_rock$Api$fsPostResponseDecoder,
+var _lijunsong$pollen_rock$View_Dashboard$isSupportedSource = function (path) {
+	var suffixList = {
+		ctor: '::',
+		_0: '.pm',
+		_1: {
+			ctor: '::',
+			_0: '.html',
+			_1: {
+				ctor: '::',
+				_0: '.p',
+				_1: {
+					ctor: '::',
+					_0: 'rkt',
+					_1: {ctor: '[]'}
+				}
+			}
+		}
+	};
+	return A2(
+		_elm_lang$core$List$any,
+		function (s) {
+			return A2(_elm_lang$core$String$endsWith, s, path);
+		},
+		suffixList);
+};
+var _lijunsong$pollen_rock$View_Dashboard$itemView = F2(
+	function (parent, item) {
+		var row = function () {
+			var _p1 = item;
+			if (_p1.ctor === 'Directory') {
+				var _p2 = _p1._0;
+				return A2(
+					_elm_lang$html$Html$a,
 					{
 						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'op', _1: 'write'},
-						_1: {
-							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'data', _1: data},
-							_1: {ctor: '[]'}
-						}
+						_0: _elm_lang$html$Html_Attributes$href(
+							_lijunsong$pollen_rock$Util$concatUrl(
+								{
+									ctor: '::',
+									_0: '/dashboard',
+									_1: {
+										ctor: '::',
+										_0: parent,
+										_1: {
+											ctor: '::',
+											_0: _p2,
+											_1: {ctor: '[]'}
+										}
+									}
+								})),
+						_1: {ctor: '[]'}
 					},
-					path)));
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(_p2),
+						_1: {ctor: '[]'}
+					});
+			} else {
+				var _p3 = _p1._0;
+				return _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p3) ? A2(
+					_elm_lang$html$Html$a,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$href(
+							_lijunsong$pollen_rock$Util$concatUrl(
+								{
+									ctor: '::',
+									_0: '/editor',
+									_1: {
+										ctor: '::',
+										_0: parent,
+										_1: {
+											ctor: '::',
+											_0: _p3,
+											_1: {ctor: '[]'}
+										}
+									}
+								})),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(_p3),
+						_1: {ctor: '[]'}
+					}) : _elm_lang$html$Html$text(_p3);
+			}
+		}();
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('dashboard-list-item'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: row,
+				_1: {ctor: '[]'}
+			});
 	});
-var _lijunsong$pollen_rock$Editor$readFile = function (path) {
-	return A2(
-		_elm_lang$core$Platform_Cmd$map,
-		_lijunsong$pollen_rock$Models$OnFileRead,
-		_krisajenkins$remotedata$RemoteData$sendRequest(
-			A3(_lijunsong$pollen_rock$Api$get, _lijunsong$pollen_rock$Api$APIfs, _lijunsong$pollen_rock$Api$fsGetResponseDecoder, path)));
-};
-var _lijunsong$pollen_rock$Editor$stateToText = function (state) {
-	var _p0 = state;
-	switch (_p0.ctor) {
-		case 'DocSaving':
-			return 'saving';
-		case 'DocSaved':
-			return 'saved';
-		case 'DocError':
-			return 'error';
+var _lijunsong$pollen_rock$View_Dashboard$page = function (model) {
+	var path = function () {
+		var _p4 = model.route;
+		if (_p4.ctor === 'DashboardRoute') {
+			return _p4._0;
+		} else {
+			var _p5 = A2(_elm_lang$core$Debug$log, 'Invalid route state', model.route);
+			return 'invalid';
+		}
+	}();
+	var _p6 = model.fsListDirectory;
+	switch (_p6.ctor) {
+		case 'NotAsked':
+			return _elm_lang$html$Html$text('Not asked');
+		case 'Loading':
+			return _elm_lang$html$Html$text('Loading');
+		case 'Success':
+			var _p7 = _p6._0;
+			switch (_p7.ctor) {
+				case 'FolderContents':
+					var sortedItems = _lijunsong$pollen_rock$View_Dashboard$sortItems(_p7._0);
+					return A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						A2(
+							_elm_lang$core$List$map,
+							function (item) {
+								return A2(_lijunsong$pollen_rock$View_Dashboard$itemView, path, item);
+							},
+							sortedItems));
+				case 'FileContents':
+					return A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(_p7._0),
+							_1: {ctor: '[]'}
+						});
+				default:
+					return A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'error code: ',
+									_elm_lang$core$Basics$toString(_p7._0))),
+							_1: {ctor: '[]'}
+						});
+			}
 		default:
-			return '';
+			return _elm_lang$html$Html$text(
+				_elm_lang$core$Basics$toString(_p6._0));
 	}
 };
-var _lijunsong$pollen_rock$Editor$view = function (model) {
-	var state = _lijunsong$pollen_rock$Editor$stateToText(model.docState);
+var _lijunsong$pollen_rock$View_Dashboard$dashboardHeader = function (route) {
+	var headLinks = F2(
+		function (elms, urlPath) {
+			var _p8 = elms;
+			if (_p8.ctor === '[]') {
+				return {ctor: '[]'};
+			} else {
+				if (_p8._1.ctor === '[]') {
+					var _p9 = _p8._0;
+					var newUrl = _lijunsong$pollen_rock$Util$concatUrl(
+						{
+							ctor: '::',
+							_0: urlPath,
+							_1: {
+								ctor: '::',
+								_0: _p9,
+								_1: {ctor: '[]'}
+							}
+						});
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href(urlPath),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(_p9),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					};
+				} else {
+					var _p10 = _p8._0;
+					var newUrl = _lijunsong$pollen_rock$Util$concatUrl(
+						{
+							ctor: '::',
+							_0: urlPath,
+							_1: {
+								ctor: '::',
+								_0: _p10,
+								_1: {ctor: '[]'}
+							}
+						});
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href(urlPath),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(_p10),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('dashboard-header-sep'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('/'),
+									_1: {ctor: '[]'}
+								}),
+							_1: A2(headLinks, _p8._1, newUrl)
+						}
+					};
+				}
+			}
+		});
+	var _p11 = route;
+	if (_p11.ctor === 'DashboardRoute') {
+		var elms = {
+			ctor: '::',
+			_0: 'root',
+			_1: _lijunsong$pollen_rock$Util$splitUrl(_p11._0)
+		};
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			A2(headLinks, elms, '/dashboard'));
+	} else {
+		return _elm_lang$html$Html$text(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'failed to get route ',
+				_elm_lang$core$Basics$toString(route)));
+	}
+};
+var _lijunsong$pollen_rock$View_Dashboard$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('editorHeader'),
+			_0: _elm_lang$html$Html_Attributes$id('dashboard-main'),
 			_1: {ctor: '[]'}
 		},
 		{
@@ -10187,23 +10415,12 @@ var _lijunsong$pollen_rock$Editor$view = function (model) {
 				_elm_lang$html$Html$div,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('headerTop'),
+					_0: _elm_lang$html$Html_Attributes$id('dashboard-header'),
 					_1: {ctor: '[]'}
 				},
 				{
 					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$span,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('fileName'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(model.filePath),
-							_1: {ctor: '[]'}
-						}),
+					_0: _lijunsong$pollen_rock$View_Dashboard$dashboardHeader(model.route),
 					_1: {ctor: '[]'}
 				}),
 			_1: {
@@ -10212,319 +10429,391 @@ var _lijunsong$pollen_rock$Editor$view = function (model) {
 					_elm_lang$html$Html$div,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('headerBottom'),
+						_0: _elm_lang$html$Html_Attributes$id('dashboard-list'),
 						_1: {ctor: '[]'}
 					},
 					{
 						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('headerLeft'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$span,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('action back'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text('Back'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$div,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('headerRight'),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$span,
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$class('docState'),
-											_1: {ctor: '[]'}
-										},
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html$text(state),
-											_1: {ctor: '[]'}
-										}),
-									_1: {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$ul,
-											{ctor: '[]'},
-											{
-												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$li,
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$class('action fullscreen'),
-														_1: {ctor: '[]'}
-													},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text('Fullscreen'),
-														_1: {ctor: '[]'}
-													}),
-												_1: {
-													ctor: '::',
-													_0: A2(
-														_elm_lang$html$Html$li,
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$class('action render'),
-															_1: {
-																ctor: '::',
-																_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$Render),
-																_1: {ctor: '[]'}
-															}
-														},
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html$text('Render'),
-															_1: {ctor: '[]'}
-														}),
-													_1: {
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$li,
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$class('action setting'),
-																_1: {ctor: '[]'}
-															},
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html$text('Settings'),
-																_1: {ctor: '[]'}
-															}),
-														_1: {ctor: '[]'}
-													}
-												}
-											}),
-										_1: {ctor: '[]'}
-									}
-								}),
-							_1: {ctor: '[]'}
-						}
+						_0: _lijunsong$pollen_rock$View_Dashboard$page(model),
+						_1: {ctor: '[]'}
 					}),
 				_1: {ctor: '[]'}
 			}
 		});
 };
-var _lijunsong$pollen_rock$Editor$init = function (flags) {
-	return {
-		ctor: '_Tuple2',
-		_0: {filePath: flags.filePath, docState: _lijunsong$pollen_rock$Models$DocSaved, unsavedSeconds: 0},
-		_1: _lijunsong$pollen_rock$Editor$readFile(flags.filePath)
-	};
-};
-var _lijunsong$pollen_rock$Editor$maxUnsavedSeconds = 1;
-var _lijunsong$pollen_rock$Editor$token = _elm_lang$core$Native_Platform.incomingPort('token', _elm_lang$core$Json_Decode$string);
-var _lijunsong$pollen_rock$Editor$initDoc = _elm_lang$core$Native_Platform.outgoingPort(
-	'initDoc',
-	function (v) {
-		return v;
-	});
-var _lijunsong$pollen_rock$Editor$askCMContent = _elm_lang$core$Native_Platform.outgoingPort(
-	'askCMContent',
-	function (v) {
-		return null;
-	});
-var _lijunsong$pollen_rock$Editor$getCMContent = _elm_lang$core$Native_Platform.incomingPort('getCMContent', _elm_lang$core$Json_Decode$string);
-var _lijunsong$pollen_rock$Editor$markContentsDirty = _elm_lang$core$Native_Platform.incomingPort('markContentsDirty', _elm_lang$core$Json_Decode$int);
-var _lijunsong$pollen_rock$Editor$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$batch(
-		{
-			ctor: '::',
-			_0: A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second, _lijunsong$pollen_rock$Models$OnTick),
-			_1: {
+
+var _lijunsong$pollen_rock$View_Settings$optionGroup = F3(
+	function (current, options, msgs) {
+		return A2(
+			_elm_lang$html$Html$span,
+			{
 				ctor: '::',
-				_0: _lijunsong$pollen_rock$Editor$getCMContent(_lijunsong$pollen_rock$Models$OnGetCMContent),
+				_0: _elm_lang$html$Html_Attributes$class('settingsOptions'),
+				_1: {ctor: '[]'}
+			},
+			A3(
+				_elm_lang$core$List$map2,
+				F2(
+					function (option, msg) {
+						var cls = _elm_lang$html$Html_Attributes$classList(
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'settingsOption', _1: true},
+								_1: {
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'active',
+										_1: _elm_lang$core$Native_Utils.eq(option, current)
+									},
+									_1: {ctor: '[]'}
+								}
+							});
+						return A2(
+							_elm_lang$html$Html$span,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onClick(msg),
+								_1: {
+									ctor: '::',
+									_0: cls,
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_elm_lang$core$Basics$toString(option)),
+								_1: {ctor: '[]'}
+							});
+					}),
+				options,
+				msgs));
+	});
+var _lijunsong$pollen_rock$View_Settings$boolOptionGroup = F2(
+	function (current, msg) {
+		return A3(
+			_lijunsong$pollen_rock$View_Settings$optionGroup,
+			current,
+			{
+				ctor: '::',
+				_0: true,
 				_1: {
 					ctor: '::',
-					_0: _lijunsong$pollen_rock$Editor$markContentsDirty(_lijunsong$pollen_rock$Models$OnCMContentChanged),
+					_0: false,
 					_1: {ctor: '[]'}
 				}
-			}
+			},
+			{
+				ctor: '::',
+				_0: msg,
+				_1: {
+					ctor: '::',
+					_0: msg,
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _lijunsong$pollen_rock$View_Settings$tabulate = function (settings) {
+	return A2(
+		_elm_lang$html$Html$table,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$tr,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('lineNumbers'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$td,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(_lijunsong$pollen_rock$View_Settings$boolOptionGroup, settings.lineNumbers, _lijunsong$pollen_rock$Models$OnSettingsLineNumberChange),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {ctor: '[]'}
 		});
 };
-var _lijunsong$pollen_rock$Editor$liveView = _elm_lang$core$Native_Platform.outgoingPort(
-	'liveView',
-	function (v) {
-		return v;
+var _lijunsong$pollen_rock$View_Settings$view = function (settings) {
+	return _lijunsong$pollen_rock$View_Settings$tabulate(settings);
+};
+
+var _lijunsong$pollen_rock$View$makeHeader = F3(
+	function (title, left, right) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('header'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('headerTop'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$span,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('title'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(title),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('headerBottom'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('headerLeft'),
+									_1: {ctor: '[]'}
+								},
+								left),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('headerRight'),
+										_1: {ctor: '[]'}
+									},
+									right),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
 	});
-var _lijunsong$pollen_rock$Editor$update = F2(
-	function (msg, model) {
-		var _p1 = msg;
-		switch (_p1.ctor) {
-			case 'OnFileRead':
-				var _p2 = _p1._0;
-				_v2_2:
-				do {
-					if (_p2.ctor === 'Success') {
-						switch (_p2._0.ctor) {
-							case 'FileContents':
-								return {
-									ctor: '_Tuple2',
-									_0: _elm_lang$core$Native_Utils.update(
-										model,
-										{docState: _lijunsong$pollen_rock$Models$DocSaved}),
-									_1: _lijunsong$pollen_rock$Editor$initDoc(_p2._0._0)
-								};
-							case 'FsError':
-								return {
-									ctor: '_Tuple2',
-									_0: _elm_lang$core$Native_Utils.update(
-										model,
-										{docState: _lijunsong$pollen_rock$Models$DocError}),
-									_1: _elm_lang$core$Platform_Cmd$none
-								};
-							default:
-								break _v2_2;
+var _lijunsong$pollen_rock$View$view = function (model) {
+	var _p0 = model.route;
+	switch (_p0.ctor) {
+		case 'DashboardRoute':
+			var right = {ctor: '[]'};
+			var left = {
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(_p0._0),
+				_1: {ctor: '[]'}
+			};
+			var header = A3(_lijunsong$pollen_rock$View$makeHeader, 'Dashboard', left, right);
+			return A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: header,
+					_1: {
+						ctor: '::',
+						_0: _lijunsong$pollen_rock$View_Dashboard$view(model),
+						_1: {ctor: '[]'}
+					}
+				});
+		case 'SettingsRoute':
+			var right = {ctor: '[]'};
+			var left = {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$span,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('action'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnDashboardGoBack),
+							_1: {ctor: '[]'}
 						}
-					} else {
-						break _v2_2;
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Back'),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			};
+			var header = A3(_lijunsong$pollen_rock$View$makeHeader, 'Settings', left, right);
+			return A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: header,
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('containerBody'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _lijunsong$pollen_rock$View_Settings$view(model.settings),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
 					}
-				} while(false);
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'OnTick':
-				var _p3 = model.docState;
-				if (_p3.ctor === 'DocDirty') {
-					return (_elm_lang$core$Native_Utils.cmp(model.unsavedSeconds, _lijunsong$pollen_rock$Editor$maxUnsavedSeconds) > -1) ? {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{unsavedSeconds: 0}),
-						_1: _lijunsong$pollen_rock$Editor$askCMContent(
-							{ctor: '_Tuple0'})
-					} : {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{unsavedSeconds: model.unsavedSeconds + 1}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{unsavedSeconds: 0}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				}
-			case 'OnGetCMContent':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{docState: _lijunsong$pollen_rock$Models$DocSaving}),
-					_1: A2(_lijunsong$pollen_rock$Editor$writeFile, model.filePath, _p1._0)
-				};
-			case 'OnFileSaved':
-				var _p8 = _p1._0;
-				var _p4 = _p8;
-				if (_p4.ctor === 'Success') {
-					var _p5 = _p4._0;
-					var errno = _p5.errno;
-					var message = _p5.message;
-					var _p6 = errno;
-					if (_p6 === 0) {
-						return {
-							ctor: '_Tuple2',
-							_0: _elm_lang$core$Native_Utils.update(
-								model,
-								{docState: _lijunsong$pollen_rock$Models$DocSaved}),
-							_1: _lijunsong$pollen_rock$Editor$renderFile(model.filePath)
-						};
-					} else {
-						return {
-							ctor: '_Tuple2',
-							_0: _elm_lang$core$Native_Utils.update(
-								model,
-								{docState: _lijunsong$pollen_rock$Models$DocError}),
-							_1: _elm_lang$core$Platform_Cmd$none
-						};
+				});
+		default:
+			var right = {ctor: '[]'};
+			var left = {ctor: '[]'};
+			var header = A3(_lijunsong$pollen_rock$View$makeHeader, 'Dashboard', left, right);
+			return A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: header,
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('unknown'),
+						_1: {ctor: '[]'}
 					}
-				} else {
-					var _p7 = A2(_elm_lang$core$Debug$log, 'response', _p8);
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{docState: _lijunsong$pollen_rock$Models$DocError}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
-				}
-			case 'OnCMContentChanged':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{docState: _lijunsong$pollen_rock$Models$DocDirty, unsavedSeconds: 0}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'Render':
+				});
+	}
+};
+
+var _lijunsong$pollen_rock$Dashboard$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
+};
+var _lijunsong$pollen_rock$Dashboard$listDirectory = function (srcPath) {
+	return A2(
+		_elm_lang$core$Platform_Cmd$map,
+		_lijunsong$pollen_rock$Models$OnListDirectory,
+		_krisajenkins$remotedata$RemoteData$sendRequest(
+			A3(_lijunsong$pollen_rock$Api$get, _lijunsong$pollen_rock$Api$APIfs, _lijunsong$pollen_rock$Api$fsGetResponseDecoder, srcPath)));
+};
+var _lijunsong$pollen_rock$Dashboard$initModel = F2(
+	function (settings, route) {
+		return {route: route, fsListDirectory: _krisajenkins$remotedata$RemoteData$NotAsked, settings: settings};
+	});
+var _lijunsong$pollen_rock$Dashboard$init = F2(
+	function (settings, location) {
+		var currentRoute = _lijunsong$pollen_rock$Models$parsePath(location.pathname);
+		var model = A2(_lijunsong$pollen_rock$Dashboard$initModel, settings, currentRoute);
+		var _p0 = currentRoute;
+		switch (_p0.ctor) {
+			case 'DashboardRoute':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: _lijunsong$pollen_rock$Editor$renderFile(model.filePath)
+					_1: _lijunsong$pollen_rock$Dashboard$listDirectory(_p0._0)
 				};
+			case 'SettingsRoute':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 			default:
-				var _p12 = _p1._0;
-				var _p9 = A2(_elm_lang$core$Debug$log, 'render response', _p12);
-				var _p10 = _p12;
-				if (_p10.ctor === 'Success') {
-					var _p11 = _p10._0;
-					if (_p11.ctor === 'RenderSuccess') {
-						return {
-							ctor: '_Tuple2',
-							_0: model,
-							_1: _lijunsong$pollen_rock$Editor$liveView(
-								A2(_elm_lang$core$Basics_ops['++'], '/', _p11._0))
-						};
-					} else {
-						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-					}
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _elm_lang$navigation$Navigation$load('/dashboard')
+				};
 		}
 	});
-var _lijunsong$pollen_rock$Editor$main = _elm_lang$html$Html$programWithFlags(
-	{init: _lijunsong$pollen_rock$Editor$init, view: _lijunsong$pollen_rock$Editor$view, update: _lijunsong$pollen_rock$Editor$update, subscriptions: _lijunsong$pollen_rock$Editor$subscriptions})(
+var _lijunsong$pollen_rock$Dashboard$setSettings = _elm_lang$core$Native_Platform.outgoingPort(
+	'setSettings',
+	function (v) {
+		return {lineNumbers: v.lineNumbers, lineWrapping: v.lineWrapping};
+	});
+var _lijunsong$pollen_rock$Dashboard$update = F2(
+	function (msg, model) {
+		var _p1 = msg;
+		switch (_p1.ctor) {
+			case 'OnLocationChange':
+				var newRoute = _lijunsong$pollen_rock$Models$parsePath(_p1._0.pathname);
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{route: newRoute}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'OnDashboardGoBack':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _elm_lang$navigation$Navigation$back(1)
+				};
+			case 'OnListDirectory':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{fsListDirectory: _p1._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				var settings = model.settings;
+				var newSettings = _elm_lang$core$Native_Utils.update(
+					settings,
+					{lineNumbers: !settings.lineNumbers});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{settings: newSettings}),
+					_1: _lijunsong$pollen_rock$Dashboard$setSettings(newSettings)
+				};
+		}
+	});
+var _lijunsong$pollen_rock$Dashboard$main = A2(
+	_elm_lang$navigation$Navigation$programWithFlags,
+	_lijunsong$pollen_rock$Models$OnLocationChange,
+	{init: _lijunsong$pollen_rock$Dashboard$init, view: _lijunsong$pollen_rock$View$view, update: _lijunsong$pollen_rock$Dashboard$update, subscriptions: _lijunsong$pollen_rock$Dashboard$subscriptions})(
 	A2(
 		_elm_lang$core$Json_Decode$andThen,
-		function (filePath) {
-			return _elm_lang$core$Json_Decode$succeed(
-				{filePath: filePath});
+		function (lineNumbers) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (lineWrapping) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{lineNumbers: lineNumbers, lineWrapping: lineWrapping});
+				},
+				A2(_elm_lang$core$Json_Decode$field, 'lineWrapping', _elm_lang$core$Json_Decode$bool));
 		},
-		A2(_elm_lang$core$Json_Decode$field, 'filePath', _elm_lang$core$Json_Decode$string)));
-var _lijunsong$pollen_rock$Editor$Flags = function (a) {
-	return {filePath: a};
-};
+		A2(_elm_lang$core$Json_Decode$field, 'lineNumbers', _elm_lang$core$Json_Decode$bool)));
 
 var Elm = {};
-Elm['Editor'] = Elm['Editor'] || {};
-if (typeof _lijunsong$pollen_rock$Editor$main !== 'undefined') {
-    _lijunsong$pollen_rock$Editor$main(Elm['Editor'], 'Editor', undefined);
+Elm['Dashboard'] = Elm['Dashboard'] || {};
+if (typeof _lijunsong$pollen_rock$Dashboard$main !== 'undefined') {
+    _lijunsong$pollen_rock$Dashboard$main(Elm['Dashboard'], 'Dashboard', undefined);
 }
 
 if (typeof define === "function" && define['amd'])

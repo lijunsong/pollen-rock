@@ -8,11 +8,6 @@ html {
     height: 100%;
 }
 
-body {
-    height: 100%;
-    background-color: #f7f7f7;
-}
-
 /* editor style */
 #container {
     display: flex;

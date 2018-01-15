@@ -1,0 +1,70 @@
+/* Common css for Dashboard and editor */
+body {
+    height: 100%;
+    background-color: #f7f7f7;
+    color: #352f26;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* Header */
+.header {
+    display: flex;
+    flex-flow: column;
+    margin: 1rem 1rem 0 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #DDD;
+}
+.header, .header a {
+    color: #d2d0cd;
+    transition: color 1s;
+}
+.header:hover, .header:hover a {
+    color: #352f26;
+}
+.headerTop {
+    flex: 1;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 2rem;
+}
+.headerBottom {
+    display: flex;
+}
+.headerLeft {
+    flex: 1;
+}
+.headerRight ul {
+    list-style: none;
+    display: inline;
+}
+.headerRight ul li {
+    display: inline;
+    margin-left: 1rem;
+}
+
+.action {
+    cursor: pointer;
+    padding: 0.2rem 0.1rem 0.2rem 0.1rem;
+}
+.action:hover {
+    background-color: #352f26;
+    color: #FFF;
+}
+
+/* option buttons */
+.settingsOptions {
+    background-color: #CCC;
+    border: 3px solid #CCC;
+}
+.settingsOptions .active {
+    background-color: #f7f7f7;
+}
+.settingsOption {
+    padding: 1px 10px;
+}
+.settingsOption:not(.active) {
+    cursor: pointer;
+}

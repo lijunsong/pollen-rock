@@ -7,6 +7,8 @@ import Html.Events exposing (..)
 import Api
 import Models exposing (..)
 import Time
+import View
+import Navigation
 
 
 maxUnsavedSeconds : Int
@@ -102,6 +104,9 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        OnEditorGoBack ->
+            ( model, Navigation.back 1 )
 
         OnTick t ->
             case model.docState of
@@ -201,21 +206,14 @@ view model =
         state =
             stateToText model.docState
     in
-        div [ class "editorHeader" ]
-            [ div [ class "headerTop" ]
-                [ span [ class "fileName" ] [ text model.filePath ] ]
-            , div [ class "headerBottom" ]
-                [ div [ class "headerLeft" ]
-                    [ span [ class "action back" ] [ text "Back" ]
-                    ]
-                , div [ class "headerRight" ]
-                    [ span [ class "docState" ] [ text state ]
-                    , ul []
-                        [ li [ class "action fullscreen" ] [ text "Fullscreen" ]
-                        , li [ class "action render", onClick Render ] [ text "Render" ]
-                        , li [ class "action setting" ] [ text "Settings" ]
-                        ]
-                    ]
+        View.makeHeader model.filePath
+            [ span [ class "action", onClick OnEditorGoBack ] [ text "Back" ]
+            ]
+            [ span [ class "docState" ] [ text state ]
+            , ul []
+                [ li [ class "action fullscreen" ] [ text "Fullscreen" ]
+                , li [ class "action render", onClick Render ] [ text "Render" ]
+                , li [ class "action setting" ] [ a [ href "/settings" ] [ text "Settings" ] ]
                 ]
             ]
 

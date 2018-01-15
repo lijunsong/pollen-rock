@@ -11,15 +11,6 @@ body {
     height: 100%;
 }
 
-a {
-    text-decoration: none;
-    color: #CB122A;
-}
-
-a:hover {
-    color: #ED344C;
-}
-
 /* style of the dashboard */
 #dashboard-main {
     max-width: 600px;
@@ -52,4 +43,21 @@ a:hover {
 }
 .dashboard-list-item:hover {
     background-color: #FBFBFB;
+}
+
+/* style of the settings */
+.containerBody {
+    width: 600px;
+    margin: 0 auto;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+td {
+    height: 1.5rem;
+    padding: 1rem;
+}
+tr {
+    border-bottom: 1px solid #EEE;
 }
