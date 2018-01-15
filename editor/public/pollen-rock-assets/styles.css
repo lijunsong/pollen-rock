@@ -1,48 +1,18 @@
-* {
-    margin: 0;
-    padding: 0;
-}
-html {
-    font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-    height: 100%;
-}
-
-body {
-    height: 100%;
-}
-
 /* style of the dashboard */
 #dashboard-main {
     max-width: 600px;
     margin: 0 auto;
 }
 
-#dashboard-header {
-    margin: 2rem 0;
-    border-bottom: 1px solid #EEE;
-    font-size: 1.2rem;
-    padding-bottom: 0.5rem;
-    color: #EEE;
-}
-#dashboard-header .dashboard-header-sep {
-    padding: 0 0.3rem 0 0.3rem;
-}
-#dashboard-header a {
-    color: #EEE;
-}
-#dashboard-header a:last-child {
-    color: #CB122A;
-}
-#dashboard-header a:hover {
-    color: #ED344C;
-}
-
-
 .dashboard-list-item {
     padding: 1rem 0 1rem 0;
 }
-.dashboard-list-item:hover {
-    background-color: #FBFBFB;
+.dashboard-list-item a:link {
+    color: #352f26;
+}
+
+.dashboard-list-item a:visited {
+    color: #352f26;
 }
 
 /* style of the settings */

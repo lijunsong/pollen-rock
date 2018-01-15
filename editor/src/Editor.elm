@@ -23,7 +23,7 @@ maxUnsavedSeconds =
 main =
     Html.programWithFlags
         { init = init
-        , view = view
+        , view = View.editorView
         , update = update
         , subscriptions = subscriptions
         }
@@ -108,6 +108,9 @@ update msg model =
         OnEditorGoBack ->
             ( model, Navigation.back 1 )
 
+        OnEditorOpenSettings ->
+            ( model, Navigation.load "/settings" )
+
         OnTick t ->
             case model.docState of
                 DocDirty ->
@@ -178,44 +181,6 @@ subscriptions model =
         , getCMContent OnGetCMContent
         , markContentsDirty OnCMContentChanged
         ]
-
-
-
--- View
-
-
-stateToText : DocState -> String
-stateToText state =
-    case state of
-        DocSaving ->
-            "saving"
-
-        DocSaved ->
-            "saved"
-
-        DocError ->
-            "error"
-
-        DocDirty ->
-            ""
-
-
-view : EditorModel -> Html EditorMsg
-view model =
-    let
-        state =
-            stateToText model.docState
-    in
-        View.makeHeader model.filePath
-            [ span [ class "action", onClick OnEditorGoBack ] [ text "Back" ]
-            ]
-            [ span [ class "docState" ] [ text state ]
-            , ul []
-                [ li [ class "action fullscreen" ] [ text "Fullscreen" ]
-                , li [ class "action render", onClick Render ] [ text "Render" ]
-                , li [ class "action setting" ] [ a [ href "/settings" ] [ text "Settings" ] ]
-                ]
-            ]
 
 
 

@@ -1,12 +1,26 @@
 /* Common css for Dashboard and editor */
+* {
+    margin: 0;
+    padding: 0;
+}
+html {
+    font-family: 'sf mono', 'Source Code Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+    font-size: 15px;
+    height: 100%;
+}
+
 body {
     height: 100%;
     background-color: #f7f7f7;
     color: #352f26;
 }
 
-a {
-    text-decoration: none;
+a, .clickable {
+    text-decoration: underline;
+    cursor: pointer;
+}
+a:hover {
+    font-weight: bold;
 }
 
 /* Header */
@@ -19,7 +33,7 @@ a {
 }
 .header, .header a {
     color: #d2d0cd;
-    transition: color 1s;
+    transition: color 0.5s;
 }
 .header:hover, .header:hover a {
     color: #352f26;
@@ -54,6 +68,17 @@ a {
     color: #FFF;
 }
 
+/*breadcrumb*/
+ul.breadcrumb {
+    list-style: none;
+}
+ul.breadcrumb li {
+    display: inline;
+}
+ul.breadcrumb li:not(:first-child):before {
+    content: "/";
+}
+
 /* option buttons */
 .settingsOptions {
     background-color: #CCC;
@@ -61,10 +86,12 @@ a {
 }
 .settingsOptions .active {
     background-color: #f7f7f7;
+    font-weight: bold;
 }
 .settingsOption {
     padding: 1px 10px;
 }
 .settingsOption:not(.active) {
     cursor: pointer;
+    opacity: 0.1;
 }

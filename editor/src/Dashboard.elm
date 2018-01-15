@@ -15,7 +15,7 @@ main : Program Settings DashboardModel DashboardMsg
 main =
     Navigation.programWithFlags OnLocationChange
         { init = init
-        , view = View.view
+        , view = View.dashboardView
         , update = update
         , subscriptions = subscriptions
         }
@@ -65,6 +65,9 @@ update msg model =
 
         OnDashboardGoBack ->
             ( model, Navigation.back 1 )
+
+        OnDashboardOpenSettings ->
+            ( model, Navigation.load "/settings" )
 
         OnListDirectory data ->
             ( { model | fsListDirectory = data }, Cmd.none )

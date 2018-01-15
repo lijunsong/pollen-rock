@@ -1,13 +1,3 @@
-* {
-    margin: 0;
-    padding: 0;
-}
-html {
-    font-family: 'sf mono', 'Source Code Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-    font-size: 15px;
-    height: 100%;
-}
-
 /* editor style */
 #container {
     display: flex;
@@ -67,7 +57,6 @@ html {
     color: #d2d0cd;
 }
 .action {
-    cursor: pointer;
     padding: 0.2rem 0.1rem 0.2rem 0.1rem;
 }
 .action:hover {

@@ -5,56 +5,16 @@ import RemoteData exposing (WebData)
 import Html exposing (Html, program, div, text, a, li, span)
 import Html.Attributes exposing (href, class, name, id)
 import Util
+import View.Common
 
 
 {-| Entry point of the dashboard page
 -}
-view : DashboardModel -> Html DashboardMsg
-view model =
+view : String -> DashboardModel -> Html DashboardMsg
+view pathname model =
     div [ id "dashboard-main" ]
-        [ div [ id "dashboard-header" ] [ dashboardHeader model.route ]
-        , div [ id "dashboard-list" ]
-            [ page model ]
+        [ page pathname model
         ]
-
-
-{-| Show breadcrumb
--}
-dashboardHeader : Route -> Html DashboardMsg
-dashboardHeader route =
-    let
-        headLinks : List String -> String -> List (Html DashboardMsg)
-        headLinks elms urlPath =
-            case elms of
-                [] ->
-                    []
-
-                hd :: [] ->
-                    let
-                        newUrl =
-                            Util.concatUrl [ urlPath, hd ]
-                    in
-                        [ a [ href urlPath ] [ text hd ] ]
-
-                hd :: tl ->
-                    let
-                        newUrl =
-                            Util.concatUrl [ urlPath, hd ]
-                    in
-                        a [ href urlPath ] [ text hd ]
-                            :: span [ class "dashboard-header-sep" ] [ text "/" ]
-                            :: headLinks tl newUrl
-    in
-        case route of
-            DashboardRoute url ->
-                let
-                    elms =
-                        "root" :: Util.splitUrl url
-                in
-                    div [] (headLinks elms "/dashboard")
-
-            _ ->
-                text ("failed to get route " ++ toString route)
 
 
 {-| Decide if a given name is supported (editable) file type
@@ -77,7 +37,7 @@ itemView parent item =
             case item of
                 Directory name ->
                     a [ href (Util.concatUrl [ "/dashboard", parent, name ]) ]
-                        [ text name ]
+                        [ text (name ++ "/") ]
 
                 File name ->
                     if isSupportedSource name then
@@ -108,45 +68,32 @@ sortItems items =
 
 {-| Show all file items
 -}
-page : DashboardModel -> Html DashboardMsg
-page model =
-    let
-        path =
-            case model.route of
-                DashboardRoute p ->
-                    p
+page : String -> DashboardModel -> Html DashboardMsg
+page path model =
+    case model.fsListDirectory of
+        RemoteData.NotAsked ->
+            text "Not asked"
 
-                _ ->
+        RemoteData.Loading ->
+            text "Loading"
+
+        RemoteData.Success get ->
+            case get of
+                FolderContents items ->
                     let
-                        _ =
-                            Debug.log "Invalid route state" model.route
+                        sortedItems =
+                            sortItems items
                     in
-                        "invalid"
-    in
-        case model.fsListDirectory of
-            RemoteData.NotAsked ->
-                text "Not asked"
-
-            RemoteData.Loading ->
-                text "Loading"
-
-            RemoteData.Success get ->
-                case get of
-                    FolderContents items ->
-                        let
-                            sortedItems =
-                                sortItems items
-                        in
-                            div []
-                                (List.map (\item -> itemView path item) sortedItems)
-
-                    FileContents contents ->
                         div []
-                            [ text contents ]
+                            (List.map (\item -> itemView path item) sortedItems)
 
-                    FsError code ->
-                        div []
-                            [ text ("error code: " ++ (toString code)) ]
+                FileContents contents ->
+                    div []
+                        [ text contents ]
 
-            RemoteData.Failure error ->
-                text (toString error)
+                FsError code ->
+                    div []
+                        [ text ("error code: " ++ (toString code)) ]
+
+        RemoteData.Failure error ->
+            text (toString error)

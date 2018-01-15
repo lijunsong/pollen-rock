@@ -86,9 +86,14 @@ type alias DashboardModel =
     }
 
 
+{-| Msg for /dashboard and /settings. There are also two location
+events in this message. I can make them links, but I choose not
+because of the complexity in css.
+-}
 type DashboardMsg
     = OnLocationChange Location
     | OnDashboardGoBack
+    | OnDashboardOpenSettings
     | OnListDirectory (WebData FsGetResponse)
     | OnSettingsLineNumberChange
 
@@ -110,6 +115,22 @@ type DocState
     | DocDirty
 
 
+stateToText : DocState -> String
+stateToText state =
+    case state of
+        DocSaving ->
+            "saving"
+
+        DocSaved ->
+            "saved"
+
+        DocError ->
+            "error"
+
+        DocDirty ->
+            ""
+
+
 type alias EditorModel =
     { filePath : String
     , docState : DocState
@@ -120,6 +141,7 @@ type alias EditorModel =
 type EditorMsg
     = OnFileRead (WebData FsGetResponse)
     | OnEditorGoBack
+    | OnEditorOpenSettings
     | OnTick Time.Time
     | OnGetCMContent String
     | OnFileSaved (WebData FsPostResponse)
