@@ -19,7 +19,8 @@ function initEditor() {
 
   var area = document.getElementById('input');
   $editor = CodeMirror.fromTextArea(area, {
-    lineNumbers: true
+    lineNumbers: false,
+    lineWrapping: true
   });
 
   // -- setup --

@@ -1,0 +1,102 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+html {
+    font-family: 'sf mono', 'Source Code Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+    font-size: 15px;
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    background-color: #f7f7f7;
+}
+
+/* editor style */
+#container {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+#editorContainer {
+    flex: 2;
+    overflow: auto;
+    width: 600px;
+    margin: 0 auto;
+    --border-right: 1px solid #EEE;
+    --box-shadow: 0px 0px 6px 1px #EEE;
+}
+.CodeMirror {
+    font-family: 'sf mono', 'Source Code Pro';
+    height: 100%;
+    color: #352f26;
+    background-color: #f7f7f7;
+}
+
+/* Header */
+.editorHeader {
+    display: flex;
+    flex-flow: column;
+    margin: 1rem 1rem 0 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #DDD;
+    color: #d2d0cd;
+    transition: color 1s;
+}
+.editorHeader:hover {
+    color: #352f26;
+}
+.headerTop {
+    flex: 1;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 2rem;
+}
+.headerBottom {
+    display: flex;
+}
+.headerLeft {
+    flex: 1;
+}
+.headerRight ul {
+    list-style: none;
+    display: inline;
+}
+.headerRight ul li {
+    display: inline;
+    margin-left: 1rem;
+}
+
+.docState {
+    color: #d2d0cd;
+}
+.action {
+    cursor: pointer;
+    padding: 0.2rem 0.1rem 0.2rem 0.1rem;
+}
+.action:hover {
+    background-color: #352f26;
+    color: #FFF;
+}
+
+/* Resizer and rendering panel */
+#liveView {
+    height: 40%;
+}
+/* pointer-event is necessary because mousemove event would be lost
+   inside iframe when we resize. */
+#liveViewFrame {
+    resize: auto;
+    width: 100%;
+    height: 100%;
+    border: none;
+    pointer-events: none;
+}
+#resizer {
+    height: 8px;
+    background-color: #EEE;
+    position: relative;
+    box-shadow: 0px 0px 1px 1px #b3b3b3;
+    z-index: 10;
+}
