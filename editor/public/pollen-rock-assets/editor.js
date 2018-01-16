@@ -52,27 +52,42 @@ function initEditor() {
   });
 }
 
+/* The problem is that mouse event won't pop up to the iframe's parent
+   when the mouse moves into iframe. So dragging stops when our mouse
+   moves into iframe.
+
+   The trick here is to have another canvas `listener` over the iframe
+   when we starts dragging. Listener is not part of iframe, so it can
+   listen our mouse event. When dragging stops, Listener goes behind
+   iframe so it won't interfere with the mouse scroll event on iframe.
+ */
 function initLayout() {
-  var element = document.getElementById('liveView');
+  var liveView = document.getElementById('liveView');
+  var liveViewFrame = document.getElementById('liveViewFrame');
   var resizer = document.getElementById('resizer');
+  var listener = document.getElementById('listener');
   resizer.addEventListener('mousedown', initResize, false);
   resizer.style.cursor = 'ns-resize';
 
-  //Window funtion mousemove & mouseup
+  //Window funtion mousemove & mouseup. We keep listener above iframe
   function initResize(e) {
     console.log("initResize");
+    listener.style['z-index'] = 10;
     window.addEventListener('mousemove', Resize, false);
     window.addEventListener('mouseup', stopResize, false);
   }
-  //resize the element
+  //resize the liveView
   function Resize(e) {
-    // element.style.width = (e.clientX - element.offsetLeft) + 'px';
+    // liveView.style.width = (e.clientX - liveView.offsetLeft) + 'px';
     var h = (document.documentElement.clientHeight - e.clientY) + 'px';
-    element.style.height = h;
+    liveView.style.height = h;
+    liveViewFrame.style.height = h;
   }
-  //on mouseup remove windows functions mousemove & mouseup
+  //on mouseup remove windows functions mousemove & mouseup. We keep
+  // listener behind iframe
   function stopResize(e) {
     console.log("stopResize");
+    listener.style['z-index'] = -1;
     window.removeEventListener('mousemove', Resize, false);
     window.removeEventListener('mouseup', stopResize, false);
   }
