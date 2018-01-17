@@ -53,6 +53,31 @@ init settings location =
 -- Updates
 
 
+settingsUpdate : DashboardMsg -> DashboardModel -> ( DashboardModel, Cmd DashboardMsg )
+settingsUpdate msg model =
+    let
+        settings =
+            model.settings
+    in
+        case msg of
+            OnSettingsLineNumberChange ->
+                let
+                    newSettings =
+                        { settings | lineNumbers = not settings.lineNumbers }
+                in
+                    ( { model | settings = newSettings }, setSettings newSettings )
+
+            OnSettingsLineWrappingChange ->
+                let
+                    newSettings =
+                        { settings | lineWrapping = not settings.lineWrapping }
+                in
+                    ( { model | settings = newSettings }, setSettings newSettings )
+
+            _ ->
+                ( model, Cmd.none )
+
+
 update : DashboardMsg -> DashboardModel -> ( DashboardModel, Cmd DashboardMsg )
 update msg model =
     case msg of
@@ -72,16 +97,8 @@ update msg model =
         OnListDirectory data ->
             ( { model | fsListDirectory = data }, Cmd.none )
 
-        OnSettingsLineNumberChange ->
-            let
-                settings =
-                    model.settings
-            in
-                let
-                    newSettings =
-                        { settings | lineNumbers = not settings.lineNumbers }
-                in
-                    ( { model | settings = newSettings }, setSettings newSettings )
+        _ ->
+            settingsUpdate msg model
 
 
 

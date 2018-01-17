@@ -9975,6 +9975,7 @@ var _lijunsong$pollen_rock$Models$RenderFailure = function (a) {
 var _lijunsong$pollen_rock$Models$RenderSuccess = function (a) {
 	return {ctor: 'RenderSuccess', _0: a};
 };
+var _lijunsong$pollen_rock$Models$OnSettingsLineWrappingChange = {ctor: 'OnSettingsLineWrappingChange'};
 var _lijunsong$pollen_rock$Models$OnSettingsLineNumberChange = {ctor: 'OnSettingsLineNumberChange'};
 var _lijunsong$pollen_rock$Models$OnListDirectory = function (a) {
 	return {ctor: 'OnListDirectory', _0: a};
@@ -10683,7 +10684,36 @@ var _lijunsong$pollen_rock$View_Settings$tabulate = function (settings) {
 						_1: {ctor: '[]'}
 					}
 				}),
-			_1: {ctor: '[]'}
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$tr,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$td,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('lineWrapping'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$td,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: A2(_lijunsong$pollen_rock$View_Settings$boolOptionGroup, settings.lineWrapping, _lijunsong$pollen_rock$Models$OnSettingsLineWrappingChange),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {ctor: '[]'}
+			}
 		});
 };
 var _lijunsong$pollen_rock$View_Settings$view = function (settings) {
@@ -10998,11 +11028,23 @@ var _lijunsong$pollen_rock$Dashboard$update = F2(
 						{fsListDirectory: _p1._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			default:
+			case 'OnSettingsLineNumberChange':
 				var settings = model.settings;
 				var newSettings = _elm_lang$core$Native_Utils.update(
 					settings,
 					{lineNumbers: !settings.lineNumbers});
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{settings: newSettings}),
+					_1: _lijunsong$pollen_rock$Dashboard$setSettings(newSettings)
+				};
+			default:
+				var settings = model.settings;
+				var newSettings = _elm_lang$core$Native_Utils.update(
+					settings,
+					{lineWrapping: !settings.lineWrapping});
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(

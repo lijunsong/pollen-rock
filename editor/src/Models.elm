@@ -96,6 +96,7 @@ type DashboardMsg
     | OnDashboardOpenSettings
     | OnListDirectory (WebData FsGetResponse)
     | OnSettingsLineNumberChange
+    | OnSettingsLineWrappingChange
 
 
 {-| The model for editor

@@ -47,4 +47,8 @@ tabulate settings =
             [ td [] [ text "lineNumbers" ]
             , td [] [ boolOptionGroup settings.lineNumbers OnSettingsLineNumberChange ]
             ]
+        , tr []
+            [ td [] [ text "lineWrapping" ]
+            , td [] [ boolOptionGroup settings.lineWrapping OnSettingsLineWrappingChange ]
+            ]
         ]
