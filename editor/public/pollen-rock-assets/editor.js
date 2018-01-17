@@ -44,7 +44,16 @@ function initEditor() {
   app.ports.liveView.subscribe(function(path) {
     console.log('liveView ' + path);
     var frame = document.getElementById('liveViewFrame');
-    frame.src = path;
+    if (! frame.src) {
+      frame.src = path;
+    } else {
+      frame.contentWindow.location.reload();
+    }
+  });
+  // Elm calls to switch layout
+  app.ports.changeLayout.subscribe(function(layout) {
+    console.log('set layout to be ' + layout);
+    $renderPanel.setLayout(layout);
   });
 
   $editor.on('cursorActivity', function() {
@@ -61,38 +70,96 @@ function initEditor() {
    listen our mouse event. When dragging stops, Listener goes behind
    iframe so it won't interfere with the mouse scroll event on iframe.
  */
-function initLayout() {
-  var liveView = document.getElementById('liveView');
-  var liveViewFrame = document.getElementById('liveViewFrame');
-  var resizer = document.getElementById('resizer');
-  var listener = document.getElementById('listener');
-  resizer.addEventListener('mousedown', initResize, false);
-  resizer.style.cursor = 'ns-resize';
+class RenderPanel {
+  constructor() {
+    // DOM bind
+    this.liveView = document.getElementById('liveView');
+    this.liveViewFrame = document.getElementById('liveViewFrame');
+    this.resizer = document.getElementById('resizer');
+    this.listener = document.getElementById('listener');
 
-  //Window funtion mousemove & mouseup. We keep listener above iframe
-  function initResize(e) {
-    console.log("initResize");
-    listener.style['z-index'] = 10;
-    window.addEventListener('mousemove', Resize, false);
-    window.addEventListener('mouseup', stopResize, false);
+    // create reusable methods for attach, remove event listener
+    this.startDragging = this.__startDragging.bind(this);
+    this.stopDragging = this.__stopDragging.bind(this);
+    this.resize = this.__resize.bind(this);
+
+    // attach event only on resizer
+    this.resizer.addEventListener('mousedown', this.startDragging, false);
+    this.setLayout('close');
   }
-  //resize the liveView
-  function Resize(e) {
-    // liveView.style.width = (e.clientX - liveView.offsetLeft) + 'px';
-    var h = (document.documentElement.clientHeight - e.clientY) + 'px';
-    liveView.style.height = h;
-    liveViewFrame.style.height = h;
+
+  setLayout(layout) {
+    this.layout = layout;
+    this.__updateLayoutView();
   }
-  //on mouseup remove windows functions mousemove & mouseup. We keep
-  // listener behind iframe
-  function stopResize(e) {
-    console.log("stopResize");
-    listener.style['z-index'] = -1;
-    window.removeEventListener('mousemove', Resize, false);
-    window.removeEventListener('mouseup', stopResize, false);
+
+
+  __startDragging() {
+    this.listener.style['z-index'] = 10;
+    window.addEventListener('mousemove', this.resize, false);
+    window.addEventListener('mouseup', this.stopDragging, false);
   }
+
+  __stopDragging() {
+    this.listener.style['z-index'] = -1;
+    window.removeEventListener('mousemove', this.resize, false);
+    window.removeEventListener('mouseup', this.stopDragging, false);
+  }
+
+  __resize(e) {
+    if (this.layout == 'close') {
+      // shouldn't happen, but let's just return immediately anyway
+      return;
+    } else if (this.layout == 'horizontal') {
+      var h = (document.documentElement.clientHeight - e.clientY) + 'px';
+      this.liveView.style.height = h;
+    } else if (this.layout == 'vertical') {
+      var w = (document.documentElement.clientWidth - e.clientX) + 'px';
+      this.liveView.style.width = w;
+    } else {
+      console.log('[resize] unknown layout: ' + this.layout);
+    }
+  }
+
+  __updateLayoutView() {
+
+    if (this.layout == 'close') {
+      this.liveView.classList.add('hidden');
+    } else if (this.layout == 'horizontal' || this.layout == 'vertical') {
+      this.liveView.classList.remove('hidden');
+      var container = document.getElementById('container');
+      var resizerStyle = this.resizer.style;
+      if (this.layout == 'horizontal') {
+        this.liveView.style.width = '100%';
+        this.liveView.style.height = '50%';
+        container.style['flex-flow'] = 'column';
+        resizerStyle.cursor = 'row-resize';
+        resizerStyle.position = 'absolute';
+        resizerStyle.height = '8px';
+        resizerStyle.width = '100%';
+        resizerStyle.top = '0';
+        resizerStyle.left = '0';
+        resizerStyle.right = '0';
+        resizerStyle.bottom = null;
+      } else {
+        this.liveView.style.height = '100%';
+        this.liveView.style.width = '50%';
+        container.style['flex-flow'] = 'row';
+        resizerStyle.cursor = 'col-resize';
+        resizerStyle.position = 'absolute';
+        resizerStyle.width = '8px';
+        resizerStyle.height = '100%';
+        resizerStyle.top = '0';
+        resizerStyle.left = '0';
+        resizerStyle.right = null;
+        resizerStyle.bottom = '0';
+      }
+    } else {
+      console.log('[updateLayout] unknown layout: ' + this.layout);
+    }
+  }
+
 }
 
-
+var $renderPanel = new RenderPanel();
 initEditor();
-initLayout();

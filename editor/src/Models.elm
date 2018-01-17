@@ -132,10 +132,16 @@ stateToText state =
             ""
 
 
+type EditorLayout
+    = HorizontalLayout
+    | VerticalLayout
+
+
 type alias EditorModel =
     { filePath : String
     , docState : DocState
     , unsavedSeconds : Int
+    , layout : Maybe EditorLayout
     }
 
 
@@ -147,5 +153,5 @@ type EditorMsg
     | OnGetCMContent String
     | OnFileSaved (WebData FsPostResponse)
     | OnCMContentChanged Int
-    | Render
     | OnRendered (WebData RenderResponse)
+    | OnLayoutChange (Maybe EditorLayout)

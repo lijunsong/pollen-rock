@@ -63,6 +63,11 @@ port markContentsDirty : (Int -> msg) -> Sub msg
 port liveView : String -> Cmd msg
 
 
+{-| ask JS to change layout
+-}
+port changeLayout : String -> Cmd msg
+
+
 
 -- Model
 
@@ -82,6 +87,7 @@ init flags =
     ( { filePath = flags.filePath
       , docState = DocSaved
       , unsavedSeconds = 0
+      , layout = Nothing
       }
     , readFile flags.filePath
     )
@@ -131,10 +137,18 @@ update msg model =
                     let
                         { errno, message } =
                             result
+
+                        cmd =
+                            case model.layout of
+                                Nothing ->
+                                    Cmd.none
+
+                                _ ->
+                                    renderFile model.filePath
                     in
                         case errno of
                             0 ->
-                                ( { model | docState = DocSaved }, renderFile model.filePath )
+                                ( { model | docState = DocSaved }, cmd )
 
                             _ ->
                                 ( { model | docState = DocError }, Cmd.none )
@@ -148,9 +162,6 @@ update msg model =
 
         OnCMContentChanged gen ->
             ( { model | docState = DocDirty, unsavedSeconds = 0 }, Cmd.none )
-
-        Render ->
-            ( model, renderFile model.filePath )
 
         OnRendered response ->
             let
@@ -168,6 +179,24 @@ update msg model =
 
                     _ ->
                         ( model, Cmd.none )
+
+        OnLayoutChange layout ->
+            let
+                newModel =
+                    { model | layout = layout }
+
+                cmd =
+                    case layout of
+                        Nothing ->
+                            changeLayout "close"
+
+                        Just HorizontalLayout ->
+                            changeLayout "horizontal"
+
+                        Just VerticalLayout ->
+                            changeLayout "vertical"
+            in
+                ( newModel, Cmd.batch [ cmd, renderFile model.filePath ] )
 
 
 

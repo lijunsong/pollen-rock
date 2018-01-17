@@ -9921,9 +9921,9 @@ var _lijunsong$pollen_rock$Models$DashboardModel = F3(
 	function (a, b, c) {
 		return {route: a, fsListDirectory: b, settings: c};
 	});
-var _lijunsong$pollen_rock$Models$EditorModel = F3(
-	function (a, b, c) {
-		return {filePath: a, docState: b, unsavedSeconds: c};
+var _lijunsong$pollen_rock$Models$EditorModel = F4(
+	function (a, b, c, d) {
+		return {filePath: a, docState: b, unsavedSeconds: c, layout: d};
 	});
 var _lijunsong$pollen_rock$Models$NotFoundRoute = {ctor: 'NotFoundRoute'};
 var _lijunsong$pollen_rock$Models$SettingsRoute = {ctor: 'SettingsRoute'};
@@ -9989,10 +9989,14 @@ var _lijunsong$pollen_rock$Models$DocDirty = {ctor: 'DocDirty'};
 var _lijunsong$pollen_rock$Models$DocError = {ctor: 'DocError'};
 var _lijunsong$pollen_rock$Models$DocSaved = {ctor: 'DocSaved'};
 var _lijunsong$pollen_rock$Models$DocSaving = {ctor: 'DocSaving'};
+var _lijunsong$pollen_rock$Models$VerticalLayout = {ctor: 'VerticalLayout'};
+var _lijunsong$pollen_rock$Models$HorizontalLayout = {ctor: 'HorizontalLayout'};
+var _lijunsong$pollen_rock$Models$OnLayoutChange = function (a) {
+	return {ctor: 'OnLayoutChange', _0: a};
+};
 var _lijunsong$pollen_rock$Models$OnRendered = function (a) {
 	return {ctor: 'OnRendered', _0: a};
 };
-var _lijunsong$pollen_rock$Models$Render = {ctor: 'Render'};
 var _lijunsong$pollen_rock$Models$OnCMContentChanged = function (a) {
 	return {ctor: 'OnCMContentChanged', _0: a};
 };
@@ -10721,6 +10725,32 @@ var _lijunsong$pollen_rock$View_Settings$view = function (settings) {
 };
 
 var _lijunsong$pollen_rock$View$editorView = function (model) {
+	var showRenderText = function () {
+		var _p0 = model.layout;
+		if (_p0.ctor === 'Nothing') {
+			return _elm_lang$html$Html$text('Render');
+		} else {
+			if (_p0._0.ctor === 'HorizontalLayout') {
+				return _elm_lang$html$Html$text('Render[-]');
+			} else {
+				return _elm_lang$html$Html$text('Render[|]');
+			}
+		}
+	}();
+	var clickLayoutMsg = _lijunsong$pollen_rock$Models$OnLayoutChange(
+		function () {
+			var _p1 = model.layout;
+			if (_p1.ctor === 'Nothing') {
+				return _elm_lang$core$Maybe$Just(_lijunsong$pollen_rock$Models$HorizontalLayout);
+			} else {
+				if (_p1._0.ctor === 'HorizontalLayout') {
+					return _elm_lang$core$Maybe$Just(_lijunsong$pollen_rock$Models$VerticalLayout);
+				} else {
+					return _elm_lang$core$Maybe$Nothing;
+				}
+			}
+		}());
+	var _p2 = A2(_elm_lang$core$Debug$log, 'next layout', clickLayoutMsg);
 	var state = _lijunsong$pollen_rock$Models$stateToText(model.docState);
 	return A3(
 		_lijunsong$pollen_rock$View_Common$makeHeader,
@@ -10787,13 +10817,13 @@ var _lijunsong$pollen_rock$View$editorView = function (model) {
 									_0: _elm_lang$html$Html_Attributes$class('clickable action render'),
 									_1: {
 										ctor: '::',
-										_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$Render),
+										_0: _elm_lang$html$Html_Events$onClick(clickLayoutMsg),
 										_1: {ctor: '[]'}
 									}
 								},
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html$text('Render'),
+									_0: showRenderText,
 									_1: {ctor: '[]'}
 								}),
 							_1: {
@@ -10823,10 +10853,10 @@ var _lijunsong$pollen_rock$View$editorView = function (model) {
 		});
 };
 var _lijunsong$pollen_rock$View$dashboardView = function (model) {
-	var _p0 = model.route;
-	switch (_p0.ctor) {
+	var _p3 = model.route;
+	switch (_p3.ctor) {
 		case 'DashboardRoute':
-			var _p1 = _p0._0;
+			var _p4 = _p3._0;
 			var right = {
 				ctor: '::',
 				_0: A2(
@@ -10867,7 +10897,7 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 					}),
 				_1: {ctor: '[]'}
 			};
-			var title = _lijunsong$pollen_rock$View_Common$breadcrumb(_p1);
+			var title = _lijunsong$pollen_rock$View_Common$breadcrumb(_p4);
 			var header = A3(_lijunsong$pollen_rock$View_Common$makeHeader, title, left, right);
 			return A2(
 				_elm_lang$html$Html$div,
@@ -10877,7 +10907,7 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 					_0: header,
 					_1: {
 						ctor: '::',
-						_0: A2(_lijunsong$pollen_rock$View_Dashboard$view, _p1, model),
+						_0: A2(_lijunsong$pollen_rock$View_Dashboard$view, _p4, model),
 						_1: {ctor: '[]'}
 					}
 				});
@@ -10992,7 +11022,7 @@ var _lijunsong$pollen_rock$Editor$readFile = function (path) {
 var _lijunsong$pollen_rock$Editor$init = function (flags) {
 	return {
 		ctor: '_Tuple2',
-		_0: {filePath: flags.filePath, docState: _lijunsong$pollen_rock$Models$DocSaved, unsavedSeconds: 0},
+		_0: {filePath: flags.filePath, docState: _lijunsong$pollen_rock$Models$DocSaved, unsavedSeconds: 0, layout: _elm_lang$core$Maybe$Nothing},
 		_1: _lijunsong$pollen_rock$Editor$readFile(flags.filePath)
 	};
 };
@@ -11028,6 +11058,11 @@ var _lijunsong$pollen_rock$Editor$subscriptions = function (model) {
 };
 var _lijunsong$pollen_rock$Editor$liveView = _elm_lang$core$Native_Platform.outgoingPort(
 	'liveView',
+	function (v) {
+		return v;
+	});
+var _lijunsong$pollen_rock$Editor$changeLayout = _elm_lang$core$Native_Platform.outgoingPort(
+	'changeLayout',
 	function (v) {
 		return v;
 	});
@@ -11112,20 +11147,28 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					_1: A2(_lijunsong$pollen_rock$Editor$writeFile, model.filePath, _p0._0)
 				};
 			case 'OnFileSaved':
-				var _p7 = _p0._0;
-				var _p3 = _p7;
+				var _p8 = _p0._0;
+				var _p3 = _p8;
 				if (_p3.ctor === 'Success') {
-					var _p4 = _p3._0;
-					var errno = _p4.errno;
-					var message = _p4.message;
-					var _p5 = errno;
-					if (_p5 === 0) {
+					var cmd = function () {
+						var _p4 = model.layout;
+						if (_p4.ctor === 'Nothing') {
+							return _elm_lang$core$Platform_Cmd$none;
+						} else {
+							return _lijunsong$pollen_rock$Editor$renderFile(model.filePath);
+						}
+					}();
+					var _p5 = _p3._0;
+					var errno = _p5.errno;
+					var message = _p5.message;
+					var _p6 = errno;
+					if (_p6 === 0) {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
 								{docState: _lijunsong$pollen_rock$Models$DocSaved}),
-							_1: _lijunsong$pollen_rock$Editor$renderFile(model.filePath)
+							_1: cmd
 						};
 					} else {
 						return {
@@ -11137,7 +11180,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 						};
 					}
 				} else {
-					var _p6 = A2(_elm_lang$core$Debug$log, 'response', _p7);
+					var _p7 = A2(_elm_lang$core$Debug$log, 'response', _p8);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -11154,24 +11197,18 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 						{docState: _lijunsong$pollen_rock$Models$DocDirty, unsavedSeconds: 0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			case 'Render':
-				return {
-					ctor: '_Tuple2',
-					_0: model,
-					_1: _lijunsong$pollen_rock$Editor$renderFile(model.filePath)
-				};
-			default:
-				var _p11 = _p0._0;
-				var _p8 = A2(_elm_lang$core$Debug$log, 'render response', _p11);
-				var _p9 = _p11;
-				if (_p9.ctor === 'Success') {
-					var _p10 = _p9._0;
-					if (_p10.ctor === 'RenderSuccess') {
+			case 'OnRendered':
+				var _p12 = _p0._0;
+				var _p9 = A2(_elm_lang$core$Debug$log, 'render response', _p12);
+				var _p10 = _p12;
+				if (_p10.ctor === 'Success') {
+					var _p11 = _p10._0;
+					if (_p11.ctor === 'RenderSuccess') {
 						return {
 							ctor: '_Tuple2',
 							_0: model,
 							_1: _lijunsong$pollen_rock$Editor$liveView(
-								A2(_elm_lang$core$Basics_ops['++'], '/', _p10._0))
+								A2(_elm_lang$core$Basics_ops['++'], '/', _p11._0))
 						};
 					} else {
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
@@ -11179,6 +11216,37 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 				} else {
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
+			default:
+				var _p14 = _p0._0;
+				var cmd = function () {
+					var _p13 = _p14;
+					if (_p13.ctor === 'Nothing') {
+						return _lijunsong$pollen_rock$Editor$changeLayout('close');
+					} else {
+						if (_p13._0.ctor === 'HorizontalLayout') {
+							return _lijunsong$pollen_rock$Editor$changeLayout('horizontal');
+						} else {
+							return _lijunsong$pollen_rock$Editor$changeLayout('vertical');
+						}
+					}
+				}();
+				var newModel = _elm_lang$core$Native_Utils.update(
+					model,
+					{layout: _p14});
+				return {
+					ctor: '_Tuple2',
+					_0: newModel,
+					_1: _elm_lang$core$Platform_Cmd$batch(
+						{
+							ctor: '::',
+							_0: cmd,
+							_1: {
+								ctor: '::',
+								_0: _lijunsong$pollen_rock$Editor$renderFile(model.filePath),
+								_1: {ctor: '[]'}
+							}
+						})
+				};
 		}
 	});
 var _lijunsong$pollen_rock$Editor$main = _elm_lang$html$Html$programWithFlags(

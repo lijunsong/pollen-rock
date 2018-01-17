@@ -4,13 +4,21 @@
     flex-flow: column;
     height: 100%;
 }
+#editorView {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-flow: column;
+}
 #editorContainer {
-    flex: 2;
     overflow: auto;
     width: 600px;
     margin: 0 auto;
     --border-right: 1px solid #EEE;
     --box-shadow: 0px 0px 6px 1px #EEE;
+}
+.hidden {
+    display: none;
 }
 .CodeMirror {
     font-family: 'sf mono', 'Source Code Pro';
@@ -66,7 +74,7 @@
 
 /* Resizer and rendering panel */
 #liveView {
-    height: 40%;
+    xheight: 40%;
     position: relative;
     overflow: auto;  /* So iframe can be treated as overflow */
     -webkit-overflow-scrolling: touch;
@@ -78,7 +86,6 @@
     background-color: white;
 }
 #resizer {
-    height: 8px;
     background-color: #AAA;
     box-shadow: 0px 0px 1px 1px #b3b3b3;
     z-index: 10;
@@ -86,8 +93,8 @@
 #listener {
     position: absolute;
     top: 8px;
-    left: 0;
+    left: 8px;
     right: 0;
-    bottom: 0px;
+    bottom: 0;
     z-index: -1;
 }
