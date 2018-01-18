@@ -69,6 +69,37 @@ type RenderResponse
     | RenderFailure Int
 
 
+{-| Source type that the editor should support
+-}
+type SourceCodeMode
+    = Pollen String
+    | Racket
+    | Xml
+    | Text
+
+
+sourceType : String -> SourceCodeMode
+sourceType filePath =
+    let
+        match list =
+            case list of
+                [] ->
+                    Text
+
+                ( s, mode ) :: tl ->
+                    if String.endsWith s filePath then
+                        mode
+                    else
+                        match tl
+    in
+        match
+            [ ( ".pm", Pollen "pm" )
+            , ( ".p", Pollen "p" )
+            , ( ".html", Xml )
+            , ( ".rkt", Racket )
+            ]
+
+
 {-| CodeMirror settings
 -}
 type alias Settings =

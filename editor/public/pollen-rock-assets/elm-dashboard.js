@@ -9975,6 +9975,57 @@ var _lijunsong$pollen_rock$Models$RenderFailure = function (a) {
 var _lijunsong$pollen_rock$Models$RenderSuccess = function (a) {
 	return {ctor: 'RenderSuccess', _0: a};
 };
+var _lijunsong$pollen_rock$Models$Text = {ctor: 'Text'};
+var _lijunsong$pollen_rock$Models$Xml = {ctor: 'Xml'};
+var _lijunsong$pollen_rock$Models$Racket = {ctor: 'Racket'};
+var _lijunsong$pollen_rock$Models$Pollen = function (a) {
+	return {ctor: 'Pollen', _0: a};
+};
+var _lijunsong$pollen_rock$Models$sourceType = function (filePath) {
+	var match = function (list) {
+		match:
+		while (true) {
+			var _p2 = list;
+			if (_p2.ctor === '[]') {
+				return _lijunsong$pollen_rock$Models$Text;
+			} else {
+				if (A2(_elm_lang$core$String$endsWith, _p2._0._0, filePath)) {
+					return _p2._0._1;
+				} else {
+					var _v3 = _p2._1;
+					list = _v3;
+					continue match;
+				}
+			}
+		}
+	};
+	return match(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: '.pm',
+				_1: _lijunsong$pollen_rock$Models$Pollen('pm')
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: '.p',
+					_1: _lijunsong$pollen_rock$Models$Pollen('p')
+				},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: '.html', _1: _lijunsong$pollen_rock$Models$Xml},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: '.rkt', _1: _lijunsong$pollen_rock$Models$Racket},
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+};
 var _lijunsong$pollen_rock$Models$OnSettingsLineWrappingChange = {ctor: 'OnSettingsLineWrappingChange'};
 var _lijunsong$pollen_rock$Models$OnSettingsLineNumberChange = {ctor: 'OnSettingsLineNumberChange'};
 var _lijunsong$pollen_rock$Models$OnListDirectory = function (a) {

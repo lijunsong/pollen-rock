@@ -10,7 +10,6 @@ function getFilePath() {
   return path;
 }
 
-
 function initEditor() {
   var $div = document.getElementById('control');
   var app = Elm.Editor.embed($div, {
@@ -25,6 +24,13 @@ function initEditor() {
   // Elm calls initDoc to set CM content
   app.ports.initDoc.subscribe(function(text) {
     $editor.setValue(text);
+    $editor.refresh();
+  });
+  // Elm calls CodeMirror to change option
+  app.ports.setCMOption.subscribe(function(arg) {
+    var [option, value] = arg;
+    console.log(`set ${option} to ${value}`);
+    $editor.setOption(option, value);
     $editor.refresh();
   });
   // Elm calls askCMContent to get CM content
@@ -134,7 +140,7 @@ class RenderPanel {
         this.liveView.style.height = '50%';
         container.style['flex-flow'] = 'column';
         resizerStyle.cursor = 'row-resize';
-        resizerStyle.position = 'absolute';
+        resizerStyle.position = 'sticky';
         resizerStyle.height = '8px';
         resizerStyle.width = '100%';
         resizerStyle.top = '0';
@@ -146,7 +152,7 @@ class RenderPanel {
         this.liveView.style.width = '50%';
         container.style['flex-flow'] = 'row';
         resizerStyle.cursor = 'col-resize';
-        resizerStyle.position = 'absolute';
+        resizerStyle.position = 'sticky';
         resizerStyle.width = '8px';
         resizerStyle.height = '100%';
         resizerStyle.top = '0';

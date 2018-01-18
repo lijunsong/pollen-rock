@@ -9975,6 +9975,57 @@ var _lijunsong$pollen_rock$Models$RenderFailure = function (a) {
 var _lijunsong$pollen_rock$Models$RenderSuccess = function (a) {
 	return {ctor: 'RenderSuccess', _0: a};
 };
+var _lijunsong$pollen_rock$Models$Text = {ctor: 'Text'};
+var _lijunsong$pollen_rock$Models$Xml = {ctor: 'Xml'};
+var _lijunsong$pollen_rock$Models$Racket = {ctor: 'Racket'};
+var _lijunsong$pollen_rock$Models$Pollen = function (a) {
+	return {ctor: 'Pollen', _0: a};
+};
+var _lijunsong$pollen_rock$Models$sourceType = function (filePath) {
+	var match = function (list) {
+		match:
+		while (true) {
+			var _p2 = list;
+			if (_p2.ctor === '[]') {
+				return _lijunsong$pollen_rock$Models$Text;
+			} else {
+				if (A2(_elm_lang$core$String$endsWith, _p2._0._0, filePath)) {
+					return _p2._0._1;
+				} else {
+					var _v3 = _p2._1;
+					list = _v3;
+					continue match;
+				}
+			}
+		}
+	};
+	return match(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: '.pm',
+				_1: _lijunsong$pollen_rock$Models$Pollen('pm')
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: '.p',
+					_1: _lijunsong$pollen_rock$Models$Pollen('p')
+				},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: '.html', _1: _lijunsong$pollen_rock$Models$Xml},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: '.rkt', _1: _lijunsong$pollen_rock$Models$Racket},
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
+};
 var _lijunsong$pollen_rock$Models$OnSettingsLineWrappingChange = {ctor: 'OnSettingsLineWrappingChange'};
 var _lijunsong$pollen_rock$Models$OnSettingsLineNumberChange = {ctor: 'OnSettingsLineNumberChange'};
 var _lijunsong$pollen_rock$Models$OnListDirectory = function (a) {
@@ -11066,25 +11117,57 @@ var _lijunsong$pollen_rock$Editor$changeLayout = _elm_lang$core$Native_Platform.
 	function (v) {
 		return v;
 	});
+var _lijunsong$pollen_rock$Editor$setCMOption = _elm_lang$core$Native_Platform.outgoingPort(
+	'setCMOption',
+	function (v) {
+		return [v._0, v._1];
+	});
 var _lijunsong$pollen_rock$Editor$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
 		switch (_p0.ctor) {
 			case 'OnFileRead':
-				var _p1 = _p0._0;
-				_v1_2:
+				var fileMode = function () {
+					var _p1 = _lijunsong$pollen_rock$Models$sourceType(model.filePath);
+					switch (_p1.ctor) {
+						case 'Pollen':
+							return 'pollenMixed';
+						case 'Xml':
+							return 'xml';
+						case 'Racket':
+							return 'scheme';
+						default:
+							return 'null';
+					}
+				}();
+				var initEditor = function (contents) {
+					return _elm_lang$core$Platform_Cmd$batch(
+						{
+							ctor: '::',
+							_0: _lijunsong$pollen_rock$Editor$initDoc(contents),
+							_1: {
+								ctor: '::',
+								_0: _lijunsong$pollen_rock$Editor$setCMOption(
+									{ctor: '_Tuple2', _0: 'mode', _1: fileMode}),
+								_1: {ctor: '[]'}
+							}
+						});
+				};
+				var _p2 = _p0._0;
+				_v2_2:
 				do {
-					if (_p1.ctor === 'Success') {
-						switch (_p1._0.ctor) {
+					if (_p2.ctor === 'Success') {
+						switch (_p2._0.ctor) {
 							case 'FileContents':
 								return {
 									ctor: '_Tuple2',
 									_0: _elm_lang$core$Native_Utils.update(
 										model,
 										{docState: _lijunsong$pollen_rock$Models$DocSaved}),
-									_1: _lijunsong$pollen_rock$Editor$initDoc(_p1._0._0)
+									_1: initEditor(_p2._0._0)
 								};
 							case 'FsError':
+								var _p3 = A2(_elm_lang$core$Debug$log, 'code', _p2._0._0);
 								return {
 									ctor: '_Tuple2',
 									_0: _elm_lang$core$Native_Utils.update(
@@ -11093,10 +11176,10 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 									_1: _elm_lang$core$Platform_Cmd$none
 								};
 							default:
-								break _v1_2;
+								break _v2_2;
 						}
 					} else {
-						break _v1_2;
+						break _v2_2;
 					}
 				} while(false);
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
@@ -11113,8 +11196,8 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					_1: _elm_lang$navigation$Navigation$load('/settings')
 				};
 			case 'OnTick':
-				var _p2 = model.docState;
-				if (_p2.ctor === 'DocDirty') {
+				var _p4 = model.docState;
+				if (_p4.ctor === 'DocDirty') {
 					return (_elm_lang$core$Native_Utils.cmp(model.unsavedSeconds, _lijunsong$pollen_rock$Editor$maxUnsavedSeconds) > -1) ? {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -11147,22 +11230,22 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					_1: A2(_lijunsong$pollen_rock$Editor$writeFile, model.filePath, _p0._0)
 				};
 			case 'OnFileSaved':
-				var _p8 = _p0._0;
-				var _p3 = _p8;
-				if (_p3.ctor === 'Success') {
+				var _p10 = _p0._0;
+				var _p5 = _p10;
+				if (_p5.ctor === 'Success') {
 					var cmd = function () {
-						var _p4 = model.layout;
-						if (_p4.ctor === 'Nothing') {
+						var _p6 = model.layout;
+						if (_p6.ctor === 'Nothing') {
 							return _elm_lang$core$Platform_Cmd$none;
 						} else {
 							return _lijunsong$pollen_rock$Editor$renderFile(model.filePath);
 						}
 					}();
-					var _p5 = _p3._0;
-					var errno = _p5.errno;
-					var message = _p5.message;
-					var _p6 = errno;
-					if (_p6 === 0) {
+					var _p7 = _p5._0;
+					var errno = _p7.errno;
+					var message = _p7.message;
+					var _p8 = errno;
+					if (_p8 === 0) {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -11180,7 +11263,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 						};
 					}
 				} else {
-					var _p7 = A2(_elm_lang$core$Debug$log, 'response', _p8);
+					var _p9 = A2(_elm_lang$core$Debug$log, 'response', _p10);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -11198,17 +11281,17 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'OnRendered':
-				var _p12 = _p0._0;
-				var _p9 = A2(_elm_lang$core$Debug$log, 'render response', _p12);
-				var _p10 = _p12;
-				if (_p10.ctor === 'Success') {
-					var _p11 = _p10._0;
-					if (_p11.ctor === 'RenderSuccess') {
+				var _p14 = _p0._0;
+				var _p11 = A2(_elm_lang$core$Debug$log, 'render response', _p14);
+				var _p12 = _p14;
+				if (_p12.ctor === 'Success') {
+					var _p13 = _p12._0;
+					if (_p13.ctor === 'RenderSuccess') {
 						return {
 							ctor: '_Tuple2',
 							_0: model,
 							_1: _lijunsong$pollen_rock$Editor$liveView(
-								A2(_elm_lang$core$Basics_ops['++'], '/', _p11._0))
+								A2(_elm_lang$core$Basics_ops['++'], '/', _p13._0))
 						};
 					} else {
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
@@ -11217,13 +11300,13 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			default:
-				var _p14 = _p0._0;
+				var _p16 = _p0._0;
 				var cmd = function () {
-					var _p13 = _p14;
-					if (_p13.ctor === 'Nothing') {
+					var _p15 = _p16;
+					if (_p15.ctor === 'Nothing') {
 						return _lijunsong$pollen_rock$Editor$changeLayout('close');
 					} else {
-						if (_p13._0.ctor === 'HorizontalLayout') {
+						if (_p15._0.ctor === 'HorizontalLayout') {
 							return _lijunsong$pollen_rock$Editor$changeLayout('horizontal');
 						} else {
 							return _lijunsong$pollen_rock$Editor$changeLayout('vertical');
@@ -11232,7 +11315,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 				}();
 				var newModel = _elm_lang$core$Native_Utils.update(
 					model,
-					{layout: _p14});
+					{layout: _p16});
 				return {
 					ctor: '_Tuple2',
 					_0: newModel,

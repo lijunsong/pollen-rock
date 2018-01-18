@@ -68,6 +68,11 @@ port liveView : String -> Cmd msg
 port changeLayout : String -> Cmd msg
 
 
+{-| ask JS to update code mirror option
+-}
+port setCMOption : ( String, String ) -> Cmd msg
+
+
 
 -- Model
 
@@ -101,15 +106,40 @@ update : EditorMsg -> EditorModel -> ( EditorModel, Cmd EditorMsg )
 update msg model =
     case msg of
         OnFileRead response ->
-            case response of
-                RemoteData.Success (FileContents s) ->
-                    ( { model | docState = DocSaved }, initDoc s )
+            let
+                fileMode =
+                    case sourceType model.filePath of
+                        Pollen _ ->
+                            "pollenMixed"
 
-                RemoteData.Success (FsError code) ->
-                    ( { model | docState = DocError }, Cmd.none )
+                        Xml ->
+                            "xml"
 
-                _ ->
-                    ( model, Cmd.none )
+                        Racket ->
+                            "scheme"
+
+                        _ ->
+                            "null"
+
+                initEditor contents =
+                    Cmd.batch
+                        [ initDoc contents
+                        , setCMOption ( "mode", fileMode )
+                        ]
+            in
+                case response of
+                    RemoteData.Success (FileContents s) ->
+                        ( { model | docState = DocSaved }, initEditor s )
+
+                    RemoteData.Success (FsError code) ->
+                        let
+                            _ =
+                                Debug.log "code" code
+                        in
+                            ( { model | docState = DocError }, Cmd.none )
+
+                    _ ->
+                        ( model, Cmd.none )
 
         OnEditorGoBack ->
             ( model, Navigation.back 1 )
