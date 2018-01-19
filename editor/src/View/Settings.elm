@@ -27,8 +27,14 @@ optionGroup current options msgs =
                             [ ( "settingsOption", True )
                             , ( "active", option == current )
                             ]
+
+                    attr =
+                        if option == current then
+                            [ cls ]
+                        else
+                            [ onClick msg, cls ]
                 in
-                    span [ onClick msg, cls ] [ text (toString option) ]
+                    span attr [ text (toString option) ]
             )
             options
             msgs

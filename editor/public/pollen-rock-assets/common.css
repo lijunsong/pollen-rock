@@ -3,14 +3,16 @@
     margin: 0;
     padding: 0;
 }
-html {
-    font-family: 'sf mono', 'Source Code Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-    font-size: 15px;
+html, .CodeMirror {
+    font-family: 'sf mono', 'Source Code Pro', monospace;
+    font-size: 14px;
     height: 100%;
+    width: 100%;
 }
 
 body {
     height: 100%;
+    width: 100%;
     background-color: #f7f7f7;
     color: #352f26;
 }
@@ -27,9 +29,9 @@ a:hover {
 .header {
     display: flex;
     flex-flow: column;
-    margin: 1rem 1rem 0 1rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #DDD;
+    padding: 1rem;
 }
 .header, .header a {
     color: #d2d0cd;
@@ -64,8 +66,7 @@ a:hover {
     padding: 0.2rem 0.1rem 0.2rem 0.1rem;
 }
 .action:hover {
-    background-color: #352f26;
-    color: #FFF;
+    font-weight: bold;
 }
 
 /*breadcrumb*/
@@ -94,4 +95,20 @@ ul.breadcrumb li:not(:first-child):before {
 .settingsOption:not(.active) {
     cursor: pointer;
     opacity: 0.1;
+}
+
+@media (min-width: 374px) {
+    html, .CodeMirror {
+        font-size: 15px;
+    }
+}
+@media (min-width: 575px) {
+    html, .CodeMirror {
+        font-size: 16px;
+    }
+}
+@media (min-width: 800px) {
+    html, .CodeMirror {
+        font-size: 17px;
+    }
 }

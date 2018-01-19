@@ -9,19 +9,17 @@
     overflow: auto;
     display: flex;
     flex-flow: column;
+    width: 100%;
 }
 #editorContainer {
     overflow: auto;
-    width: 600px;
+    width: 90%;
     margin: 0 auto;
-    --border-right: 1px solid #EEE;
-    --box-shadow: 0px 0px 6px 1px #EEE;
 }
 .hidden {
     display: none;
 }
 .CodeMirror {
-    font-family: 'sf mono', 'Source Code Pro';
     height: 100%;
     color: #352f26;
     background-color: #f7f7f7;
@@ -64,13 +62,6 @@
 .docState {
     color: #d2d0cd;
 }
-.action {
-    padding: 0.2rem 0.1rem 0.2rem 0.1rem;
-}
-.action:hover {
-    background-color: #352f26;
-    color: #FFF;
-}
 
 /* Resizer and rendering panel */
 #liveView {
@@ -97,4 +88,21 @@
     right: 0;
     bottom: 0;
     z-index: -1;
+}
+
+@media (min-width: 374px) {
+    #editorContainer {
+        width: 90%;
+    }
+}
+@media (min-width: 575px) {
+    #editorContainer {
+        width: 80%;
+    }
+}
+@media (min-width: 800px) {
+    #editorContainer {
+        width: 70%;
+        max-width: 600px;
+    }
 }

@@ -32,7 +32,7 @@ dashboardView model =
                 header =
                     View.Common.makeHeader title left right
             in
-                div []
+                div [ class "container" ]
                     [ header
                     , View.Dashboard.view path model
                     ]
@@ -50,7 +50,7 @@ dashboardView model =
                 header =
                     View.Common.makeHeader (text "Settings") left right
             in
-                div []
+                div [ class "container" ]
                     [ header
                     , div [ class "containerBody" ]
                         [ View.Settings.view model.settings ]
@@ -67,7 +67,7 @@ dashboardView model =
                 header =
                     View.Common.makeHeader (text "Dashboard") left right
             in
-                div []
+                div [ class "container" ]
                     [ header
                     , text "unknown"
                     ]

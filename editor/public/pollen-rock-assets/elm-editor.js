@@ -10662,17 +10662,22 @@ var _lijunsong$pollen_rock$View_Settings$optionGroup = F3(
 									_1: {ctor: '[]'}
 								}
 							});
+						var attr = _elm_lang$core$Native_Utils.eq(option, current) ? {
+							ctor: '::',
+							_0: cls,
+							_1: {ctor: '[]'}
+						} : {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(msg),
+							_1: {
+								ctor: '::',
+								_0: cls,
+								_1: {ctor: '[]'}
+							}
+						};
 						return A2(
 							_elm_lang$html$Html$span,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(msg),
-								_1: {
-									ctor: '::',
-									_0: cls,
-									_1: {ctor: '[]'}
-								}
-							},
+							attr,
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html$text(
@@ -10952,7 +10957,11 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 			var header = A3(_lijunsong$pollen_rock$View_Common$makeHeader, title, left, right);
 			return A2(
 				_elm_lang$html$Html$div,
-				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('container'),
+					_1: {ctor: '[]'}
+				},
 				{
 					ctor: '::',
 					_0: header,
@@ -10991,7 +11000,11 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 				right);
 			return A2(
 				_elm_lang$html$Html$div,
-				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('container'),
+					_1: {ctor: '[]'}
+				},
 				{
 					ctor: '::',
 					_0: header,
@@ -11022,7 +11035,11 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 				right);
 			return A2(
 				_elm_lang$html$Html$div,
-				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('container'),
+					_1: {ctor: '[]'}
+				},
 				{
 					ctor: '::',
 					_0: header,
