@@ -9913,9 +9913,9 @@ var _lijunsong$pollen_rock$Models$FsPostResponse = F2(
 	function (a, b) {
 		return {errno: a, message: b};
 	});
-var _lijunsong$pollen_rock$Models$Settings = F2(
-	function (a, b) {
-		return {lineNumbers: a, lineWrapping: b};
+var _lijunsong$pollen_rock$Models$JSSettings = F3(
+	function (a, b, c) {
+		return {lineNumbers: a, lineWrapping: b, font: c};
 	});
 var _lijunsong$pollen_rock$Models$DashboardModel = F3(
 	function (a, b, c) {
@@ -10026,8 +10026,49 @@ var _lijunsong$pollen_rock$Models$sourceType = function (filePath) {
 			}
 		});
 };
-var _lijunsong$pollen_rock$Models$OnSettingsLineWrappingChange = {ctor: 'OnSettingsLineWrappingChange'};
-var _lijunsong$pollen_rock$Models$OnSettingsLineNumberChange = {ctor: 'OnSettingsLineNumberChange'};
+var _lijunsong$pollen_rock$Models$ValInvalid = {ctor: 'ValInvalid'};
+var _lijunsong$pollen_rock$Models$ValNumber = function (a) {
+	return {ctor: 'ValNumber', _0: a};
+};
+var _lijunsong$pollen_rock$Models$ValString = function (a) {
+	return {ctor: 'ValString', _0: a};
+};
+var _lijunsong$pollen_rock$Models$ValBool = function (a) {
+	return {ctor: 'ValBool', _0: a};
+};
+var _lijunsong$pollen_rock$Models$toSettingsDict = function (jsSettings) {
+	return _elm_lang$core$Dict$fromList(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'lineNumbers',
+				_1: _lijunsong$pollen_rock$Models$ValBool(jsSettings.lineNumbers)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'lineWrapping',
+					_1: _lijunsong$pollen_rock$Models$ValBool(jsSettings.lineWrapping)
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'font',
+						_1: _lijunsong$pollen_rock$Models$ValString(jsSettings.font)
+					},
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _lijunsong$pollen_rock$Models$OnResetSettings = {ctor: 'OnResetSettings'};
+var _lijunsong$pollen_rock$Models$OnSettingsChange = F2(
+	function (a, b) {
+		return {ctor: 'OnSettingsChange', _0: a, _1: b};
+	});
 var _lijunsong$pollen_rock$Models$OnListDirectory = function (a) {
 	return {ctor: 'OnListDirectory', _0: a};
 };
@@ -10635,8 +10676,32 @@ var _lijunsong$pollen_rock$View_Dashboard$view = F2(
 			});
 	});
 
-var _lijunsong$pollen_rock$View_Settings$optionGroup = F3(
-	function (current, options, msgs) {
+var _lijunsong$pollen_rock$View_Settings$toValNumber = function (s) {
+	var _p0 = _elm_lang$core$String$toFloat(s);
+	if (_p0.ctor === 'Ok') {
+		return _lijunsong$pollen_rock$Models$ValNumber(_p0._0);
+	} else {
+		return _lijunsong$pollen_rock$Models$ValInvalid;
+	}
+};
+var _lijunsong$pollen_rock$View_Settings$inputOptionGroup = F2(
+	function (currentVal, msg) {
+		return A2(
+			_elm_lang$html$Html$input,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$placeholder(
+					_elm_lang$core$Basics$toString(currentVal)),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onInput(msg),
+					_1: {ctor: '[]'}
+				}
+			},
+			{ctor: '[]'});
+	});
+var _lijunsong$pollen_rock$View_Settings$selectOptionGroup = F3(
+	function (allVals, name, currentVal) {
 		return A2(
 			_elm_lang$html$Html$span,
 			{
@@ -10644,138 +10709,184 @@ var _lijunsong$pollen_rock$View_Settings$optionGroup = F3(
 				_0: _elm_lang$html$Html_Attributes$class('settingsOptions'),
 				_1: {ctor: '[]'}
 			},
-			A3(
-				_elm_lang$core$List$map2,
-				F2(
-					function (option, msg) {
-						var cls = _elm_lang$html$Html_Attributes$classList(
-							{
-								ctor: '::',
-								_0: {ctor: '_Tuple2', _0: 'settingsOption', _1: true},
-								_1: {
-									ctor: '::',
-									_0: {
-										ctor: '_Tuple2',
-										_0: 'active',
-										_1: _elm_lang$core$Native_Utils.eq(option, current)
-									},
-									_1: {ctor: '[]'}
-								}
-							});
-						var attr = _elm_lang$core$Native_Utils.eq(option, current) ? {
+			A2(
+				_elm_lang$core$List$map,
+				function (v) {
+					var txt = function () {
+						var _p1 = v;
+						switch (_p1.ctor) {
+							case 'ValBool':
+								return _elm_lang$core$Basics$toString(_p1._0);
+							case 'ValString':
+								return _elm_lang$core$Basics$toString(_p1._0);
+							case 'ValNumber':
+								return _elm_lang$core$Basics$toString(_p1._0);
+							default:
+								return 'Invalid';
+						}
+					}();
+					var cls = _elm_lang$html$Html_Attributes$classList(
+						{
 							ctor: '::',
-							_0: cls,
-							_1: {ctor: '[]'}
-						} : {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Events$onClick(msg),
+							_0: {ctor: '_Tuple2', _0: 'settingsOption', _1: true},
 							_1: {
 								ctor: '::',
-								_0: cls,
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'active',
+									_1: _elm_lang$core$Native_Utils.eq(v, currentVal)
+								},
 								_1: {ctor: '[]'}
 							}
-						};
-						return A2(
-							_elm_lang$html$Html$span,
-							attr,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(
-									_elm_lang$core$Basics$toString(option)),
-								_1: {ctor: '[]'}
-							});
-					}),
-				options,
-				msgs));
+						});
+					var attr = _elm_lang$core$Native_Utils.eq(v, currentVal) ? {
+						ctor: '::',
+						_0: cls,
+						_1: {ctor: '[]'}
+					} : {
+						ctor: '::',
+						_0: cls,
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(
+								A2(_lijunsong$pollen_rock$Models$OnSettingsChange, name, v)),
+							_1: {ctor: '[]'}
+						}
+					};
+					return A2(
+						_elm_lang$html$Html$span,
+						attr,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(txt),
+							_1: {ctor: '[]'}
+						});
+				},
+				allVals));
 	});
 var _lijunsong$pollen_rock$View_Settings$boolOptionGroup = F2(
-	function (current, msg) {
+	function (name, current) {
 		return A3(
-			_lijunsong$pollen_rock$View_Settings$optionGroup,
-			current,
+			_lijunsong$pollen_rock$View_Settings$selectOptionGroup,
 			{
 				ctor: '::',
-				_0: true,
+				_0: _lijunsong$pollen_rock$Models$ValBool(true),
 				_1: {
 					ctor: '::',
-					_0: false,
+					_0: _lijunsong$pollen_rock$Models$ValBool(false),
 					_1: {ctor: '[]'}
 				}
 			},
-			{
-				ctor: '::',
-				_0: msg,
-				_1: {
-					ctor: '::',
-					_0: msg,
-					_1: {ctor: '[]'}
-				}
-			});
+			name,
+			_lijunsong$pollen_rock$Models$ValBool(current));
 	});
-var _lijunsong$pollen_rock$View_Settings$tabulate = function (settings) {
+var _lijunsong$pollen_rock$View_Settings$tabulateSettingItem = function (_p2) {
+	var _p3 = _p2;
+	var _p7 = _p3._0;
+	var valueView = function () {
+		var _p4 = _p3._1;
+		switch (_p4.ctor) {
+			case 'ValBool':
+				return A2(_lijunsong$pollen_rock$View_Settings$boolOptionGroup, _p7, _p4._0);
+			case 'ValString':
+				return A2(
+					_lijunsong$pollen_rock$View_Settings$inputOptionGroup,
+					_p4._0,
+					function (_p5) {
+						return A2(
+							_lijunsong$pollen_rock$Models$OnSettingsChange,
+							_p7,
+							_lijunsong$pollen_rock$Models$ValString(_p5));
+					});
+			case 'ValNumber':
+				return A2(
+					_lijunsong$pollen_rock$View_Settings$inputOptionGroup,
+					_elm_lang$core$Basics$toString(_p4._0),
+					function (_p6) {
+						return A2(
+							_lijunsong$pollen_rock$Models$OnSettingsChange,
+							_p7,
+							_lijunsong$pollen_rock$View_Settings$toValNumber(_p6));
+					});
+			default:
+				return _elm_lang$html$Html$text(
+					A2(_elm_lang$core$Basics_ops['++'], 'Internal Error on ', _p7));
+		}
+	}();
 	return A2(
-		_elm_lang$html$Html$table,
+		_elm_lang$html$Html$tr,
 		{ctor: '[]'},
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$html$Html$tr,
+				_elm_lang$html$Html$td,
 				{ctor: '[]'},
 				{
 					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$td,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('lineNumbers'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$td,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: A2(_lijunsong$pollen_rock$View_Settings$boolOptionGroup, settings.lineNumbers, _lijunsong$pollen_rock$Models$OnSettingsLineNumberChange),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
+					_0: _elm_lang$html$Html$text(_p7),
+					_1: {ctor: '[]'}
 				}),
 			_1: {
 				ctor: '::',
 				_0: A2(
-					_elm_lang$html$Html$tr,
+					_elm_lang$html$Html$td,
 					{ctor: '[]'},
 					{
 						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$td,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('lineWrapping'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$td,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: A2(_lijunsong$pollen_rock$View_Settings$boolOptionGroup, settings.lineWrapping, _lijunsong$pollen_rock$Models$OnSettingsLineWrappingChange),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
+						_0: valueView,
+						_1: {ctor: '[]'}
 					}),
 				_1: {ctor: '[]'}
 			}
 		});
 };
+var _lijunsong$pollen_rock$View_Settings$tabulate = function (settings) {
+	var rows = A2(
+		_elm_lang$core$List$map,
+		_lijunsong$pollen_rock$View_Settings$tabulateSettingItem,
+		_elm_lang$core$Dict$toList(settings));
+	return A2(
+		_elm_lang$html$Html$table,
+		{ctor: '[]'},
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			rows,
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$td,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$span,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('action clickable'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnResetSettings),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('reset'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}));
+};
+var _lijunsong$pollen_rock$View_Settings$stringOptionGroup = F3(
+	function (options, name, val) {
+		return A3(
+			_lijunsong$pollen_rock$View_Settings$selectOptionGroup,
+			A2(_elm_lang$core$List$map, _lijunsong$pollen_rock$Models$ValString, options),
+			name,
+			_lijunsong$pollen_rock$Models$ValString(val));
+	});
 var _lijunsong$pollen_rock$View_Settings$view = function (settings) {
 	return _lijunsong$pollen_rock$View_Settings$tabulate(settings);
 };
@@ -11064,7 +11175,11 @@ var _lijunsong$pollen_rock$Dashboard$listDirectory = function (srcPath) {
 };
 var _lijunsong$pollen_rock$Dashboard$initModel = F2(
 	function (settings, route) {
-		return {route: route, fsListDirectory: _krisajenkins$remotedata$RemoteData$NotAsked, settings: settings};
+		return {
+			route: route,
+			fsListDirectory: _krisajenkins$remotedata$RemoteData$NotAsked,
+			settings: _lijunsong$pollen_rock$Models$toSettingsDict(settings)
+		};
 	});
 var _lijunsong$pollen_rock$Dashboard$init = F2(
 	function (settings, location) {
@@ -11088,48 +11203,69 @@ var _lijunsong$pollen_rock$Dashboard$init = F2(
 				};
 		}
 	});
-var _lijunsong$pollen_rock$Dashboard$setSettings = _elm_lang$core$Native_Platform.outgoingPort(
-	'setSettings',
+var _lijunsong$pollen_rock$Dashboard$setStringSettings = _elm_lang$core$Native_Platform.outgoingPort(
+	'setStringSettings',
 	function (v) {
-		return {lineNumbers: v.lineNumbers, lineWrapping: v.lineWrapping};
+		return [v._0, v._1];
 	});
-var _lijunsong$pollen_rock$Dashboard$settingsUpdate = F2(
-	function (msg, model) {
-		var settings = model.settings;
-		var _p1 = msg;
+var _lijunsong$pollen_rock$Dashboard$setNumberSettings = _elm_lang$core$Native_Platform.outgoingPort(
+	'setNumberSettings',
+	function (v) {
+		return [v._0, v._1];
+	});
+var _lijunsong$pollen_rock$Dashboard$setBoolSettings = _elm_lang$core$Native_Platform.outgoingPort(
+	'setBoolSettings',
+	function (v) {
+		return [v._0, v._1];
+	});
+var _lijunsong$pollen_rock$Dashboard$updateSettings = F3(
+	function (model, name, val) {
+		var newSettings = A3(_elm_lang$core$Dict$insert, name, val, model.settings);
+		var _p1 = val;
 		switch (_p1.ctor) {
-			case 'OnSettingsLineNumberChange':
-				var newSettings = _elm_lang$core$Native_Utils.update(
-					settings,
-					{lineNumbers: !settings.lineNumbers});
+			case 'ValInvalid':
+				var _p2 = _elm_lang$core$Debug$log('receive invalid value in settings. Ignore');
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'ValBool':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{settings: newSettings}),
-					_1: _lijunsong$pollen_rock$Dashboard$setSettings(newSettings)
+					_1: _lijunsong$pollen_rock$Dashboard$setBoolSettings(
+						{ctor: '_Tuple2', _0: name, _1: _p1._0})
 				};
-			case 'OnSettingsLineWrappingChange':
-				var newSettings = _elm_lang$core$Native_Utils.update(
-					settings,
-					{lineWrapping: !settings.lineWrapping});
+			case 'ValString':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{settings: newSettings}),
-					_1: _lijunsong$pollen_rock$Dashboard$setSettings(newSettings)
+					_1: _lijunsong$pollen_rock$Dashboard$setStringSettings(
+						{ctor: '_Tuple2', _0: name, _1: _p1._0})
 				};
 			default:
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{settings: newSettings}),
+					_1: _lijunsong$pollen_rock$Dashboard$setNumberSettings(
+						{ctor: '_Tuple2', _0: name, _1: _p1._0})
+				};
 		}
+	});
+var _lijunsong$pollen_rock$Dashboard$resetSettings = _elm_lang$core$Native_Platform.outgoingPort(
+	'resetSettings',
+	function (v) {
+		return null;
 	});
 var _lijunsong$pollen_rock$Dashboard$update = F2(
 	function (msg, model) {
-		var _p2 = msg;
-		switch (_p2.ctor) {
+		var _p3 = msg;
+		switch (_p3.ctor) {
 			case 'OnLocationChange':
-				var newRoute = _lijunsong$pollen_rock$Models$parsePath(_p2._0.pathname);
+				var newRoute = _lijunsong$pollen_rock$Models$parsePath(_p3._0.pathname);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -11154,11 +11290,27 @@ var _lijunsong$pollen_rock$Dashboard$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{fsListDirectory: _p2._0}),
+						{fsListDirectory: _p3._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
+			case 'OnSettingsChange':
+				return A3(_lijunsong$pollen_rock$Dashboard$updateSettings, model, _p3._0, _p3._1);
 			default:
-				return A2(_lijunsong$pollen_rock$Dashboard$settingsUpdate, msg, model);
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _elm_lang$core$Platform_Cmd$batch(
+						{
+							ctor: '::',
+							_0: _lijunsong$pollen_rock$Dashboard$resetSettings(
+								{ctor: '_Tuple0'}),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$navigation$Navigation$reload,
+								_1: {ctor: '[]'}
+							}
+						})
+				};
 		}
 	});
 var _lijunsong$pollen_rock$Dashboard$main = A2(
@@ -11167,16 +11319,21 @@ var _lijunsong$pollen_rock$Dashboard$main = A2(
 	{init: _lijunsong$pollen_rock$Dashboard$init, view: _lijunsong$pollen_rock$View$dashboardView, update: _lijunsong$pollen_rock$Dashboard$update, subscriptions: _lijunsong$pollen_rock$Dashboard$subscriptions})(
 	A2(
 		_elm_lang$core$Json_Decode$andThen,
-		function (lineNumbers) {
+		function (font) {
 			return A2(
 				_elm_lang$core$Json_Decode$andThen,
-				function (lineWrapping) {
-					return _elm_lang$core$Json_Decode$succeed(
-						{lineNumbers: lineNumbers, lineWrapping: lineWrapping});
+				function (lineNumbers) {
+					return A2(
+						_elm_lang$core$Json_Decode$andThen,
+						function (lineWrapping) {
+							return _elm_lang$core$Json_Decode$succeed(
+								{font: font, lineNumbers: lineNumbers, lineWrapping: lineWrapping});
+						},
+						A2(_elm_lang$core$Json_Decode$field, 'lineWrapping', _elm_lang$core$Json_Decode$bool));
 				},
-				A2(_elm_lang$core$Json_Decode$field, 'lineWrapping', _elm_lang$core$Json_Decode$bool));
+				A2(_elm_lang$core$Json_Decode$field, 'lineNumbers', _elm_lang$core$Json_Decode$bool));
 		},
-		A2(_elm_lang$core$Json_Decode$field, 'lineNumbers', _elm_lang$core$Json_Decode$bool)));
+		A2(_elm_lang$core$Json_Decode$field, 'font', _elm_lang$core$Json_Decode$string)));
 
 var Elm = {};
 Elm['Dashboard'] = Elm['Dashboard'] || {};

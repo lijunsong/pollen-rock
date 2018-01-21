@@ -6,12 +6,13 @@ import Navigation exposing (Location)
 import Api exposing (PollenRockAPI(..))
 import View
 import Json.Decode as Json
+import Dict
 
 
 -- MAIN
 
 
-main : Program Settings DashboardModel DashboardMsg
+main : Program JSSettings DashboardModel DashboardMsg
 main =
     Navigation.programWithFlags OnLocationChange
         { init = init
@@ -21,15 +22,15 @@ main =
         }
 
 
-initModel : Settings -> Route -> DashboardModel
+initModel : JSSettings -> Route -> DashboardModel
 initModel settings route =
     { route = route
     , fsListDirectory = RemoteData.NotAsked
-    , settings = settings
+    , settings = toSettingsDict settings
     }
 
 
-init : Settings -> Location -> ( DashboardModel, Cmd DashboardMsg )
+init : JSSettings -> Location -> ( DashboardModel, Cmd DashboardMsg )
 init settings location =
     let
         currentRoute =
@@ -53,31 +54,6 @@ init settings location =
 -- Updates
 
 
-settingsUpdate : DashboardMsg -> DashboardModel -> ( DashboardModel, Cmd DashboardMsg )
-settingsUpdate msg model =
-    let
-        settings =
-            model.settings
-    in
-        case msg of
-            OnSettingsLineNumberChange ->
-                let
-                    newSettings =
-                        { settings | lineNumbers = not settings.lineNumbers }
-                in
-                    ( { model | settings = newSettings }, setSettings newSettings )
-
-            OnSettingsLineWrappingChange ->
-                let
-                    newSettings =
-                        { settings | lineWrapping = not settings.lineWrapping }
-                in
-                    ( { model | settings = newSettings }, setSettings newSettings )
-
-            _ ->
-                ( model, Cmd.none )
-
-
 update : DashboardMsg -> DashboardModel -> ( DashboardModel, Cmd DashboardMsg )
 update msg model =
     case msg of
@@ -97,15 +73,56 @@ update msg model =
         OnListDirectory data ->
             ( { model | fsListDirectory = data }, Cmd.none )
 
-        _ ->
-            settingsUpdate msg model
+        OnSettingsChange name val ->
+            updateSettings model name val
+
+        OnResetSettings ->
+            ( model
+            , Cmd.batch
+                [ resetSettings ()
+                , Navigation.reload
+                ]
+            )
+
+
+updateSettings : DashboardModel -> String -> SettingValue -> ( DashboardModel, Cmd DashboardMsg )
+updateSettings model name val =
+    let
+        newSettings =
+            Dict.insert name val model.settings
+    in
+        case val of
+            ValInvalid ->
+                let
+                    _ =
+                        Debug.log "receive invalid value in settings. Ignore"
+                in
+                    ( model, Cmd.none )
+
+            ValBool b ->
+                ( { model | settings = newSettings }, setBoolSettings ( name, b ) )
+
+            ValString s ->
+                ( { model | settings = newSettings }, setStringSettings ( name, s ) )
+
+            ValNumber n ->
+                ( { model | settings = newSettings }, setNumberSettings ( name, n ) )
 
 
 
 -- Command
 
 
-port setSettings : Settings -> Cmd msg
+port setStringSettings : ( String, String ) -> Cmd msg
+
+
+port setNumberSettings : ( String, Float ) -> Cmd msg
+
+
+port setBoolSettings : ( String, Bool ) -> Cmd msg
+
+
+port resetSettings : () -> Cmd msg
 
 
 listDirectory : String -> Cmd DashboardMsg

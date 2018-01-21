@@ -4,6 +4,7 @@ import RemoteData exposing (WebData)
 import Navigation exposing (Location)
 import Util
 import Time
+import Dict
 
 
 type Route
@@ -100,12 +101,37 @@ sourceType filePath =
             ]
 
 
-{-| CodeMirror settings
+{-| CodeMirror settings. SettingsDict is what PollenRock uses to
+maintain the model of settings. JSSettings is what Javascript passes
+into Elm initially (it must be a record to communicate between Elm and
+JS via a port). So Elm takes flags that is JSSettings, and converts
+that into SettingsDict when app starts.
 -}
-type alias Settings =
+type SettingValue
+    = ValBool Bool
+    | ValString String
+    | ValNumber Float
+    | ValInvalid
+
+
+type alias SettingsDict =
+    Dict.Dict String SettingValue
+
+
+type alias JSSettings =
     { lineNumbers : Bool
     , lineWrapping : Bool
+    , font : String
     }
+
+
+toSettingsDict : JSSettings -> SettingsDict
+toSettingsDict jsSettings =
+    Dict.fromList
+        [ ( "lineNumbers", jsSettings.lineNumbers |> ValBool )
+        , ( "lineWrapping", jsSettings.lineWrapping |> ValBool )
+        , ( "font", jsSettings.font |> ValString )
+        ]
 
 
 {-| The model of Dashboard. It includes the model of general settings
@@ -113,7 +139,7 @@ type alias Settings =
 type alias DashboardModel =
     { route : Route
     , fsListDirectory : WebData FsGetResponse
-    , settings : Settings
+    , settings : SettingsDict
     }
 
 
@@ -126,8 +152,8 @@ type DashboardMsg
     | OnDashboardGoBack
     | OnDashboardOpenSettings
     | OnListDirectory (WebData FsGetResponse)
-    | OnSettingsLineNumberChange
-    | OnSettingsLineWrappingChange
+    | OnSettingsChange String SettingValue
+    | OnResetSettings
 
 
 {-| The model for editor

@@ -15,6 +15,15 @@ function setSettings(settings) {
   storage.setItem(pollenRockSettingsName, JSON.stringify(settings));
 }
 
+
+function setSettingsItem(args) {
+  console.log(`update ${args}`);
+  var settings = getSettings();
+  var [name, val] = args;
+  settings[name] = val;
+  setSettings(settings);
+}
+
 function getSettings() {
   var storage = window.localStorage;
 
@@ -28,4 +37,8 @@ function getSettings() {
     settings = JSON.parse(settingsString);
   }
   return settings;
+}
+
+function resetSettings() {
+  window.localStorage.clear();
 }

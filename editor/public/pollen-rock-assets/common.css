@@ -4,7 +4,7 @@
     padding: 0;
 }
 html, .CodeMirror {
-    font-family: 'sf mono', 'Source Code Pro', monospace;
+    font-family: 'SF Mono', 'Source Code Pro', Consolas, "Liberation Mono", Menlo, Courier, monospace;
     font-size: 14px;
     height: 100%;
     width: 100%;
