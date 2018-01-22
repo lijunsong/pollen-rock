@@ -38,13 +38,17 @@ function initEditor() {
     var contents = $editor.getValue();
     app.ports.getCMContent.send(contents);
   });
-  // notify Elm on data changed
-  var docGeneration = null;
+  // Elm calls allowClose to let JS know if it should block
+  // closing tab to prevent unsaved data loss.
+  var allowClose = true;
+  app.ports.allowClose.subscribe(function(allow) {
+    allowClose = allow;
+  });
+  // notify Elm on data changed, and make allowClose false
+  // to prevent unsaved data loss.
   $editor.on('change', function() {
-    if (! $editor.isClean(docGeneration)) {
-      docGeneration = $editor.changeGeneration();
-      app.ports.markContentsDirty.send(docGeneration);
-    }
+    // args of markContentsDirty is not used
+    app.ports.markContentsDirty.send(0);
   });
   // Elm calls to load rendered result
   app.ports.liveView.subscribe(function(path) {
@@ -60,6 +64,14 @@ function initEditor() {
   app.ports.changeLayout.subscribe(function(layout) {
     console.log('set layout to be ' + layout);
     $renderPanel.setLayout(layout);
+  });
+
+  window.addEventListener('beforeunload', (e) => {
+    if (allowClose == false) {
+      e.returnValue = "Saving your contens";
+      return e.returnValue;
+    }
+    return undefined;
   });
 
   $editor.on('cursorActivity', function() {

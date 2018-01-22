@@ -11227,6 +11227,11 @@ var _lijunsong$pollen_rock$Editor$subscriptions = function (model) {
 			}
 		});
 };
+var _lijunsong$pollen_rock$Editor$allowClose = _elm_lang$core$Native_Platform.outgoingPort(
+	'allowClose',
+	function (v) {
+		return v;
+	});
 var _lijunsong$pollen_rock$Editor$liveView = _elm_lang$core$Native_Platform.outgoingPort(
 	'liveView',
 	function (v) {
@@ -11353,7 +11358,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 				var _p10 = _p0._0;
 				var _p5 = _p10;
 				if (_p5.ctor === 'Success') {
-					var cmd = function () {
+					var renderCmd = function () {
 						var _p6 = model.layout;
 						if (_p6.ctor === 'Nothing') {
 							return _elm_lang$core$Platform_Cmd$none;
@@ -11361,6 +11366,16 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 							return _lijunsong$pollen_rock$Editor$renderFile(model.filePath);
 						}
 					}();
+					var allCmd = _elm_lang$core$Platform_Cmd$batch(
+						{
+							ctor: '::',
+							_0: renderCmd,
+							_1: {
+								ctor: '::',
+								_0: _lijunsong$pollen_rock$Editor$allowClose(true),
+								_1: {ctor: '[]'}
+							}
+						});
 					var _p7 = _p5._0;
 					var errno = _p7.errno;
 					var message = _p7.message;
@@ -11371,7 +11386,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
 								{docState: _lijunsong$pollen_rock$Models$DocSaved}),
-							_1: cmd
+							_1: allCmd
 						};
 					} else {
 						return {
@@ -11379,7 +11394,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
 								{docState: _lijunsong$pollen_rock$Models$DocError}),
-							_1: _elm_lang$core$Platform_Cmd$none
+							_1: _lijunsong$pollen_rock$Editor$allowClose(true)
 						};
 					}
 				} else {
@@ -11389,7 +11404,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{docState: _lijunsong$pollen_rock$Models$DocError}),
-						_1: _elm_lang$core$Platform_Cmd$none
+						_1: _lijunsong$pollen_rock$Editor$allowClose(true)
 					};
 				}
 			case 'OnCMContentChanged':
@@ -11398,7 +11413,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{docState: _lijunsong$pollen_rock$Models$DocDirty, unsavedSeconds: 0}),
-					_1: _elm_lang$core$Platform_Cmd$none
+					_1: _lijunsong$pollen_rock$Editor$allowClose(false)
 				};
 			case 'OnRendered':
 				var _p14 = _p0._0;

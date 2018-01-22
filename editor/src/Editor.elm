@@ -58,6 +58,11 @@ port getCMContent : (String -> msg) -> Sub msg
 port markContentsDirty : (Int -> msg) -> Sub msg
 
 
+{-| ask JS to allow browser close
+-}
+port allowClose : Bool -> Cmd msg
+
+
 {-| ask the browser to load the path in the iframe/webkit
 -}
 port liveView : String -> Cmd msg
@@ -168,30 +173,33 @@ update msg model =
                         { errno, message } =
                             result
 
-                        cmd =
+                        renderCmd =
                             case model.layout of
                                 Nothing ->
                                     Cmd.none
 
                                 _ ->
                                     renderFile model.filePath
+
+                        allCmd =
+                            Cmd.batch [ renderCmd, allowClose True ]
                     in
                         case errno of
                             0 ->
-                                ( { model | docState = DocSaved }, cmd )
+                                ( { model | docState = DocSaved }, allCmd )
 
                             _ ->
-                                ( { model | docState = DocError }, Cmd.none )
+                                ( { model | docState = DocError }, allowClose True )
 
                 _ ->
                     let
                         _ =
                             Debug.log "response" response
                     in
-                        ( { model | docState = DocError }, Cmd.none )
+                        ( { model | docState = DocError }, allowClose True )
 
         OnCMContentChanged gen ->
-            ( { model | docState = DocDirty, unsavedSeconds = 0 }, Cmd.none )
+            ( { model | docState = DocDirty, unsavedSeconds = 0 }, allowClose False )
 
         OnRendered response ->
             let
