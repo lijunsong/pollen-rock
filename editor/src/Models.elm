@@ -121,7 +121,6 @@ type alias SettingsDict =
 type alias JSSettings =
     { lineNumbers : Bool
     , lineWrapping : Bool
-    , font : String
     }
 
 
@@ -130,7 +129,6 @@ toSettingsDict jsSettings =
     Dict.fromList
         [ ( "lineNumbers", jsSettings.lineNumbers |> ValBool )
         , ( "lineWrapping", jsSettings.lineWrapping |> ValBool )
-        , ( "font", jsSettings.font |> ValString )
         ]
 
 

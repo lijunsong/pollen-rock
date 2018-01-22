@@ -9913,9 +9913,9 @@ var _lijunsong$pollen_rock$Models$FsPostResponse = F2(
 	function (a, b) {
 		return {errno: a, message: b};
 	});
-var _lijunsong$pollen_rock$Models$JSSettings = F3(
-	function (a, b, c) {
-		return {lineNumbers: a, lineWrapping: b, font: c};
+var _lijunsong$pollen_rock$Models$JSSettings = F2(
+	function (a, b) {
+		return {lineNumbers: a, lineWrapping: b};
 	});
 var _lijunsong$pollen_rock$Models$DashboardModel = F3(
 	function (a, b, c) {
@@ -10052,15 +10052,7 @@ var _lijunsong$pollen_rock$Models$toSettingsDict = function (jsSettings) {
 					_0: 'lineWrapping',
 					_1: _lijunsong$pollen_rock$Models$ValBool(jsSettings.lineWrapping)
 				},
-				_1: {
-					ctor: '::',
-					_0: {
-						ctor: '_Tuple2',
-						_0: 'font',
-						_1: _lijunsong$pollen_rock$Models$ValString(jsSettings.font)
-					},
-					_1: {ctor: '[]'}
-				}
+				_1: {ctor: '[]'}
 			}
 		});
 };
@@ -10243,260 +10235,6 @@ var _lijunsong$pollen_rock$Api$APIwatch = {ctor: 'APIwatch'};
 var _lijunsong$pollen_rock$Api$APIconfig = {ctor: 'APIconfig'};
 var _lijunsong$pollen_rock$Api$APItags = {ctor: 'APItags'};
 var _lijunsong$pollen_rock$Api$APIfs = {ctor: 'APIfs'};
-
-var _lijunsong$pollen_rock$View_Common$makeHeader = F3(
-	function (title, left, right) {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('header'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('headerTop'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$span,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('title'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: title,
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('headerBottom'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$div,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('headerLeft'),
-									_1: {ctor: '[]'}
-								},
-								left),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$div,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('headerRight'),
-										_1: {ctor: '[]'}
-									},
-									right),
-								_1: {ctor: '[]'}
-							}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-var _lijunsong$pollen_rock$View_Common$dashboardHeader = function (route) {
-	var headLinks = F2(
-		function (elms, urlPath) {
-			var _p0 = elms;
-			if (_p0.ctor === '[]') {
-				return {ctor: '[]'};
-			} else {
-				if (_p0._1.ctor === '[]') {
-					var _p1 = _p0._0;
-					var newUrl = _lijunsong$pollen_rock$Util$concatUrl(
-						{
-							ctor: '::',
-							_0: urlPath,
-							_1: {
-								ctor: '::',
-								_0: _p1,
-								_1: {ctor: '[]'}
-							}
-						});
-					return {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$a,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$href(urlPath),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(_p1),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					};
-				} else {
-					var _p2 = _p0._0;
-					var newUrl = _lijunsong$pollen_rock$Util$concatUrl(
-						{
-							ctor: '::',
-							_0: urlPath,
-							_1: {
-								ctor: '::',
-								_0: _p2,
-								_1: {ctor: '[]'}
-							}
-						});
-					return {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$a,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$href(urlPath),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(_p2),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$span,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('dashboard-header-sep'),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('/'),
-									_1: {ctor: '[]'}
-								}),
-							_1: A2(headLinks, _p0._1, newUrl)
-						}
-					};
-				}
-			}
-		});
-	var _p3 = route;
-	if (_p3.ctor === 'DashboardRoute') {
-		var elms = {
-			ctor: '::',
-			_0: 'root',
-			_1: _lijunsong$pollen_rock$Util$splitUrl(_p3._0)
-		};
-		return A2(
-			_elm_lang$html$Html$div,
-			{ctor: '[]'},
-			A2(headLinks, elms, '/dashboard'));
-	} else {
-		return _elm_lang$html$Html$text(
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'failed to get route ',
-				_elm_lang$core$Basics$toString(route)));
-	}
-};
-var _lijunsong$pollen_rock$View_Common$explodePath = F3(
-	function (rootName, rootPath, pathname) {
-		var elms = _lijunsong$pollen_rock$Util$splitUrl(pathname);
-		var gen = F2(
-			function (elm, rev_result) {
-				var _p4 = _elm_lang$core$List$head(rev_result);
-				if (_p4.ctor === 'Nothing') {
-					return {
-						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: rootName, _1: '/dashboard'},
-						_1: {ctor: '[]'}
-					};
-				} else {
-					return {
-						ctor: '::',
-						_0: {
-							ctor: '_Tuple2',
-							_0: elm,
-							_1: _lijunsong$pollen_rock$Util$concatUrl(
-								{
-									ctor: '::',
-									_0: _p4._0._1,
-									_1: {
-										ctor: '::',
-										_0: elm,
-										_1: {ctor: '[]'}
-									}
-								})
-						},
-						_1: rev_result
-					};
-				}
-			});
-		return _elm_lang$core$List$reverse(
-			A3(
-				_elm_lang$core$List$foldl,
-				gen,
-				{
-					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: rootName, _1: '/dashboard'},
-					_1: {ctor: '[]'}
-				},
-				elms));
-	});
-var _lijunsong$pollen_rock$View_Common$breadcrumb = function (pathname) {
-	var paths = A3(_lijunsong$pollen_rock$View_Common$explodePath, 'Dashboard', '/dashboard', pathname);
-	return A2(
-		_elm_lang$html$Html$ul,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('breadcrumb'),
-			_1: {ctor: '[]'}
-		},
-		A2(
-			_elm_lang$core$List$map,
-			function (_p5) {
-				var _p6 = _p5;
-				return A2(
-					_elm_lang$html$Html$li,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$a,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$href(_p6._1),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('breadcrumbElement'),
-									_1: {ctor: '[]'}
-								}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(_p6._0),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					});
-			},
-			paths));
-};
 
 var _lijunsong$pollen_rock$View_Dashboard$sortItems = function (items) {
 	var toComparable = function (item) {
@@ -10889,6 +10627,260 @@ var _lijunsong$pollen_rock$View_Settings$stringOptionGroup = F3(
 	});
 var _lijunsong$pollen_rock$View_Settings$view = function (settings) {
 	return _lijunsong$pollen_rock$View_Settings$tabulate(settings);
+};
+
+var _lijunsong$pollen_rock$View_Common$makeHeader = F3(
+	function (title, left, right) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('header'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('headerTop'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$span,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('title'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: title,
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('headerBottom'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('headerLeft'),
+									_1: {ctor: '[]'}
+								},
+								left),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('headerRight'),
+										_1: {ctor: '[]'}
+									},
+									right),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _lijunsong$pollen_rock$View_Common$dashboardHeader = function (route) {
+	var headLinks = F2(
+		function (elms, urlPath) {
+			var _p0 = elms;
+			if (_p0.ctor === '[]') {
+				return {ctor: '[]'};
+			} else {
+				if (_p0._1.ctor === '[]') {
+					var _p1 = _p0._0;
+					var newUrl = _lijunsong$pollen_rock$Util$concatUrl(
+						{
+							ctor: '::',
+							_0: urlPath,
+							_1: {
+								ctor: '::',
+								_0: _p1,
+								_1: {ctor: '[]'}
+							}
+						});
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href(urlPath),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(_p1),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					};
+				} else {
+					var _p2 = _p0._0;
+					var newUrl = _lijunsong$pollen_rock$Util$concatUrl(
+						{
+							ctor: '::',
+							_0: urlPath,
+							_1: {
+								ctor: '::',
+								_0: _p2,
+								_1: {ctor: '[]'}
+							}
+						});
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href(urlPath),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(_p2),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('dashboard-header-sep'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('/'),
+									_1: {ctor: '[]'}
+								}),
+							_1: A2(headLinks, _p0._1, newUrl)
+						}
+					};
+				}
+			}
+		});
+	var _p3 = route;
+	if (_p3.ctor === 'DashboardRoute') {
+		var elms = {
+			ctor: '::',
+			_0: 'root',
+			_1: _lijunsong$pollen_rock$Util$splitUrl(_p3._0)
+		};
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			A2(headLinks, elms, '/dashboard'));
+	} else {
+		return _elm_lang$html$Html$text(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'failed to get route ',
+				_elm_lang$core$Basics$toString(route)));
+	}
+};
+var _lijunsong$pollen_rock$View_Common$explodePath = F3(
+	function (rootName, rootPath, pathname) {
+		var elms = _lijunsong$pollen_rock$Util$splitUrl(pathname);
+		var gen = F2(
+			function (elm, rev_result) {
+				var _p4 = _elm_lang$core$List$head(rev_result);
+				if (_p4.ctor === 'Nothing') {
+					return {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: rootName, _1: '/dashboard'},
+						_1: {ctor: '[]'}
+					};
+				} else {
+					return {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: elm,
+							_1: _lijunsong$pollen_rock$Util$concatUrl(
+								{
+									ctor: '::',
+									_0: _p4._0._1,
+									_1: {
+										ctor: '::',
+										_0: elm,
+										_1: {ctor: '[]'}
+									}
+								})
+						},
+						_1: rev_result
+					};
+				}
+			});
+		return _elm_lang$core$List$reverse(
+			A3(
+				_elm_lang$core$List$foldl,
+				gen,
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: rootName, _1: '/dashboard'},
+					_1: {ctor: '[]'}
+				},
+				elms));
+	});
+var _lijunsong$pollen_rock$View_Common$breadcrumb = function (pathname) {
+	var paths = A3(_lijunsong$pollen_rock$View_Common$explodePath, 'Dashboard', '/dashboard', pathname);
+	return A2(
+		_elm_lang$html$Html$ul,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('breadcrumb'),
+			_1: {ctor: '[]'}
+		},
+		A2(
+			_elm_lang$core$List$map,
+			function (_p5) {
+				var _p6 = _p5;
+				return A2(
+					_elm_lang$html$Html$li,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href(_p6._1),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('breadcrumbElement'),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(_p6._0),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					});
+			},
+			paths));
 };
 
 var _lijunsong$pollen_rock$View$editorView = function (model) {
@@ -11319,21 +11311,16 @@ var _lijunsong$pollen_rock$Dashboard$main = A2(
 	{init: _lijunsong$pollen_rock$Dashboard$init, view: _lijunsong$pollen_rock$View$dashboardView, update: _lijunsong$pollen_rock$Dashboard$update, subscriptions: _lijunsong$pollen_rock$Dashboard$subscriptions})(
 	A2(
 		_elm_lang$core$Json_Decode$andThen,
-		function (font) {
+		function (lineNumbers) {
 			return A2(
 				_elm_lang$core$Json_Decode$andThen,
-				function (lineNumbers) {
-					return A2(
-						_elm_lang$core$Json_Decode$andThen,
-						function (lineWrapping) {
-							return _elm_lang$core$Json_Decode$succeed(
-								{font: font, lineNumbers: lineNumbers, lineWrapping: lineWrapping});
-						},
-						A2(_elm_lang$core$Json_Decode$field, 'lineWrapping', _elm_lang$core$Json_Decode$bool));
+				function (lineWrapping) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{lineNumbers: lineNumbers, lineWrapping: lineWrapping});
 				},
-				A2(_elm_lang$core$Json_Decode$field, 'lineNumbers', _elm_lang$core$Json_Decode$bool));
+				A2(_elm_lang$core$Json_Decode$field, 'lineWrapping', _elm_lang$core$Json_Decode$bool));
 		},
-		A2(_elm_lang$core$Json_Decode$field, 'font', _elm_lang$core$Json_Decode$string)));
+		A2(_elm_lang$core$Json_Decode$field, 'lineNumbers', _elm_lang$core$Json_Decode$bool)));
 
 var Elm = {};
 Elm['Dashboard'] = Elm['Dashboard'] || {};

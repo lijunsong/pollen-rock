@@ -5,8 +5,7 @@ var pollenRockSettingsName = 'pollen-rock-settings';
 function emptySettings() {
   return {
     lineNumbers: false,
-    lineWrapping: true,
-    font: 'Source Sans Pro'
+    lineWrapping: true
   };
 }
 

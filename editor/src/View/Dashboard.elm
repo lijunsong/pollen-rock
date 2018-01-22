@@ -5,7 +5,6 @@ import RemoteData exposing (WebData)
 import Html exposing (Html, program, div, text, a, li, span)
 import Html.Attributes exposing (href, class, name, id)
 import Util
-import View.Common
 
 
 {-| Entry point of the dashboard page
