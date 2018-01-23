@@ -178,9 +178,9 @@ class RenderPanel {
         this.liveView.style.width = '50%';
         container.style['flex-flow'] = 'row';
         resizerStyle.cursor = 'col-resize';
-        resizerStyle.position = 'sticky';
-        resizerStyle.width = '8px';
+        resizerStyle.position = 'absolute';
         resizerStyle.height = '100%';
+        resizerStyle.width = '8px';
         resizerStyle.top = '0';
         resizerStyle.left = '0';
         resizerStyle.right = null;

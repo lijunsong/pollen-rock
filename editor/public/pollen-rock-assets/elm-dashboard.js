@@ -10889,7 +10889,7 @@ var _lijunsong$pollen_rock$View_Common$breadcrumb = function (pathname) {
 			paths));
 };
 
-var _lijunsong$pollen_rock$View$editorView = function (model) {
+var _lijunsong$pollen_rock$View_Editor$editorHeaderView = function (model) {
 	var showRenderText = function () {
 		var _p0 = model.layout;
 		if (_p0.ctor === 'Nothing') {
@@ -10965,12 +10965,16 @@ var _lijunsong$pollen_rock$View$editorView = function (model) {
 							_elm_lang$html$Html$li,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('clickable action fullscreen'),
-								_1: {ctor: '[]'}
+								_0: _elm_lang$html$Html_Attributes$class('clickable action render'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(clickLayoutMsg),
+									_1: {ctor: '[]'}
+								}
 							},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html$text('Fullscreen'),
+								_0: showRenderText,
 								_1: {ctor: '[]'}
 							}),
 						_1: {
@@ -10979,49 +10983,34 @@ var _lijunsong$pollen_rock$View$editorView = function (model) {
 								_elm_lang$html$Html$li,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('clickable action render'),
+									_0: _elm_lang$html$Html_Attributes$class('clickable action setting'),
 									_1: {
 										ctor: '::',
-										_0: _elm_lang$html$Html_Events$onClick(clickLayoutMsg),
+										_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnEditorOpenSettings),
 										_1: {ctor: '[]'}
 									}
 								},
 								{
 									ctor: '::',
-									_0: showRenderText,
+									_0: _elm_lang$html$Html$text('Settings'),
 									_1: {ctor: '[]'}
 								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$li,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('clickable action setting'),
-										_1: {
-											ctor: '::',
-											_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnEditorOpenSettings),
-											_1: {ctor: '[]'}
-										}
-									},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text('Settings'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
+							_1: {ctor: '[]'}
 						}
 					}),
 				_1: {ctor: '[]'}
 			}
 		});
 };
+
+var _lijunsong$pollen_rock$View$editorView = function (model) {
+	return _lijunsong$pollen_rock$View_Editor$editorHeaderView(model);
+};
 var _lijunsong$pollen_rock$View$dashboardView = function (model) {
-	var _p3 = model.route;
-	switch (_p3.ctor) {
+	var _p0 = model.route;
+	switch (_p0.ctor) {
 		case 'DashboardRoute':
-			var _p4 = _p3._0;
+			var _p1 = _p0._0;
 			var right = {
 				ctor: '::',
 				_0: A2(
@@ -11062,7 +11051,7 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 					}),
 				_1: {ctor: '[]'}
 			};
-			var title = _lijunsong$pollen_rock$View_Common$breadcrumb(_p4);
+			var title = _lijunsong$pollen_rock$View_Common$breadcrumb(_p1);
 			var header = A3(_lijunsong$pollen_rock$View_Common$makeHeader, title, left, right);
 			return A2(
 				_elm_lang$html$Html$div,
@@ -11076,7 +11065,7 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 					_0: header,
 					_1: {
 						ctor: '::',
-						_0: A2(_lijunsong$pollen_rock$View_Dashboard$view, _p4, model),
+						_0: A2(_lijunsong$pollen_rock$View_Dashboard$view, _p1, model),
 						_1: {ctor: '[]'}
 					}
 				});

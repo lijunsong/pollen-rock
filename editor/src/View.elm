@@ -3,12 +3,13 @@ module View exposing (..)
 import Models exposing (..)
 import RemoteData exposing (WebData)
 import Html exposing (..)
-import Html.Attributes exposing (href, class, name, id)
+import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Util
 import View.Dashboard
 import View.Settings
 import View.Common
+import View.Editor
 
 
 dashboardView : DashboardModel -> Html DashboardMsg
@@ -75,44 +76,4 @@ dashboardView model =
 
 editorView : EditorModel -> Html EditorMsg
 editorView model =
-    let
-        state =
-            stateToText model.docState
-
-        clickLayoutMsg =
-            -- iterate empty, horizontal and vertical layout
-            OnLayoutChange
-                (case model.layout of
-                    Nothing ->
-                        Just HorizontalLayout
-
-                    Just HorizontalLayout ->
-                        Just VerticalLayout
-
-                    Just VerticalLayout ->
-                        Nothing
-                )
-
-        _ =
-            Debug.log "next layout" clickLayoutMsg
-
-        showRenderText =
-            case model.layout of
-                Nothing ->
-                    text "Render"
-
-                Just HorizontalLayout ->
-                    text "Render[-]"
-
-                Just VerticalLayout ->
-                    text "Render[|]"
-    in
-        View.Common.makeHeader (View.Common.breadcrumb model.filePath)
-            [ span [ class "clickable action", onClick OnEditorGoBack ] [ text "Back" ]
-            ]
-            [ span [ class "docState" ] [ text state ]
-            , ul []
-                [ li [ class "clickable action render", onClick clickLayoutMsg ] [ showRenderText ]
-                , li [ class "clickable action setting", onClick OnEditorOpenSettings ] [ text "Settings" ]
-                ]
-            ]
+    View.Editor.editorHeaderView model
