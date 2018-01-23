@@ -50,7 +50,7 @@ port askCMContent : () -> Cmd msg
 
 {-| Notify us when CodeMirror gives us (paired with askCMContent)
 -}
-port getCMContent : (String -> msg) -> Sub msg
+port getCMContent : (CodeMirrorContents -> msg) -> Sub msg
 
 
 {-| Notify us when CodeMirror contents are changed
@@ -163,8 +163,10 @@ update msg model =
                 _ ->
                     ( { model | unsavedSeconds = 0 }, Cmd.none )
 
-        OnGetCMContent contents ->
-            ( { model | docState = DocSaving }, writeFile model.filePath contents )
+        OnGetCMContent { contents, syntaxCheckResult, generation } ->
+            ( { model | docState = DocSaving syntaxCheckResult }
+            , writeFile model.filePath contents
+            )
 
         OnFileSaved response ->
             case response of
@@ -174,12 +176,15 @@ update msg model =
                             result
 
                         renderCmd =
-                            case model.layout of
-                                Nothing ->
+                            case ( model.layout, model.docState ) of
+                                ( Nothing, _ ) ->
                                     Cmd.none
 
-                                _ ->
+                                ( _, DocSaving True ) ->
                                     renderFile model.filePath
+
+                                _ ->
+                                    Cmd.none
 
                         allCmd =
                             Cmd.batch [ renderCmd, allowClose True ]

@@ -36,7 +36,21 @@ function initEditor() {
   // Elm calls askCMContent to get CM content
   app.ports.askCMContent.subscribe(function() {
     var contents = $editor.getValue();
-    app.ports.getCMContent.send(contents);
+    var generation = $editor.changeGeneration();
+    var mode = $editor.doc.getMode();
+    var checkFunc = CodeMirror.syntaxCheck[mode.name];
+    var checkResult = true; // default to true
+
+    if (checkFunc) {
+      checkResult = checkFunc($editor, $editor.doc.lastLine());
+      console.log('syntax check: ' + checkResult);
+    }
+
+    app.ports.getCMContent.send({
+      contents: contents,
+      generation: generation,
+      syntaxCheckResult: checkResult
+    });
   });
   // Elm calls allowClose to let JS know if it should block
   // closing tab to prevent unsaved data loss.

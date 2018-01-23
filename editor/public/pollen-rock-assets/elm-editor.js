@@ -9925,6 +9925,10 @@ var _lijunsong$pollen_rock$Models$EditorModel = F4(
 	function (a, b, c, d) {
 		return {filePath: a, docState: b, unsavedSeconds: c, layout: d};
 	});
+var _lijunsong$pollen_rock$Models$CodeMirrorContents = F3(
+	function (a, b, c) {
+		return {contents: a, syntaxCheckResult: b, generation: c};
+	});
 var _lijunsong$pollen_rock$Models$NotFoundRoute = {ctor: 'NotFoundRoute'};
 var _lijunsong$pollen_rock$Models$SettingsRoute = {ctor: 'SettingsRoute'};
 var _lijunsong$pollen_rock$Models$DashboardRoute = function (a) {
@@ -10072,7 +10076,9 @@ var _lijunsong$pollen_rock$Models$OnLocationChange = function (a) {
 var _lijunsong$pollen_rock$Models$DocDirty = {ctor: 'DocDirty'};
 var _lijunsong$pollen_rock$Models$DocError = {ctor: 'DocError'};
 var _lijunsong$pollen_rock$Models$DocSaved = {ctor: 'DocSaved'};
-var _lijunsong$pollen_rock$Models$DocSaving = {ctor: 'DocSaving'};
+var _lijunsong$pollen_rock$Models$DocSaving = function (a) {
+	return {ctor: 'DocSaving', _0: a};
+};
 var _lijunsong$pollen_rock$Models$VerticalLayout = {ctor: 'VerticalLayout'};
 var _lijunsong$pollen_rock$Models$HorizontalLayout = {ctor: 'HorizontalLayout'};
 var _lijunsong$pollen_rock$Models$OnLayoutChange = function (a) {
@@ -11209,7 +11215,25 @@ var _lijunsong$pollen_rock$Editor$askCMContent = _elm_lang$core$Native_Platform.
 	function (v) {
 		return null;
 	});
-var _lijunsong$pollen_rock$Editor$getCMContent = _elm_lang$core$Native_Platform.incomingPort('getCMContent', _elm_lang$core$Json_Decode$string);
+var _lijunsong$pollen_rock$Editor$getCMContent = _elm_lang$core$Native_Platform.incomingPort(
+	'getCMContent',
+	A2(
+		_elm_lang$core$Json_Decode$andThen,
+		function (contents) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (syntaxCheckResult) {
+					return A2(
+						_elm_lang$core$Json_Decode$andThen,
+						function (generation) {
+							return _elm_lang$core$Json_Decode$succeed(
+								{contents: contents, syntaxCheckResult: syntaxCheckResult, generation: generation});
+						},
+						A2(_elm_lang$core$Json_Decode$field, 'generation', _elm_lang$core$Json_Decode$int));
+				},
+				A2(_elm_lang$core$Json_Decode$field, 'syntaxCheckResult', _elm_lang$core$Json_Decode$bool));
+		},
+		A2(_elm_lang$core$Json_Decode$field, 'contents', _elm_lang$core$Json_Decode$string)));
 var _lijunsong$pollen_rock$Editor$markContentsDirty = _elm_lang$core$Native_Platform.incomingPort('markContentsDirty', _elm_lang$core$Json_Decode$int);
 var _lijunsong$pollen_rock$Editor$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$batch(
@@ -11351,20 +11375,34 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{docState: _lijunsong$pollen_rock$Models$DocSaving}),
-					_1: A2(_lijunsong$pollen_rock$Editor$writeFile, model.filePath, _p0._0)
+						{
+							docState: _lijunsong$pollen_rock$Models$DocSaving(_p0._0.syntaxCheckResult)
+						}),
+					_1: A2(_lijunsong$pollen_rock$Editor$writeFile, model.filePath, _p0._0.contents)
 				};
 			case 'OnFileSaved':
 				var _p10 = _p0._0;
 				var _p5 = _p10;
 				if (_p5.ctor === 'Success') {
 					var renderCmd = function () {
-						var _p6 = model.layout;
-						if (_p6.ctor === 'Nothing') {
-							return _elm_lang$core$Platform_Cmd$none;
-						} else {
-							return _lijunsong$pollen_rock$Editor$renderFile(model.filePath);
-						}
+						var _p6 = {ctor: '_Tuple2', _0: model.layout, _1: model.docState};
+						_v5_2:
+						do {
+							if (_p6.ctor === '_Tuple2') {
+								if (_p6._0.ctor === 'Nothing') {
+									return _elm_lang$core$Platform_Cmd$none;
+								} else {
+									if ((_p6._1.ctor === 'DocSaving') && (_p6._1._0 === true)) {
+										return _lijunsong$pollen_rock$Editor$renderFile(model.filePath);
+									} else {
+										break _v5_2;
+									}
+								}
+							} else {
+								break _v5_2;
+							}
+						} while(false);
+						return _elm_lang$core$Platform_Cmd$none;
 					}();
 					var allCmd = _elm_lang$core$Platform_Cmd$batch(
 						{

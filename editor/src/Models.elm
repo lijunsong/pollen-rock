@@ -154,18 +154,12 @@ type DashboardMsg
     | OnResetSettings
 
 
-{-| The model for editor
-
-  - filePath is used to save the contents.
-  - docState is used to decide if the editor needs to write the doc to
-    the server.
-  - secondCounter counts the seconds, which is reset to 0 whenever user
-    types anything. This is used to implement saving documents N seconds
-    after user stops typing.
-
+{-| the state of the document in Elm's view. DocSaving takes an extra
+parameter to indicate whether the document is correct in Syntax. True
+means correct, False otherwise.
 -}
 type DocState
-    = DocSaving
+    = DocSaving Bool
     | DocSaved
     | DocError
     | DocDirty
@@ -174,7 +168,7 @@ type DocState
 stateToText : DocState -> String
 stateToText state =
     case state of
-        DocSaving ->
+        DocSaving _ ->
             "saving"
 
         DocSaved ->
@@ -192,6 +186,16 @@ type EditorLayout
     | VerticalLayout
 
 
+{-| Pollen Editor model. It tracks status of the editor UI
+
+  - filePath is used to save the contents.
+  - docState is used to decide if the editor needs to write the doc to
+    the server.
+  - secondCounter counts the seconds, which is reset to 0 whenever user
+    types anything. This is used to implement saving documents N seconds
+    after user stops typing.
+
+-}
 type alias EditorModel =
     { filePath : String
     , docState : DocState
@@ -200,12 +204,23 @@ type alias EditorModel =
     }
 
 
+{-| CodeMirror status. Because Elm does all the work to save and
+render thesource code, this data structure is what Elm uses to
+communicate with JS
+-}
+type alias CodeMirrorContents =
+    { contents : String
+    , syntaxCheckResult : Bool
+    , generation : Int
+    }
+
+
 type EditorMsg
     = OnFileRead (WebData FsGetResponse)
     | OnEditorGoBack
     | OnEditorOpenSettings
     | OnTick Time.Time
-    | OnGetCMContent String
+    | OnGetCMContent CodeMirrorContents
     | OnFileSaved (WebData FsPostResponse)
     | OnCMContentChanged Int
     | OnRendered (WebData RenderResponse)

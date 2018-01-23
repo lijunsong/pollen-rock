@@ -9925,6 +9925,10 @@ var _lijunsong$pollen_rock$Models$EditorModel = F4(
 	function (a, b, c, d) {
 		return {filePath: a, docState: b, unsavedSeconds: c, layout: d};
 	});
+var _lijunsong$pollen_rock$Models$CodeMirrorContents = F3(
+	function (a, b, c) {
+		return {contents: a, syntaxCheckResult: b, generation: c};
+	});
 var _lijunsong$pollen_rock$Models$NotFoundRoute = {ctor: 'NotFoundRoute'};
 var _lijunsong$pollen_rock$Models$SettingsRoute = {ctor: 'SettingsRoute'};
 var _lijunsong$pollen_rock$Models$DashboardRoute = function (a) {
@@ -10072,7 +10076,9 @@ var _lijunsong$pollen_rock$Models$OnLocationChange = function (a) {
 var _lijunsong$pollen_rock$Models$DocDirty = {ctor: 'DocDirty'};
 var _lijunsong$pollen_rock$Models$DocError = {ctor: 'DocError'};
 var _lijunsong$pollen_rock$Models$DocSaved = {ctor: 'DocSaved'};
-var _lijunsong$pollen_rock$Models$DocSaving = {ctor: 'DocSaving'};
+var _lijunsong$pollen_rock$Models$DocSaving = function (a) {
+	return {ctor: 'DocSaving', _0: a};
+};
 var _lijunsong$pollen_rock$Models$VerticalLayout = {ctor: 'VerticalLayout'};
 var _lijunsong$pollen_rock$Models$HorizontalLayout = {ctor: 'HorizontalLayout'};
 var _lijunsong$pollen_rock$Models$OnLayoutChange = function (a) {
