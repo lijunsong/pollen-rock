@@ -10,6 +10,22 @@ function getFilePath() {
   return path;
 }
 
+// code mirror handler. TODO: read commandChar from /rest/config/$path.
+function  insertCommandCharHandler(e) {
+  let pos = e.getCursor();
+  let commandChar = '◊';
+  if (pos.ch == 0) {
+    e.replaceSelection(commandChar);
+  } else {
+    let lastPos = CodeMirror.Pos(pos.line, pos.ch-1);
+    if (e.getRange(lastPos, pos) == commandChar) {
+      e.replaceRange('@', lastPos, pos);
+    } else {
+      e.replaceSelection(commandChar);
+    }
+  }
+}
+
 function initEditor() {
   var $div = document.getElementById('control');
   var app = Elm.Editor.embed($div, {
@@ -20,7 +36,7 @@ function initEditor() {
   var area = document.getElementById('input');
   $editor = CodeMirror.fromTextArea(area, settings);
 
-  // -- setup --
+  // -- Elm setup --
   // Elm calls initDoc to set CM content
   app.ports.initDoc.subscribe(function(text) {
     $editor.setValue(text);
@@ -88,10 +104,16 @@ function initEditor() {
     return undefined;
   });
 
+  // -- key map setup --
+  $editor.setOption("extraKeys", {
+    "'@'": insertCommandCharHandler
+  });
+
   $editor.on('cursorActivity', function() {
     app.ports.token.send('cursor!');
   });
 }
+
 
 /* The problem is that mouse event won't pop up to the iframe's parent
    when the mouse moves into iframe. So dragging stops when our mouse
@@ -136,6 +158,7 @@ class RenderPanel {
     this.listener.style['z-index'] = -1;
     window.removeEventListener('mousemove', this.resize, false);
     window.removeEventListener('mouseup', this.stopDragging, false);
+    $editor.refresh();
   }
 
   __resize(e) {
