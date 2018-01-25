@@ -70,6 +70,43 @@ type RenderResponse
     | RenderFailure Int
 
 
+
+-- Response to Tags and Config
+
+
+type Variable
+    = NumberVal Float
+    | BooleanVal Bool
+    | StringVal String
+    | CharVal String
+    | SymbolVal String
+    | UnknownVal
+
+
+type ProcedureKeywords
+    = KeywordsAny
+    | KeywordsList (List String)
+
+
+type alias Procedure =
+    { arity : Int
+    , arityAtLeast : Bool
+    , allKeywords : ProcedureKeywords
+    , requiredKeywords : List String
+    }
+
+
+type Tag
+    = VariableTag String Variable
+    | ProcedureTag String Procedure
+
+
+type alias TagsResponse =
+    { errno : Int
+    , tags : List Tag
+    }
+
+
 {-| Source type that the editor should support
 -}
 type SourceCodeMode
@@ -186,6 +223,15 @@ type EditorLayout
     | VerticalLayout
 
 
+{-| TODO: Make another dict type for tag response (key is identifier
+from the pollen setup moduel) because pollen setup contains
+identifiers that have '-' in the name. Like what we did to Settings
+-}
+type alias PollenSetup =
+    { commandChar : String
+    }
+
+
 {-| Pollen Editor model. It tracks status of the editor UI
 
   - filePath is used to save the contents.
@@ -201,6 +247,7 @@ type alias EditorModel =
     , docState : DocState
     , unsavedSeconds : Int
     , layout : Maybe EditorLayout
+    , pollenSetup : PollenSetup
     }
 
 
@@ -217,6 +264,7 @@ type alias CodeMirrorContents =
 
 type EditorMsg
     = OnFileRead (WebData FsGetResponse)
+    | OnConfigRead (WebData TagsResponse)
     | OnEditorGoBack
     | OnEditorOpenSettings
     | OnTick Time.Time

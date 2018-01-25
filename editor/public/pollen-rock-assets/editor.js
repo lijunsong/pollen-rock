@@ -1,6 +1,13 @@
 'use strict';
 
+// codemirror instance
 var $editor;
+
+// pollenSetup that the editor is going to use
+var pollenSetup = {
+  commandChar: '@'
+};
+
 
 // get the file path from URL (strip the first path element that's for
 // resource dispatching purpose)
@@ -13,7 +20,7 @@ function getFilePath() {
 // code mirror handler. TODO: read commandChar from /rest/config/$path.
 function  insertCommandCharHandler(e) {
   let pos = e.getCursor();
-  let commandChar = '◊';
+  let commandChar = pollenSetup.commandChar;
   if (pos.ch == 0) {
     e.replaceSelection(commandChar);
   } else {
@@ -94,6 +101,11 @@ function initEditor() {
   app.ports.changeLayout.subscribe(function(layout) {
     console.log('set layout to be ' + layout);
     $renderPanel.setLayout(layout);
+  });
+  // Elm calls to update the pollenSetup defined in the project
+  app.ports.updatePollenSetup.subscribe(function(setup) {
+    console.log(setup);
+    pollenSetup = setup;
   });
 
   window.addEventListener('beforeunload', (e) => {

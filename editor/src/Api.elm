@@ -6,6 +6,7 @@ module Api
         , fsGetResponseDecoder
         , fsPostResponseDecoder
         , renderResponseDecoder
+        , tagsResponseDecoder
         )
 
 {-| encode <http://pietrograndi.com/porting-an-api-service-from-js-to-elm/>
@@ -101,6 +102,91 @@ renderResponseDecoder =
                 else
                     Json.map RenderSuccess (Json.field "location" Json.string)
             )
+
+
+{-| A helper decoder for Variable tag
+-}
+variableDecoder : Json.Decoder Variable
+variableDecoder =
+    Json.field "type" (Json.nullable Json.string)
+        |> Json.andThen
+            (\typ ->
+                case typ of
+                    Nothing ->
+                        Json.succeed UnknownVal
+
+                    Just "string" ->
+                        Json.map StringVal (Json.field "value" Json.string)
+
+                    Just "char" ->
+                        Json.map CharVal (Json.field "value" Json.string)
+
+                    Just "boolean" ->
+                        Json.map BooleanVal (Json.field "value" Json.bool)
+
+                    Just "number" ->
+                        Json.map NumberVal (Json.field "value" Json.float)
+
+                    Just "symbol" ->
+                        Json.map SymbolVal (Json.field "value" Json.string)
+
+                    _ ->
+                        Json.succeed UnknownVal
+            )
+
+
+{-| A helper decoder for keywords field of Procedure tag
+-}
+keywordsDecoder : Json.Decoder ProcedureKeywords
+keywordsDecoder =
+    Json.oneOf
+        [ Json.field "all-keywords" Json.bool |> Json.andThen (\b -> Json.succeed KeywordsAny)
+        , Json.map KeywordsList (Json.field "all-keywords" (Json.list Json.string))
+        ]
+
+
+{-| decoder for procedure tag
+-}
+procedureDecoder : Json.Decoder Procedure
+procedureDecoder =
+    Json.map4 Procedure
+        (Json.field "arity" Json.int)
+        (Json.field "arity-at-least" Json.bool)
+        (Json.field "all-keywords" keywordsDecoder)
+        (Json.field "required-keywords" (Json.list Json.string))
+
+
+{-| decoder for pollen tag
+-}
+tagDecoder : Json.Decoder Tag
+tagDecoder =
+    let
+        decodeKind kind =
+            case kind of
+                "variable" ->
+                    Json.map2 VariableTag
+                        (Json.field "name" Json.string)
+                        variableDecoder
+
+                "procedure" ->
+                    Json.map2 ProcedureTag
+                        (Json.field "name" Json.string)
+                        procedureDecoder
+
+                _ ->
+                    Json.fail ("unknown kind " ++ kind)
+    in
+        Json.field "kind" Json.string
+            |> Json.andThen decodeKind
+
+
+{-| decoder for pollen /rest/tags/$path response
+-}
+tagsResponseDecoder : Json.Decoder TagsResponse
+tagsResponseDecoder =
+    Json.map2 TagsResponse
+        (Json.field "errno" Json.int)
+        (Json.field "tags" (Json.list tagDecoder))
 
 
 

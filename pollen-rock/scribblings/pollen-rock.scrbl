@@ -362,7 +362,7 @@ Get project configuration of the given @tt{$file}. If @tt{pollen.rkt} doesn't ex
 query parameter: None
 @margin-note{It would be useful to accept a query parameter to return a specific config}
 
-response parameter: See @secref{api-tags}
+response parameter: same as @secref{api-tags}. However, this API returns only variables of the setup module.
 
 @subsubsection{GET /rest/watch/$file}
 Do HTTP long polling on the given @code{$file}. The HTTP request returns only when the modified time of @tt{$file} has changed.

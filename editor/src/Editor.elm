@@ -78,6 +78,11 @@ port changeLayout : String -> Cmd msg
 port setCMOption : ( String, String ) -> Cmd msg
 
 
+{-| ask JS to update pollenSetup on the JS side
+-}
+port updatePollenSetup : PollenSetup -> Cmd msg
+
+
 
 -- Model
 
@@ -92,19 +97,100 @@ type alias Flags =
     }
 
 
+defaultCommandChar : String
+defaultCommandChar =
+    "◊"
+
+
+initPollenSetup : PollenSetup
+initPollenSetup =
+    { commandChar = defaultCommandChar }
+
+
 init : Flags -> ( EditorModel, Cmd EditorMsg )
 init flags =
     ( { filePath = flags.filePath
       , docState = DocSaved
       , unsavedSeconds = 0
       , layout = Nothing
+      , pollenSetup = initPollenSetup
       }
-    , readFile flags.filePath
+    , Cmd.batch
+        [ readFile flags.filePath
+        , readConfig flags.filePath
+        ]
     )
 
 
 
 -- Update
+
+
+{-| search a tag matching the given name. If no such tag is found,
+search the name with a `default-` prefix. If the second search also fails, return Nothing
+-}
+getTag : String -> List Tag -> Maybe Tag
+getTag name tags =
+    let
+        search name =
+            List.head
+                (List.filter
+                    (\tag ->
+                        case tag of
+                            VariableTag n v ->
+                                n == name
+
+                            ProcedureTag n v ->
+                                n == name
+                    )
+                    tags
+                )
+    in
+        case search name of
+            Nothing ->
+                search ("default-" ++ name)
+
+            result ->
+                result
+
+
+updateConfig : EditorModel -> List Tag -> EditorModel
+updateConfig model tags =
+    case getTag "command-char" tags of
+        Just (VariableTag _ var) ->
+            let
+                char =
+                    case var of
+                        StringVal s ->
+                            s
+
+                        CharVal c ->
+                            c
+
+                        _ ->
+                            defaultCommandChar
+
+                setup =
+                    model.pollenSetup
+
+                newSetup =
+                    { setup | commandChar = char }
+            in
+                { model | pollenSetup = newSetup }
+
+        Nothing ->
+            let
+                _ =
+                    Debug.log "commandChar is not found"
+            in
+                model
+
+        c ->
+            let
+                _ =
+                    Debug.log "incorrect commandChar type" c
+            in
+                model
 
 
 update : EditorMsg -> EditorModel -> ( EditorModel, Cmd EditorMsg )
@@ -142,6 +228,25 @@ update msg model =
                                 Debug.log "code" code
                         in
                             ( { model | docState = DocError }, Cmd.none )
+
+                    _ ->
+                        ( model, Cmd.none )
+
+        OnConfigRead response ->
+            let
+                _ =
+                    Debug.log "config" response
+            in
+                case response of
+                    RemoteData.Success { errno, tags } ->
+                        if errno /= 0 then
+                            ( model, Cmd.none )
+                        else
+                            let
+                                newModel =
+                                    updateConfig model tags
+                            in
+                                ( newModel, updatePollenSetup newModel.pollenSetup )
 
                     _ ->
                         ( model, Cmd.none )
@@ -278,3 +383,10 @@ renderFile path =
     Api.get Api.APIrender Api.renderResponseDecoder path
         |> RemoteData.sendRequest
         |> Cmd.map OnRendered
+
+
+readConfig : String -> Cmd EditorMsg
+readConfig path =
+    Api.get Api.APIconfig Api.tagsResponseDecoder path
+        |> RemoteData.sendRequest
+        |> Cmd.map OnConfigRead

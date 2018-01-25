@@ -9913,6 +9913,14 @@ var _lijunsong$pollen_rock$Models$FsPostResponse = F2(
 	function (a, b) {
 		return {errno: a, message: b};
 	});
+var _lijunsong$pollen_rock$Models$Procedure = F4(
+	function (a, b, c, d) {
+		return {arity: a, arityAtLeast: b, allKeywords: c, requiredKeywords: d};
+	});
+var _lijunsong$pollen_rock$Models$TagsResponse = F2(
+	function (a, b) {
+		return {errno: a, tags: b};
+	});
 var _lijunsong$pollen_rock$Models$JSSettings = F2(
 	function (a, b) {
 		return {lineNumbers: a, lineWrapping: b};
@@ -9921,9 +9929,12 @@ var _lijunsong$pollen_rock$Models$DashboardModel = F3(
 	function (a, b, c) {
 		return {route: a, fsListDirectory: b, settings: c};
 	});
-var _lijunsong$pollen_rock$Models$EditorModel = F4(
-	function (a, b, c, d) {
-		return {filePath: a, docState: b, unsavedSeconds: c, layout: d};
+var _lijunsong$pollen_rock$Models$PollenSetup = function (a) {
+	return {commandChar: a};
+};
+var _lijunsong$pollen_rock$Models$EditorModel = F5(
+	function (a, b, c, d, e) {
+		return {filePath: a, docState: b, unsavedSeconds: c, layout: d, pollenSetup: e};
 	});
 var _lijunsong$pollen_rock$Models$CodeMirrorContents = F3(
 	function (a, b, c) {
@@ -9979,6 +9990,34 @@ var _lijunsong$pollen_rock$Models$RenderFailure = function (a) {
 var _lijunsong$pollen_rock$Models$RenderSuccess = function (a) {
 	return {ctor: 'RenderSuccess', _0: a};
 };
+var _lijunsong$pollen_rock$Models$UnknownVal = {ctor: 'UnknownVal'};
+var _lijunsong$pollen_rock$Models$SymbolVal = function (a) {
+	return {ctor: 'SymbolVal', _0: a};
+};
+var _lijunsong$pollen_rock$Models$CharVal = function (a) {
+	return {ctor: 'CharVal', _0: a};
+};
+var _lijunsong$pollen_rock$Models$StringVal = function (a) {
+	return {ctor: 'StringVal', _0: a};
+};
+var _lijunsong$pollen_rock$Models$BooleanVal = function (a) {
+	return {ctor: 'BooleanVal', _0: a};
+};
+var _lijunsong$pollen_rock$Models$NumberVal = function (a) {
+	return {ctor: 'NumberVal', _0: a};
+};
+var _lijunsong$pollen_rock$Models$KeywordsList = function (a) {
+	return {ctor: 'KeywordsList', _0: a};
+};
+var _lijunsong$pollen_rock$Models$KeywordsAny = {ctor: 'KeywordsAny'};
+var _lijunsong$pollen_rock$Models$ProcedureTag = F2(
+	function (a, b) {
+		return {ctor: 'ProcedureTag', _0: a, _1: b};
+	});
+var _lijunsong$pollen_rock$Models$VariableTag = F2(
+	function (a, b) {
+		return {ctor: 'VariableTag', _0: a, _1: b};
+	});
 var _lijunsong$pollen_rock$Models$Text = {ctor: 'Text'};
 var _lijunsong$pollen_rock$Models$Xml = {ctor: 'Xml'};
 var _lijunsong$pollen_rock$Models$Racket = {ctor: 'Racket'};
@@ -10101,6 +10140,9 @@ var _lijunsong$pollen_rock$Models$OnTick = function (a) {
 };
 var _lijunsong$pollen_rock$Models$OnEditorOpenSettings = {ctor: 'OnEditorOpenSettings'};
 var _lijunsong$pollen_rock$Models$OnEditorGoBack = {ctor: 'OnEditorGoBack'};
+var _lijunsong$pollen_rock$Models$OnConfigRead = function (a) {
+	return {ctor: 'OnConfigRead', _0: a};
+};
 var _lijunsong$pollen_rock$Models$OnFileRead = function (a) {
 	return {ctor: 'OnFileRead', _0: a};
 };
@@ -10182,6 +10224,113 @@ var _lijunsong$pollen_rock$Api$get = F3(
 				}),
 			decoder);
 	});
+var _lijunsong$pollen_rock$Api$keywordsDecoder = _elm_lang$core$Json_Decode$oneOf(
+	{
+		ctor: '::',
+		_0: A2(
+			_elm_lang$core$Json_Decode$andThen,
+			function (b) {
+				return _elm_lang$core$Json_Decode$succeed(_lijunsong$pollen_rock$Models$KeywordsAny);
+			},
+			A2(_elm_lang$core$Json_Decode$field, 'all-keywords', _elm_lang$core$Json_Decode$bool)),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_elm_lang$core$Json_Decode$map,
+				_lijunsong$pollen_rock$Models$KeywordsList,
+				A2(
+					_elm_lang$core$Json_Decode$field,
+					'all-keywords',
+					_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string))),
+			_1: {ctor: '[]'}
+		}
+	});
+var _lijunsong$pollen_rock$Api$procedureDecoder = A5(
+	_elm_lang$core$Json_Decode$map4,
+	_lijunsong$pollen_rock$Models$Procedure,
+	A2(_elm_lang$core$Json_Decode$field, 'arity', _elm_lang$core$Json_Decode$int),
+	A2(_elm_lang$core$Json_Decode$field, 'arity-at-least', _elm_lang$core$Json_Decode$bool),
+	A2(_elm_lang$core$Json_Decode$field, 'all-keywords', _lijunsong$pollen_rock$Api$keywordsDecoder),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'required-keywords',
+		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string)));
+var _lijunsong$pollen_rock$Api$variableDecoder = A2(
+	_elm_lang$core$Json_Decode$andThen,
+	function (typ) {
+		var _p3 = typ;
+		if (_p3.ctor === 'Nothing') {
+			return _elm_lang$core$Json_Decode$succeed(_lijunsong$pollen_rock$Models$UnknownVal);
+		} else {
+			switch (_p3._0) {
+				case 'string':
+					return A2(
+						_elm_lang$core$Json_Decode$map,
+						_lijunsong$pollen_rock$Models$StringVal,
+						A2(_elm_lang$core$Json_Decode$field, 'value', _elm_lang$core$Json_Decode$string));
+				case 'char':
+					return A2(
+						_elm_lang$core$Json_Decode$map,
+						_lijunsong$pollen_rock$Models$CharVal,
+						A2(_elm_lang$core$Json_Decode$field, 'value', _elm_lang$core$Json_Decode$string));
+				case 'boolean':
+					return A2(
+						_elm_lang$core$Json_Decode$map,
+						_lijunsong$pollen_rock$Models$BooleanVal,
+						A2(_elm_lang$core$Json_Decode$field, 'value', _elm_lang$core$Json_Decode$bool));
+				case 'number':
+					return A2(
+						_elm_lang$core$Json_Decode$map,
+						_lijunsong$pollen_rock$Models$NumberVal,
+						A2(_elm_lang$core$Json_Decode$field, 'value', _elm_lang$core$Json_Decode$float));
+				case 'symbol':
+					return A2(
+						_elm_lang$core$Json_Decode$map,
+						_lijunsong$pollen_rock$Models$SymbolVal,
+						A2(_elm_lang$core$Json_Decode$field, 'value', _elm_lang$core$Json_Decode$string));
+				default:
+					return _elm_lang$core$Json_Decode$succeed(_lijunsong$pollen_rock$Models$UnknownVal);
+			}
+		}
+	},
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'type',
+		_elm_lang$core$Json_Decode$nullable(_elm_lang$core$Json_Decode$string)));
+var _lijunsong$pollen_rock$Api$tagDecoder = function () {
+	var decodeKind = function (kind) {
+		var _p4 = kind;
+		switch (_p4) {
+			case 'variable':
+				return A3(
+					_elm_lang$core$Json_Decode$map2,
+					_lijunsong$pollen_rock$Models$VariableTag,
+					A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
+					_lijunsong$pollen_rock$Api$variableDecoder);
+			case 'procedure':
+				return A3(
+					_elm_lang$core$Json_Decode$map2,
+					_lijunsong$pollen_rock$Models$ProcedureTag,
+					A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
+					_lijunsong$pollen_rock$Api$procedureDecoder);
+			default:
+				return _elm_lang$core$Json_Decode$fail(
+					A2(_elm_lang$core$Basics_ops['++'], 'unknown kind ', kind));
+		}
+	};
+	return A2(
+		_elm_lang$core$Json_Decode$andThen,
+		decodeKind,
+		A2(_elm_lang$core$Json_Decode$field, 'kind', _elm_lang$core$Json_Decode$string));
+}();
+var _lijunsong$pollen_rock$Api$tagsResponseDecoder = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_lijunsong$pollen_rock$Models$TagsResponse,
+	A2(_elm_lang$core$Json_Decode$field, 'errno', _elm_lang$core$Json_Decode$int),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'tags',
+		_elm_lang$core$Json_Decode$list(_lijunsong$pollen_rock$Api$tagDecoder)));
 var _lijunsong$pollen_rock$Api$renderResponseDecoder = A2(
 	_elm_lang$core$Json_Decode$andThen,
 	function (errno) {

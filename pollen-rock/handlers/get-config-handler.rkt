@@ -10,6 +10,8 @@
 
 
 ;;;; GET /config/$path
+;;
+;; return tags are guarenteed to be a "variable" type
 (define/contract (config-answer errno tags)
   (-> integer? (listof (hash/c symbol? jsexpr?)) jsexpr?)
   (hash 'errno errno
@@ -40,11 +42,21 @@
         [else
          (search-pollen/setup (drop-right url-parts 1) found?)]))
 
+;; get all bindings of pollen setup in the given module-path.
+;; if an identifer appears multiple times, its final value is
+;; the last value overwritten during requires
 (define/contract (do-get-config module-path)
   (-> (or/c path-string? symbol?) (listof jsexpr?))
-  (define config-json (extract-module-bindings
-                       (list module-path)))
-  config-json)
+  (let  [(submodule (if (symbol? module-path)
+                        module-path
+                        `(submod ,module-path setup)))]
+    (define config-json (extract-module-bindings
+                         (list 'pollen/setup submodule)))
+    (define (extract-var hash)
+      (string=? (hash-ref hash 'kind) "variable"))
+
+    (filter extract-var config-json)))
+
 
 
 (module+ test
