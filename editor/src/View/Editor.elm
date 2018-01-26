@@ -43,11 +43,11 @@ editorHeaderView model =
                     text "Render[|]"
     in
         View.Common.makeHeader (View.Common.breadcrumb model.filePath)
-            [ span [ class "clickable action", onClick OnEditorGoBack ] [ text "Back" ]
+            [ span [ class "btn", onClick OnEditorGoBack ] [ text "Back" ]
             ]
             [ span [ class "docState" ] [ text state ]
             , ul []
-                [ li [ class "clickable action render", onClick clickLayoutMsg ] [ showRenderText ]
-                , li [ class "clickable action setting", onClick OnEditorOpenSettings ] [ text "Settings" ]
+                [ li [ class "btn render", onClick clickLayoutMsg ] [ showRenderText ]
+                , li [ class "btn setting", onClick OnEditorOpenSettings ] [ text "Settings" ]
                 ]
             ]

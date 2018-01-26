@@ -17,7 +17,7 @@ body {
     color: #352f26;
 }
 
-a, .clickable {
+a {
     text-decoration: underline;
     cursor: pointer;
 }
@@ -61,13 +61,16 @@ a:hover {
     margin-left: 1rem;
 }
 
-.action {
+
+.btn {
+    text-decoration: underline;
     cursor: pointer;
     padding: 0.2rem 0.1rem 0.2rem 0.1rem;
 }
-.action:hover {
+.btn:hover {
     font-weight: bold;
 }
+
 
 /*breadcrumb*/
 ul.breadcrumb {

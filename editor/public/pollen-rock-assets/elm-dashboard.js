@@ -10755,7 +10755,7 @@ var _lijunsong$pollen_rock$View_Settings$tabulate = function (settings) {
 							_elm_lang$html$Html$span,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('action clickable'),
+								_0: _elm_lang$html$Html_Attributes$class('btn'),
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnResetSettings),
@@ -11075,7 +11075,7 @@ var _lijunsong$pollen_rock$View_Editor$editorHeaderView = function (model) {
 				_elm_lang$html$Html$span,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('clickable action'),
+					_0: _elm_lang$html$Html_Attributes$class('btn'),
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnEditorGoBack),
@@ -11114,7 +11114,7 @@ var _lijunsong$pollen_rock$View_Editor$editorHeaderView = function (model) {
 							_elm_lang$html$Html$li,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('clickable action render'),
+								_0: _elm_lang$html$Html_Attributes$class('btn render'),
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$html$Html_Events$onClick(clickLayoutMsg),
@@ -11132,7 +11132,7 @@ var _lijunsong$pollen_rock$View_Editor$editorHeaderView = function (model) {
 								_elm_lang$html$Html$li,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('clickable action setting'),
+									_0: _elm_lang$html$Html_Attributes$class('btn setting'),
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnEditorOpenSettings),
@@ -11166,7 +11166,7 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 					_elm_lang$html$Html$span,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('clickable action'),
+						_0: _elm_lang$html$Html_Attributes$class('btn'),
 						_1: {
 							ctor: '::',
 							_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnDashboardOpenSettings),
@@ -11186,7 +11186,7 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 					_elm_lang$html$Html$span,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('action clickable'),
+						_0: _elm_lang$html$Html_Attributes$class('btn'),
 						_1: {
 							ctor: '::',
 							_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnDashboardGoBack),
@@ -11226,7 +11226,7 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 					_elm_lang$html$Html$span,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('action clickable'),
+						_0: _elm_lang$html$Html_Attributes$class('btn'),
 						_1: {
 							ctor: '::',
 							_0: _elm_lang$html$Html_Events$onClick(_lijunsong$pollen_rock$Models$OnDashboardGoBack),

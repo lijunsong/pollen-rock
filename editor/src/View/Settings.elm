@@ -115,6 +115,6 @@ tabulate settings =
     in
         table []
             (rows
-                ++ [ td [] [ span [ class "action clickable", onClick OnResetSettings ] [ text "reset" ] ]
+                ++ [ td [] [ span [ class "btn", onClick OnResetSettings ] [ text "reset" ] ]
                    ]
             )

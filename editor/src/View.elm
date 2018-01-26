@@ -21,12 +21,12 @@ dashboardView model =
                     View.Common.breadcrumb path
 
                 left =
-                    [ span [ class "action clickable", onClick OnDashboardGoBack ]
+                    [ span [ class "btn", onClick OnDashboardGoBack ]
                         [ text "Back" ]
                     ]
 
                 right =
-                    [ span [ class "clickable action", onClick OnDashboardOpenSettings ]
+                    [ span [ class "btn", onClick OnDashboardOpenSettings ]
                         [ text "Settings" ]
                     ]
 
@@ -41,7 +41,7 @@ dashboardView model =
         SettingsRoute ->
             let
                 left =
-                    [ span [ class "action clickable", onClick OnDashboardGoBack ]
+                    [ span [ class "btn", onClick OnDashboardGoBack ]
                         [ text "Back" ]
                     ]
 
