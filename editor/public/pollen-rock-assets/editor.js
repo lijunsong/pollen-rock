@@ -48,6 +48,7 @@ function initEditor() {
   app.ports.initDoc.subscribe(function(text) {
     $editor.setValue(text);
     $editor.refresh();
+    $editor.focus();
   });
   // Elm calls CodeMirror to change option
   app.ports.setCMOption.subscribe(function(arg) {
@@ -101,6 +102,7 @@ function initEditor() {
   app.ports.changeLayout.subscribe(function(layout) {
     console.log('set layout to be ' + layout);
     $renderPanel.setLayout(layout);
+    $editor.focus();
   });
   // Elm calls to update the pollenSetup defined in the project
   app.ports.updatePollenSetup.subscribe(function(setup) {
