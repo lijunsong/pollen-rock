@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "run-p server elm:**",
-    "build": "npm run elm",
+    "build": "run-p elm:dashboard elm:editor",
     "server": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug --port 8000",
     "elm:dashboard": "elm-make src/Dashboard.elm --output=public/pollen-rock-assets/elm-dashboard.js",
     "elm:editor": "elm-make src/Editor.elm --output=public/pollen-rock-assets/elm-editor.js",

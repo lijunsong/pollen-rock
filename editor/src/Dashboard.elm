@@ -27,6 +27,8 @@ initModel settings route =
     { route = route
     , fsListDirectory = RemoteData.NotAsked
     , settings = toSettingsDict settings
+    , watchResponse = RemoteData.NotAsked
+    , renderLocation = Nothing
     }
 
 
@@ -42,6 +44,11 @@ init settings location =
         case currentRoute of
             DashboardRoute p ->
                 ( model, listDirectory p )
+
+            RenderRoute p ->
+                ( { model | watchResponse = RemoteData.Loading }
+                , Cmd.batch [ renderFile p, watchFile p ]
+                )
 
             SettingsRoute ->
                 ( model, Cmd.none )
@@ -84,6 +91,52 @@ update msg model =
                 ]
             )
 
+        OnWatchingFileChanged data ->
+            case model.route of
+                RenderRoute p ->
+                    let
+                        newModel =
+                            { model | watchResponse = data }
+                    in
+                        case model.renderLocation of
+                            Just loc ->
+                                let
+                                    _ =
+                                        Debug.log "Reload frame" loc
+                                in
+                                    ( newModel, Cmd.batch [ watchFile p, reloadRenderFrame loc ] )
+
+                            Nothing ->
+                                let
+                                    _ =
+                                        Debug.log "Unknown rendered path yet. Render one more time"
+                                in
+                                    ( newModel, Cmd.batch [ watchFile p, renderFile p ] )
+
+                _ ->
+                    ( { model | watchResponse = RemoteData.NotAsked }, Cmd.none )
+
+        OnWatchingFileRendered data ->
+            case data of
+                RemoteData.Success response ->
+                    let
+                        loc =
+                            case response of
+                                RenderFailure _ loc ->
+                                    loc
+
+                                RenderSuccess loc ->
+                                    loc
+                    in
+                        ( { model | renderLocation = Just loc }, Cmd.none )
+
+                _ ->
+                    let
+                        _ =
+                            Debug.log "Connection Error" data
+                    in
+                        ( { model | renderLocation = Nothing }, Cmd.none )
+
 
 updateSettings : DashboardModel -> String -> SettingValue -> ( DashboardModel, Cmd DashboardMsg )
 updateSettings model name val =
@@ -125,11 +178,30 @@ port setBoolSettings : ( String, Bool ) -> Cmd msg
 port resetSettings : () -> Cmd msg
 
 
+port reloadRenderFrame : String -> Cmd msg
+
+
 listDirectory : String -> Cmd DashboardMsg
 listDirectory srcPath =
     Api.get Api.APIfs Api.fsGetResponseDecoder srcPath
         |> RemoteData.sendRequest
         |> Cmd.map OnListDirectory
+
+
+{-| Watch file changes
+-}
+watchFile : String -> Cmd DashboardMsg
+watchFile path =
+    Api.get Api.APIwatch Api.watchResponseDecoder path
+        |> RemoteData.sendRequest
+        |> Cmd.map OnWatchingFileChanged
+
+
+renderFile : String -> Cmd DashboardMsg
+renderFile path =
+    Api.get Api.APIrender Api.renderResponseDecoder path
+        |> RemoteData.sendRequest
+        |> Cmd.map OnWatchingFileRendered
 
 
 

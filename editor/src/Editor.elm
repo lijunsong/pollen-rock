@@ -322,8 +322,8 @@ update msg model =
                             RenderSuccess location ->
                                 ( model, liveView ("/" ++ location) )
 
-                            RenderFailure errno ->
-                                ( model, Cmd.none )
+                            RenderFailure errno location ->
+                                ( model, liveView ("/" ++ location) )
 
                     _ ->
                         ( model, Cmd.none )

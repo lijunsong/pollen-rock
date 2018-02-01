@@ -6,6 +6,7 @@ module Api
         , fsGetResponseDecoder
         , fsPostResponseDecoder
         , renderResponseDecoder
+        , watchResponseDecoder
         , tagsResponseDecoder
         )
 
@@ -89,8 +90,8 @@ fsGetResponseDecoder =
         ]
 
 
-{-| The decoder to convert Json response of /rest/fs POST request to
-FsPostResponse
+{-| The decoder to convert Json response of /rest/render GET request to
+RenderResponse
 -}
 renderResponseDecoder : Json.Decoder RenderResponse
 renderResponseDecoder =
@@ -98,9 +99,24 @@ renderResponseDecoder =
         |> Json.andThen
             (\errno ->
                 if errno /= 0 then
-                    Json.succeed (RenderFailure errno)
+                    Json.map (RenderFailure errno) (Json.field "location" Json.string)
                 else
                     Json.map RenderSuccess (Json.field "location" Json.string)
+            )
+
+
+{-| The decoder to convert Json response of /rest/watch GET request to
+WatchResponse
+-}
+watchResponseDecoder : Json.Decoder WatchResponse
+watchResponseDecoder =
+    Json.field "errno" Json.int
+        |> Json.andThen
+            (\errno ->
+                if errno /= 0 then
+                    Json.succeed WatchingFileNotExists
+                else
+                    Json.map WatchingFileChanged (Json.field "mtime" Json.int)
             )
 
 

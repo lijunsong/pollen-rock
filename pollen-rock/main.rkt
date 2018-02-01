@@ -58,6 +58,8 @@
     editor-handler]
    [("settings" (string-arg) ...)
     dashboard-handler]
+   [("render" (string-arg) ...)
+    dashboard-handler]
    [((string-arg) ...) static-file-handler]))
 
 

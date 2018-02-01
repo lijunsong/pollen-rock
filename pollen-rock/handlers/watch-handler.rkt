@@ -3,6 +3,7 @@
 (require json)
 (require web-server/http/request-structs)
 (require "../http-util.rkt")
+(require "../logger.rkt")
 (require "fs-watch.rkt")
 
 (provide watch-handler do-watch)
@@ -24,6 +25,7 @@
   (define bindings (request-bindings/raw req))
   ;; we may or may not get mtime from request
   (define mtime (get-binding-value #"mtime" bindings))
+  (log-rest-info "watching file ~a" source-path)
   (with-handlers
       ([exn:fail:filesystem? (lambda (e) (watch-answer 1 0))])
     (define int-mtime

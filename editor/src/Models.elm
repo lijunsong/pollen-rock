@@ -9,6 +9,7 @@ import Dict
 
 type Route
     = DashboardRoute String
+    | RenderRoute String
     | SettingsRoute
     | NotFoundRoute
 
@@ -28,6 +29,9 @@ parsePath urlPath =
 
         "settings" :: [] ->
             SettingsRoute
+
+        "render" :: rest ->
+            RenderRoute <| Util.concatUrl rest
 
         _ ->
             NotFoundRoute
@@ -67,7 +71,12 @@ type alias FsPostResponse =
 -}
 type RenderResponse
     = RenderSuccess String
-    | RenderFailure Int
+    | RenderFailure Int String
+
+
+type WatchResponse
+    = WatchingFileChanged Int
+    | WatchingFileNotExists
 
 
 
@@ -174,6 +183,8 @@ toSettingsDict jsSettings =
 type alias DashboardModel =
     { route : Route
     , fsListDirectory : WebData FsGetResponse
+    , watchResponse : WebData WatchResponse
+    , renderLocation : Maybe String -- watch page's rendering location
     , settings : SettingsDict
     }
 
@@ -186,6 +197,8 @@ type DashboardMsg
     = OnLocationChange Location
     | OnDashboardGoBack
     | OnDashboardOpenSettings
+    | OnWatchingFileChanged (WebData WatchResponse)
+    | OnWatchingFileRendered (WebData RenderResponse) -- occurs only once
     | OnListDirectory (WebData FsGetResponse)
     | OnSettingsChange String SettingValue
     | OnResetSettings

@@ -10,6 +10,7 @@ import View.Dashboard
 import View.Settings
 import View.Common
 import View.Editor
+import View.Render
 
 
 dashboardView : DashboardModel -> Html DashboardMsg
@@ -56,6 +57,9 @@ dashboardView model =
                     , div [ class "containerBody" ]
                         [ View.Settings.view model.settings ]
                     ]
+
+        RenderRoute sourcePath ->
+            View.Render.view model.watchResponse model.renderLocation
 
         _ ->
             let

@@ -399,7 +399,7 @@ query parameter: None
 response parameter:
 @paramlist[
  @param-errno{0 means no error, 1 means no such file, 2 means render failed.}
- @param[#:name "location" #:type "string or false"]{Rendered file name if errno is 0}
+ @param[#:name "location" #:type "string"]{Rendered file name. The location will be always present even if render fails.}
  ]
 
 Example: render @tt{file3.html.pm}.

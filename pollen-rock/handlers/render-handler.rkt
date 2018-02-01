@@ -14,9 +14,10 @@
 
 ;;;; POST /render/$path
 
-;; when errno if 1, location must be false
+;; errno 1 means render failed, 0 means render succeeded.
+;; In either case, the output location will be returned
 (define/contract (render-answer errno location)
-  (-> integer? (or/c false? string?) jsexpr?)
+  (-> integer? string? jsexpr?)
   (hasheq 'errno errno
           'location location))
 
@@ -32,7 +33,7 @@
                     (log-rest-debug
                      "exception occurred when rendering ~a: ~a"
                      source-path (exn->string e))
-                    (render-answer 1 false))])
+                    (render-answer 1 output-url))])
     (cond [(equal? source-path output-path)
            (log-rest-debug "No need to render file ~a" output-path)
            (render-answer 0 output-url)]
@@ -42,7 +43,7 @@
            (render-answer 0 output-url)]
           [else
            (log-rest-debug "Failed to render file ~a" source-path)
-           (render-answer 1 false)])))
+           (render-answer 1 output-url)])))
 
 (define/contract (do-render source-path)
   (-> path? boolean?)
@@ -88,7 +89,7 @@
 
   ;; test render-handler returns jsexp when renderer throws exceptions
   (check-equal?
-   (render-answer 1 false)
+   (render-answer 1 "blog/1.html")
    (render-handler
     render-pm-request
     render-pm-url-parts

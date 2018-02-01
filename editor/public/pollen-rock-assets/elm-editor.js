@@ -9925,9 +9925,9 @@ var _lijunsong$pollen_rock$Models$JSSettings = F2(
 	function (a, b) {
 		return {lineNumbers: a, lineWrapping: b};
 	});
-var _lijunsong$pollen_rock$Models$DashboardModel = F3(
-	function (a, b, c) {
-		return {route: a, fsListDirectory: b, settings: c};
+var _lijunsong$pollen_rock$Models$DashboardModel = F5(
+	function (a, b, c, d, e) {
+		return {route: a, fsListDirectory: b, watchResponse: c, renderLocation: d, settings: e};
 	});
 var _lijunsong$pollen_rock$Models$PollenSetup = function (a) {
 	return {commandChar: a};
@@ -9942,12 +9942,15 @@ var _lijunsong$pollen_rock$Models$CodeMirrorContents = F3(
 	});
 var _lijunsong$pollen_rock$Models$NotFoundRoute = {ctor: 'NotFoundRoute'};
 var _lijunsong$pollen_rock$Models$SettingsRoute = {ctor: 'SettingsRoute'};
+var _lijunsong$pollen_rock$Models$RenderRoute = function (a) {
+	return {ctor: 'RenderRoute', _0: a};
+};
 var _lijunsong$pollen_rock$Models$DashboardRoute = function (a) {
 	return {ctor: 'DashboardRoute', _0: a};
 };
 var _lijunsong$pollen_rock$Models$parsePath = function (urlPath) {
 	var _p1 = _lijunsong$pollen_rock$Util$splitUrl(urlPath);
-	_v1_2:
+	_v1_3:
 	do {
 		if (_p1.ctor === '::') {
 			switch (_p1._0) {
@@ -9958,13 +9961,16 @@ var _lijunsong$pollen_rock$Models$parsePath = function (urlPath) {
 					if (_p1._1.ctor === '[]') {
 						return _lijunsong$pollen_rock$Models$SettingsRoute;
 					} else {
-						break _v1_2;
+						break _v1_3;
 					}
+				case 'render':
+					return _lijunsong$pollen_rock$Models$RenderRoute(
+						_lijunsong$pollen_rock$Util$concatUrl(_p1._1));
 				default:
-					break _v1_2;
+					break _v1_3;
 			}
 		} else {
-			break _v1_2;
+			break _v1_3;
 		}
 	} while(false);
 	return _lijunsong$pollen_rock$Models$NotFoundRoute;
@@ -9984,11 +9990,16 @@ var _lijunsong$pollen_rock$Models$FileContents = function (a) {
 var _lijunsong$pollen_rock$Models$FolderContents = function (a) {
 	return {ctor: 'FolderContents', _0: a};
 };
-var _lijunsong$pollen_rock$Models$RenderFailure = function (a) {
-	return {ctor: 'RenderFailure', _0: a};
-};
+var _lijunsong$pollen_rock$Models$RenderFailure = F2(
+	function (a, b) {
+		return {ctor: 'RenderFailure', _0: a, _1: b};
+	});
 var _lijunsong$pollen_rock$Models$RenderSuccess = function (a) {
 	return {ctor: 'RenderSuccess', _0: a};
+};
+var _lijunsong$pollen_rock$Models$WatchingFileNotExists = {ctor: 'WatchingFileNotExists'};
+var _lijunsong$pollen_rock$Models$WatchingFileChanged = function (a) {
+	return {ctor: 'WatchingFileChanged', _0: a};
 };
 var _lijunsong$pollen_rock$Models$UnknownVal = {ctor: 'UnknownVal'};
 var _lijunsong$pollen_rock$Models$SymbolVal = function (a) {
@@ -10106,6 +10117,12 @@ var _lijunsong$pollen_rock$Models$OnSettingsChange = F2(
 	});
 var _lijunsong$pollen_rock$Models$OnListDirectory = function (a) {
 	return {ctor: 'OnListDirectory', _0: a};
+};
+var _lijunsong$pollen_rock$Models$OnWatchingFileRendered = function (a) {
+	return {ctor: 'OnWatchingFileRendered', _0: a};
+};
+var _lijunsong$pollen_rock$Models$OnWatchingFileChanged = function (a) {
+	return {ctor: 'OnWatchingFileChanged', _0: a};
 };
 var _lijunsong$pollen_rock$Models$OnDashboardOpenSettings = {ctor: 'OnDashboardOpenSettings'};
 var _lijunsong$pollen_rock$Models$OnDashboardGoBack = {ctor: 'OnDashboardGoBack'};
@@ -10331,11 +10348,22 @@ var _lijunsong$pollen_rock$Api$tagsResponseDecoder = A3(
 		_elm_lang$core$Json_Decode$field,
 		'tags',
 		_elm_lang$core$Json_Decode$list(_lijunsong$pollen_rock$Api$tagDecoder)));
+var _lijunsong$pollen_rock$Api$watchResponseDecoder = A2(
+	_elm_lang$core$Json_Decode$andThen,
+	function (errno) {
+		return (!_elm_lang$core$Native_Utils.eq(errno, 0)) ? _elm_lang$core$Json_Decode$succeed(_lijunsong$pollen_rock$Models$WatchingFileNotExists) : A2(
+			_elm_lang$core$Json_Decode$map,
+			_lijunsong$pollen_rock$Models$WatchingFileChanged,
+			A2(_elm_lang$core$Json_Decode$field, 'mtime', _elm_lang$core$Json_Decode$int));
+	},
+	A2(_elm_lang$core$Json_Decode$field, 'errno', _elm_lang$core$Json_Decode$int));
 var _lijunsong$pollen_rock$Api$renderResponseDecoder = A2(
 	_elm_lang$core$Json_Decode$andThen,
 	function (errno) {
-		return (!_elm_lang$core$Native_Utils.eq(errno, 0)) ? _elm_lang$core$Json_Decode$succeed(
-			_lijunsong$pollen_rock$Models$RenderFailure(errno)) : A2(
+		return (!_elm_lang$core$Native_Utils.eq(errno, 0)) ? A2(
+			_elm_lang$core$Json_Decode$map,
+			_lijunsong$pollen_rock$Models$RenderFailure(errno),
+			A2(_elm_lang$core$Json_Decode$field, 'location', _elm_lang$core$Json_Decode$string)) : A2(
 			_elm_lang$core$Json_Decode$map,
 			_lijunsong$pollen_rock$Models$RenderSuccess,
 			A2(_elm_lang$core$Json_Decode$field, 'location', _elm_lang$core$Json_Decode$string));
@@ -10503,35 +10531,196 @@ var _lijunsong$pollen_rock$View_Dashboard$itemView = F2(
 				_1: {ctor: '[]'}
 			});
 	});
+var _lijunsong$pollen_rock$View_Dashboard$makeEntry = F2(
+	function (parent, item) {
+		var _p4 = item;
+		if (_p4.ctor === 'Directory') {
+			var _p5 = _p4._0;
+			var newName = A2(_elm_lang$core$Basics_ops['++'], _p5, '/');
+			var url = _lijunsong$pollen_rock$Util$concatUrl(
+				{
+					ctor: '::',
+					_0: '/dashboard',
+					_1: {
+						ctor: '::',
+						_0: parent,
+						_1: {
+							ctor: '::',
+							_0: _p5,
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+			return A2(
+				_elm_lang$html$Html$tr,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$href(url),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(newName),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$td,
+							{ctor: '[]'},
+							{ctor: '[]'}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$td,
+								{ctor: '[]'},
+								{ctor: '[]'}),
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+		} else {
+			var _p6 = _p4._0;
+			var renderUrl = _lijunsong$pollen_rock$Util$concatUrl(
+				{
+					ctor: '::',
+					_0: '/render',
+					_1: {
+						ctor: '::',
+						_0: parent,
+						_1: {
+							ctor: '::',
+							_0: _p6,
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+			var renderColumn = _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p6) ? A2(
+				_elm_lang$html$Html$a,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$href(renderUrl),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Render'),
+					_1: {ctor: '[]'}
+				}) : _elm_lang$html$Html$text('');
+			var editorUrl = _lijunsong$pollen_rock$Util$concatUrl(
+				{
+					ctor: '::',
+					_0: '/editor',
+					_1: {
+						ctor: '::',
+						_0: parent,
+						_1: {
+							ctor: '::',
+							_0: _p6,
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+			var editorColumn = _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p6) ? A2(
+				_elm_lang$html$Html$a,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$href(editorUrl),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Edit'),
+					_1: {ctor: '[]'}
+				}) : _elm_lang$html$Html$text('');
+			return A2(
+				_elm_lang$html$Html$tr,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$td,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(_p6),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$td,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: editorColumn,
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$td,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: renderColumn,
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+		}
+	});
+var _lijunsong$pollen_rock$View_Dashboard$tabulate = F2(
+	function (path, items) {
+		return A2(
+			_elm_lang$html$Html$table,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('dashboard-list-item'),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$List$map,
+				function (i) {
+					return A2(_lijunsong$pollen_rock$View_Dashboard$makeEntry, path, i);
+				},
+				items));
+	});
 var _lijunsong$pollen_rock$View_Dashboard$page = F2(
 	function (path, model) {
-		var _p4 = model.fsListDirectory;
-		switch (_p4.ctor) {
+		var _p7 = model.fsListDirectory;
+		switch (_p7.ctor) {
 			case 'NotAsked':
 				return _elm_lang$html$Html$text('Not asked');
 			case 'Loading':
 				return _elm_lang$html$Html$text('Loading');
 			case 'Success':
-				var _p5 = _p4._0;
-				switch (_p5.ctor) {
+				var _p8 = _p7._0;
+				switch (_p8.ctor) {
 					case 'FolderContents':
-						var sortedItems = _lijunsong$pollen_rock$View_Dashboard$sortItems(_p5._0);
-						return A2(
-							_elm_lang$html$Html$div,
-							{ctor: '[]'},
-							A2(
-								_elm_lang$core$List$map,
-								function (item) {
-									return A2(_lijunsong$pollen_rock$View_Dashboard$itemView, path, item);
-								},
-								sortedItems));
+						var sortedItems = _lijunsong$pollen_rock$View_Dashboard$sortItems(_p8._0);
+						return A2(_lijunsong$pollen_rock$View_Dashboard$tabulate, path, sortedItems);
 					case 'FileContents':
 						return A2(
 							_elm_lang$html$Html$div,
 							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html$text(_p5._0),
+								_0: _elm_lang$html$Html$text(_p8._0),
 								_1: {ctor: '[]'}
 							});
 					default:
@@ -10544,13 +10733,13 @@ var _lijunsong$pollen_rock$View_Dashboard$page = F2(
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'error code: ',
-										_elm_lang$core$Basics$toString(_p5._0))),
+										_elm_lang$core$Basics$toString(_p8._0))),
 								_1: {ctor: '[]'}
 							});
 				}
 			default:
 				return _elm_lang$html$Html$text(
-					_elm_lang$core$Basics$toString(_p4._0));
+					_elm_lang$core$Basics$toString(_p7._0));
 		}
 	});
 var _lijunsong$pollen_rock$View_Dashboard$view = F2(
@@ -11152,6 +11341,53 @@ var _lijunsong$pollen_rock$View_Editor$editorHeaderView = function (model) {
 		});
 };
 
+var _lijunsong$pollen_rock$View_Render$view = F2(
+	function (response, location) {
+		var _p0 = location;
+		if (_p0.ctor === 'Just') {
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('frameContainer'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$iframe,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$src(
+								A2(_elm_lang$core$Basics_ops['++'], '/', _p0._0)),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$id('renderFrame'),
+								_1: {ctor: '[]'}
+							}
+						},
+						{ctor: '[]'}),
+					_1: {ctor: '[]'}
+				});
+		} else {
+			var _p1 = response;
+			switch (_p1.ctor) {
+				case 'NotAsked':
+					return _elm_lang$html$Html$text('Not asked');
+				case 'Loading':
+					return _elm_lang$html$Html$text('Loading');
+				case 'Failure':
+					return _elm_lang$html$Html$text('Server failure');
+				default:
+					if (_p1._0.ctor === 'WatchingFileChanged') {
+						return _elm_lang$html$Html$text('Pollen Rock internal error in Render page');
+					} else {
+						return _elm_lang$html$Html$text('File not exist');
+					}
+			}
+		}
+	});
+
 var _lijunsong$pollen_rock$View$editorView = function (model) {
 	return _lijunsong$pollen_rock$View_Editor$editorHeaderView(model);
 };
@@ -11272,6 +11508,8 @@ var _lijunsong$pollen_rock$View$dashboardView = function (model) {
 						_1: {ctor: '[]'}
 					}
 				});
+		case 'RenderRoute':
+			return A2(_lijunsong$pollen_rock$View_Render$view, model.watchResponse, model.renderLocation);
 		default:
 			var right = {ctor: '[]'};
 			var left = {ctor: '[]'};
@@ -11702,7 +11940,12 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 								A2(_elm_lang$core$Basics_ops['++'], '/', _p22._0))
 						};
 					} else {
-						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+						return {
+							ctor: '_Tuple2',
+							_0: model,
+							_1: _lijunsong$pollen_rock$Editor$liveView(
+								A2(_elm_lang$core$Basics_ops['++'], '/', _p22._1))
+						};
 					}
 				} else {
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};

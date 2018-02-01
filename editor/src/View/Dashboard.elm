@@ -1,9 +1,9 @@
 module View.Dashboard exposing (view)
 
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Models exposing (..)
 import RemoteData exposing (WebData)
-import Html exposing (Html, program, div, text, a, li, span)
-import Html.Attributes exposing (href, class, name, id)
 import Util
 
 
@@ -65,6 +65,55 @@ sortItems items =
         List.sortBy toComparable items
 
 
+makeEntry : String -> FolderItem -> Html msg
+makeEntry parent item =
+    case item of
+        Directory name ->
+            let
+                url =
+                    Util.concatUrl [ "/dashboard", parent, name ]
+
+                newName =
+                    name ++ "/"
+            in
+                tr []
+                    [ td [] [ a [ href url ] [ text newName ] ]
+                    , td [] []
+                    , td [] []
+                    ]
+
+        File name ->
+            let
+                editorUrl =
+                    Util.concatUrl [ "/editor", parent, name ]
+
+                renderUrl =
+                    Util.concatUrl [ "/render", parent, name ]
+
+                editorColumn =
+                    if isSupportedSource name then
+                        a [ href editorUrl ] [ text "Edit" ]
+                    else
+                        text ""
+
+                renderColumn =
+                    if isSupportedSource name then
+                        a [ href renderUrl ] [ text "Render" ]
+                    else
+                        text ""
+            in
+                tr []
+                    [ td [] [ text name ]
+                    , td [] [ editorColumn ]
+                    , td [] [ renderColumn ]
+                    ]
+
+
+tabulate : String -> List FolderItem -> Html msg
+tabulate path items =
+    table [ class "dashboard-list-item" ] (List.map (\i -> makeEntry path i) items)
+
+
 {-| Show all file items
 -}
 page : String -> DashboardModel -> Html DashboardMsg
@@ -83,9 +132,9 @@ page path model =
                         sortedItems =
                             sortItems items
                     in
-                        div []
-                            (List.map (\item -> itemView path item) sortedItems)
+                        tabulate path sortedItems
 
+                -- div [] (List.map (\s -> itemView path s) items)
                 FileContents contents ->
                     div []
                         [ text contents ]
