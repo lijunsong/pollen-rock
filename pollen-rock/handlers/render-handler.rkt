@@ -69,7 +69,7 @@
                      (lambda (src-path)
                        (source-path src-path)
                        true)))
-    (check-equal? (source-path) (string->path "blog/1.html.pm")))
+    (check-equal? (source-path) (build-path (current-directory) "blog/1.html.pm")))
 
   ;; render-handler returns source path directory because
   ;; the rendering target is not a pollen source
