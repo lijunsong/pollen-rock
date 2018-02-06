@@ -233,23 +233,19 @@ update msg model =
                         ( model, Cmd.none )
 
         OnConfigRead response ->
-            let
-                _ =
-                    Debug.log "config" response
-            in
-                case response of
-                    RemoteData.Success { errno, tags } ->
-                        if errno /= 0 then
-                            ( model, Cmd.none )
-                        else
-                            let
-                                newModel =
-                                    updateConfig model tags
-                            in
-                                ( newModel, updatePollenSetup newModel.pollenSetup )
-
-                    _ ->
+            case response of
+                RemoteData.Success { errno, tags } ->
+                    if errno /= 0 then
                         ( model, Cmd.none )
+                    else
+                        let
+                            newModel =
+                                updateConfig model tags
+                        in
+                            ( newModel, updatePollenSetup newModel.pollenSetup )
+
+                _ ->
+                    ( model, Cmd.none )
 
         OnEditorGoBack ->
             ( model, Navigation.back 1 )
@@ -312,21 +308,17 @@ update msg model =
             ( { model | docState = DocDirty, unsavedSeconds = 0 }, allowClose False )
 
         OnRendered response ->
-            let
-                _ =
-                    Debug.log "render response" response
-            in
-                case response of
-                    RemoteData.Success result ->
-                        case result of
-                            RenderSuccess location ->
-                                ( model, liveView ("/" ++ location) )
+            case response of
+                RemoteData.Success result ->
+                    case result of
+                        RenderSuccess location ->
+                            ( model, liveView ("/" ++ location) )
 
-                            RenderFailure errno location ->
-                                ( model, liveView ("/" ++ location) )
+                        RenderFailure errno location ->
+                            ( model, liveView ("/" ++ location) )
 
-                    _ ->
-                        ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
         OnLayoutChange layout ->
             let

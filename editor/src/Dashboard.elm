@@ -5,7 +5,6 @@ import RemoteData exposing (WebData)
 import Navigation exposing (Location)
 import Api exposing (PollenRockAPI(..))
 import View
-import Json.Decode as Json
 import Dict
 
 
@@ -100,18 +99,10 @@ update msg model =
                     in
                         case model.renderLocation of
                             Just loc ->
-                                let
-                                    _ =
-                                        Debug.log "Reload frame" loc
-                                in
-                                    ( newModel, Cmd.batch [ watchFile p, reloadRenderFrame loc ] )
+                                ( newModel, Cmd.batch [ watchFile p, reloadRenderFrame loc ] )
 
                             Nothing ->
-                                let
-                                    _ =
-                                        Debug.log "Unknown rendered path yet. Render one more time"
-                                in
-                                    ( newModel, Cmd.batch [ watchFile p, renderFile p ] )
+                                ( newModel, Cmd.batch [ watchFile p, renderFile p ] )
 
                 _ ->
                     ( { model | watchResponse = RemoteData.NotAsked }, Cmd.none )
@@ -131,11 +122,7 @@ update msg model =
                         ( { model | renderLocation = Just loc }, Cmd.none )
 
                 _ ->
-                    let
-                        _ =
-                            Debug.log "Connection Error" data
-                    in
-                        ( { model | renderLocation = Nothing }, Cmd.none )
+                    ( { model | renderLocation = Nothing }, Cmd.none )
 
 
 updateSettings : DashboardModel -> String -> SettingValue -> ( DashboardModel, Cmd DashboardMsg )

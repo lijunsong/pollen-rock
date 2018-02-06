@@ -24,7 +24,7 @@ Pollen-rock improves Pollen web server by providing an interface for querying pr
 
 @;other-doc['(lib "pollen/scribblings/pollen.scrbl") #:indirect "Pollen"]
 
-Pollen-rock is simply an add-on of Pollen rendering server. The new rendering server does not change Pollen language's semantics. Hate Pollen being silent on your undefined tag functions? You'll find the same behavior in Pollen-rock as well, because Pollen-rock uses Pollen to render your file. But Pollen-rock's built-in editor has the ability to inform you about that undefined tag, and you can make the decision what to do about it.
+Pollen-rock is simply an add-on of Pollen rendering server. This new rendering server does not change Pollen language's semantics. Hate Pollen being silent on your undefined tag functions? You'll find the same behavior in Pollen-rock as well, because Pollen-rock uses Pollen to render your file. But Pollen-rock's built-in editor has the ability to inform you about that undefined tag, and you can make the decision what to do about it.
 
 Internally, Pollen-rock provides a RESTful web API for querying various information of a Pollen project and source files. If you're interested in writing your tools using the RESTful API, continue to @secref["server-spec"]. If you're interested in Pollen-rock built-in editor, continue to @secref["installation"].
 
@@ -38,7 +38,7 @@ Pollen-rock is an add-on of Pollen. Installing pollen-rock is as simple as runni
  raco pkg install pollen-rock
 }
 
-Racket will handle package dependencies for us.
+Racket will handle package dependencies for you.
 
 For those who haven't installed Pollen before, you can follow the complete guide @secref["How_to_install" #:doc '(lib "pollen/scribblings/pollen.scrbl")] of Pollen to install Racket and Pollen, and then follow the above step.
 
@@ -59,13 +59,54 @@ And you'll see the following output
 @verbatim{
 Welcome to Pollen Rock 0.6.0 (Racket 6.8)
 Project root is /home/user/workspace/blog/
-Pollen Editor is running at http://localhost:8000 (accessible by all machines on your network)
+Pollen Editor is running at http://localhost:8000/dashboard (accessible by all machines on your network)
 Ctrl-C at any time to terminate Pollen Rock.
 }
 
 If @code{--start-dir} argument is not specified, the project root will be current working directory.
 
-@margin-note{Your project directory will be accessible to all machines on your network. This is dangerous because other people who know your IP can issue HTTP POST request remotely to remove your project data. To limit the access scope to your own machine, specify @code{--local} in the argument.}
+@margin-note{All machines on your network will be accessible to your project directory. This is dangerous; other people who know your IP can issue HTTP POST request remotely to remove your project data. To limit the access scope to your own machine, specify @code{--local} in the argument.}
+
+@subsection{Dashboard}
+
+Open @code{http://localhost:8000/dashboard} and you'll see a screen smilar to [this].
+
+On the dashboard, you can
+
+@ul{
+@li{Navigate in directories}
+@li{Render Pollen source files}
+@li{Open an in-browser editor to edit files}
+@li{Change settings of the editor}
+}
+
+@subsection{Render}
+
+When Pollen-rock starts to render a file, it actually does two things: It renders and shows the rendered page in the browser, and it watches the source code changes and reloads the rendered page.
+
+This is convenient when you open your editor and the browser side by side: [insert a gif]
+
+There are a few things you should be aware of:
+
+@ul{
+@li{Pollen-rock doesn't know the dependencies of your rendered result; if Pollen-rock watches source file @tt{file1.html.pm}, your changes in its dependencies won't trigger the reload.}
+@li{Pollen-rock watches the file content as well as file attribute}
+}
+
+
+@subsection{Use the Editor}
+
+Pollen-rock editor currently supports syntax highlight of a few common file types. The dashboard shows "Edit" only for supported files.
+
+The editor saves your change automatically, and the header area shows the saving status. Once the saving status has become @em{saved}, it's safe to close the browser.
+
+In the header area, you can also see
+
+@ul{
+@li{@tt{Render}: split the view, cycle through horizontal and vertical split view, and automatically render the file when its syntax is correct and reload the rendered page}
+@li{@tt{Settings}: open settings page}
+}
+
 
 @section[#:tag "server-spec"]{Pollen-rock Server Specification}
 

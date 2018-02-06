@@ -11727,40 +11727,37 @@ var _lijunsong$pollen_rock$Dashboard$update = F2(
 			case 'OnWatchingFileChanged':
 				var _p5 = model.route;
 				if (_p5.ctor === 'RenderRoute') {
-					var _p10 = _p5._0;
+					var _p7 = _p5._0;
 					var newModel = _elm_lang$core$Native_Utils.update(
 						model,
 						{watchResponse: _p4._0});
 					var _p6 = model.renderLocation;
 					if (_p6.ctor === 'Just') {
-						var _p8 = _p6._0;
-						var _p7 = A2(_elm_lang$core$Debug$log, 'Reload frame', _p8);
 						return {
 							ctor: '_Tuple2',
 							_0: newModel,
 							_1: _elm_lang$core$Platform_Cmd$batch(
 								{
 									ctor: '::',
-									_0: _lijunsong$pollen_rock$Dashboard$watchFile(_p10),
+									_0: _lijunsong$pollen_rock$Dashboard$watchFile(_p7),
 									_1: {
 										ctor: '::',
-										_0: _lijunsong$pollen_rock$Dashboard$reloadRenderFrame(_p8),
+										_0: _lijunsong$pollen_rock$Dashboard$reloadRenderFrame(_p6._0),
 										_1: {ctor: '[]'}
 									}
 								})
 						};
 					} else {
-						var _p9 = _elm_lang$core$Debug$log('Unknown rendered path yet. Render one more time');
 						return {
 							ctor: '_Tuple2',
 							_0: newModel,
 							_1: _elm_lang$core$Platform_Cmd$batch(
 								{
 									ctor: '::',
-									_0: _lijunsong$pollen_rock$Dashboard$watchFile(_p10),
+									_0: _lijunsong$pollen_rock$Dashboard$watchFile(_p7),
 									_1: {
 										ctor: '::',
-										_0: _lijunsong$pollen_rock$Dashboard$renderFile(_p10),
+										_0: _lijunsong$pollen_rock$Dashboard$renderFile(_p7),
 										_1: {ctor: '[]'}
 									}
 								})
@@ -11776,15 +11773,14 @@ var _lijunsong$pollen_rock$Dashboard$update = F2(
 					};
 				}
 			default:
-				var _p14 = _p4._0;
-				var _p11 = _p14;
-				if (_p11.ctor === 'Success') {
+				var _p8 = _p4._0;
+				if (_p8.ctor === 'Success') {
 					var loc = function () {
-						var _p12 = _p11._0;
-						if (_p12.ctor === 'RenderFailure') {
-							return _p12._1;
+						var _p9 = _p8._0;
+						if (_p9.ctor === 'RenderFailure') {
+							return _p9._1;
 						} else {
-							return _p12._0;
+							return _p9._0;
 						}
 					}();
 					return {
@@ -11797,7 +11793,6 @@ var _lijunsong$pollen_rock$Dashboard$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
-					var _p13 = A2(_elm_lang$core$Debug$log, 'Connection Error', _p14);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(

@@ -110,7 +110,7 @@
           ((get-info/full runtimeroot) 'version)
           (version))
   (printf "Project root is ~a\n" (current-directory))
-  (printf "Pollen Editor is running at http://localhost:~a (accessible by ~a)\n"
+  (printf "Pollen Editor is running at http://localhost:~a/dashboard (accessible by ~a)\n"
           (server-port)
           (if (listen-ip)
               "only this machine"

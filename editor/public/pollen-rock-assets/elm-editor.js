@@ -11788,14 +11788,12 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 				} while(false);
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'OnConfigRead':
-				var _p12 = _p6._0;
-				var _p10 = A2(_elm_lang$core$Debug$log, 'config', _p12);
-				var _p11 = _p12;
-				if (_p11.ctor === 'Success') {
-					if (!_elm_lang$core$Native_Utils.eq(_p11._0.errno, 0)) {
+				var _p10 = _p6._0;
+				if (_p10.ctor === 'Success') {
+					if (!_elm_lang$core$Native_Utils.eq(_p10._0.errno, 0)) {
 						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 					} else {
-						var newModel = A2(_lijunsong$pollen_rock$Editor$updateConfig, model, _p11._0.tags);
+						var newModel = A2(_lijunsong$pollen_rock$Editor$updateConfig, model, _p10._0.tags);
 						return {
 							ctor: '_Tuple2',
 							_0: newModel,
@@ -11818,8 +11816,8 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					_1: _elm_lang$navigation$Navigation$load('/settings')
 				};
 			case 'OnTick':
-				var _p13 = model.docState;
-				if (_p13.ctor === 'DocDirty') {
+				var _p11 = model.docState;
+				if (_p11.ctor === 'DocDirty') {
 					return (_elm_lang$core$Native_Utils.cmp(model.unsavedSeconds, _lijunsong$pollen_rock$Editor$maxUnsavedSeconds) > -1) ? {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -11854,18 +11852,18 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					_1: A2(_lijunsong$pollen_rock$Editor$writeFile, model.filePath, _p6._0.contents)
 				};
 			case 'OnFileSaved':
-				var _p19 = _p6._0;
-				var _p14 = _p19;
-				if (_p14.ctor === 'Success') {
+				var _p17 = _p6._0;
+				var _p12 = _p17;
+				if (_p12.ctor === 'Success') {
 					var renderCmd = function () {
-						var _p15 = {ctor: '_Tuple2', _0: model.layout, _1: model.docState};
+						var _p13 = {ctor: '_Tuple2', _0: model.layout, _1: model.docState};
 						_v10_2:
 						do {
-							if (_p15.ctor === '_Tuple2') {
-								if (_p15._0.ctor === 'Nothing') {
+							if (_p13.ctor === '_Tuple2') {
+								if (_p13._0.ctor === 'Nothing') {
 									return _elm_lang$core$Platform_Cmd$none;
 								} else {
-									if ((_p15._1.ctor === 'DocSaving') && (_p15._1._0 === true)) {
+									if ((_p13._1.ctor === 'DocSaving') && (_p13._1._0 === true)) {
 										return _lijunsong$pollen_rock$Editor$renderFile(model.filePath);
 									} else {
 										break _v10_2;
@@ -11887,11 +11885,11 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 								_1: {ctor: '[]'}
 							}
 						});
-					var _p16 = _p14._0;
-					var errno = _p16.errno;
-					var message = _p16.message;
-					var _p17 = errno;
-					if (_p17 === 0) {
+					var _p14 = _p12._0;
+					var errno = _p14.errno;
+					var message = _p14.message;
+					var _p15 = errno;
+					if (_p15 === 0) {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -11909,7 +11907,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 						};
 					}
 				} else {
-					var _p18 = A2(_elm_lang$core$Debug$log, 'response', _p19);
+					var _p16 = A2(_elm_lang$core$Debug$log, 'response', _p17);
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -11927,37 +11925,35 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 					_1: _lijunsong$pollen_rock$Editor$allowClose(false)
 				};
 			case 'OnRendered':
-				var _p23 = _p6._0;
-				var _p20 = A2(_elm_lang$core$Debug$log, 'render response', _p23);
-				var _p21 = _p23;
-				if (_p21.ctor === 'Success') {
-					var _p22 = _p21._0;
-					if (_p22.ctor === 'RenderSuccess') {
+				var _p18 = _p6._0;
+				if (_p18.ctor === 'Success') {
+					var _p19 = _p18._0;
+					if (_p19.ctor === 'RenderSuccess') {
 						return {
 							ctor: '_Tuple2',
 							_0: model,
 							_1: _lijunsong$pollen_rock$Editor$liveView(
-								A2(_elm_lang$core$Basics_ops['++'], '/', _p22._0))
+								A2(_elm_lang$core$Basics_ops['++'], '/', _p19._0))
 						};
 					} else {
 						return {
 							ctor: '_Tuple2',
 							_0: model,
 							_1: _lijunsong$pollen_rock$Editor$liveView(
-								A2(_elm_lang$core$Basics_ops['++'], '/', _p22._1))
+								A2(_elm_lang$core$Basics_ops['++'], '/', _p19._1))
 						};
 					}
 				} else {
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
 			default:
-				var _p25 = _p6._0;
+				var _p21 = _p6._0;
 				var cmd = function () {
-					var _p24 = _p25;
-					if (_p24.ctor === 'Nothing') {
+					var _p20 = _p21;
+					if (_p20.ctor === 'Nothing') {
 						return _lijunsong$pollen_rock$Editor$changeLayout('close');
 					} else {
-						if (_p24._0.ctor === 'HorizontalLayout') {
+						if (_p20._0.ctor === 'HorizontalLayout') {
 							return _lijunsong$pollen_rock$Editor$changeLayout('horizontal');
 						} else {
 							return _lijunsong$pollen_rock$Editor$changeLayout('vertical');
@@ -11966,7 +11962,7 @@ var _lijunsong$pollen_rock$Editor$update = F2(
 				}();
 				var newModel = _elm_lang$core$Native_Utils.update(
 					model,
-					{layout: _p25});
+					{layout: _p21});
 				return {
 					ctor: '_Tuple2',
 					_0: newModel,
