@@ -11,6 +11,7 @@
 (require racket/file)
 (require net/http-client)
 (require net/uri-codec)
+(require racket/runtime-path)
 
 (require "../config.rkt")
 (require "../main.rkt")
@@ -61,10 +62,13 @@
 
 
 ;;;;;;;;;;;;;;;; BEGIN TESTING POST ;;;;;;;;;;;;;;;;;;
-(define root-path "project-root")
-(define old-current-directory (current-directory))
+(define-runtime-path test-dir ".")
+(define root-path (build-path test-dir "project-root"))
+(printf "use ~a as test root path" root-path)
 
 ;; remove the test project root and create a new one
+(displayln root-path)
+
 (delete-directory/files root-path #:must-exist? false)
 (make-directory root-path)
 
@@ -370,5 +374,4 @@ TODO: implement front end and see what the result is supposed to be.
 
 
 ;; Clean the test folder
-(parameterize [(current-directory old-current-directory)]
-  (delete-directory/files root-path #:must-exist? false))
+(delete-directory/files root-path #:must-exist? false)

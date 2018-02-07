@@ -11,8 +11,7 @@
     "elm:dashboard": "elm-make src/Dashboard.elm --output=public/pollen-rock-assets/elm-dashboard.js",
     "elm:editor": "elm-make src/Editor.elm --output=public/pollen-rock-assets/elm-editor.js",
     "elm:dashboard:live": "elm-live src/Dashboard.elm --output=public/pollen-rock-assets/elm-dashboard.js --open --port=7000 --dir=public --pushstate",
-    "elm:editor:live": "elm-live src/Editor.elm --output=public/pollen-rock-assets/elm-editor.js --open --port=7001 --dir=public --pushstate",
-    "elm:reactor": "elm-reactor --port 8001"
+    "elm:editor:live": "elm-live src/Editor.elm --output=public/pollen-rock-assets/elm-editor.js --open --port=7001 --dir=public --pushstate"
   },
   "repository": {
     "type": "git",

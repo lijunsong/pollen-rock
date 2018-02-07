@@ -1,15 +1,16 @@
 ## Workflow
 
+Make sure you're in the editor/ directory before running these commands.
+
 1. Install Node.js packages: `npm install`
-2. install Elm packages: `elm package install`
-3. Start development environment: `npm start`
-4. Build Elm files: `npm run build`
-5. visit localhost:9000/dashboard to get started
+2. Install Elm as a global node package: `npm install -g elm`
+3. install Elm packages: `elm package install`
+4. Start development environment (start the server, build the target files, and use elm-live to listen to file change to rebuild the target files): `npm start`
+5. Build Elm files: `npm run build`
+6. visit localhost:8000/dashboard to get started
 
 ## Directory
 
-mock/
-    A JSON database which contains a fake API that responds to GET/POST requests for development and testing purposes
 src/
     Elm source files
 public/
