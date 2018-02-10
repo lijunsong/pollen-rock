@@ -11188,7 +11188,61 @@ var _lijunsong$pollen_rock$View_Common$explodePath = F3(
 				elms));
 	});
 var _lijunsong$pollen_rock$View_Common$breadcrumb = function (pathname) {
+	var makeItem = function (_p5) {
+		var _p6 = _p5;
+		return A2(
+			_elm_lang$html$Html$li,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$a,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$href(_p6._1),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('breadcrumbElement'),
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(_p6._0),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			});
+	};
 	var paths = A3(_lijunsong$pollen_rock$View_Common$explodePath, 'Dashboard', '/dashboard', pathname);
+	var dropLastLink = _elm_lang$core$List$reverse(
+		function () {
+			var _p7 = _elm_lang$core$List$reverse(paths);
+			if (_p7.ctor === '[]') {
+				return {ctor: '[]'};
+			} else {
+				if (_p7._1.ctor === '[]') {
+					return {
+						ctor: '::',
+						_0: makeItem(_p7._0),
+						_1: {ctor: '[]'}
+					};
+				} else {
+					return {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$li,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(_p7._0._0),
+								_1: {ctor: '[]'}
+							}),
+						_1: A2(_elm_lang$core$List$map, makeItem, _p7._1)
+					};
+				}
+			}
+		}());
 	return A2(
 		_elm_lang$html$Html$ul,
 		{
@@ -11196,35 +11250,7 @@ var _lijunsong$pollen_rock$View_Common$breadcrumb = function (pathname) {
 			_0: _elm_lang$html$Html_Attributes$class('breadcrumb'),
 			_1: {ctor: '[]'}
 		},
-		A2(
-			_elm_lang$core$List$map,
-			function (_p5) {
-				var _p6 = _p5;
-				return A2(
-					_elm_lang$html$Html$li,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$a,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$href(_p6._1),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('breadcrumbElement'),
-									_1: {ctor: '[]'}
-								}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(_p6._0),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					});
-			},
-			paths));
+		dropLastLink);
 };
 
 var _lijunsong$pollen_rock$View_Editor$editorHeaderView = function (model) {

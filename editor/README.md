@@ -3,7 +3,7 @@
 Make sure you're in the editor/ directory before running these commands.
 
 1. Install Node.js packages: `npm install`
-2. Install Elm as a global node package: `npm install -g elm`
+2. Install Elm as a global node package: `npm install -g elm elm-oracle elm-format`
 3. install Elm packages: `elm package install`
 4. Start development environment (start the server, build the target files, and use elm-live to listen to file change to rebuild the target files): `npm start`
 5. Build Elm files: `npm run build`

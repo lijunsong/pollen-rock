@@ -21,9 +21,6 @@
 
 (define (static-file-handler req url-parts)
   (log-web-request-debug "accessing ~s" url-parts)
-  ;; We can't filter url-parts here! webserver would complain
-  ;; url-parts: cannot use before initialization. No idea why.
-  ;;
   (let ((nonempty-urls (filter non-empty-string? url-parts)))
     (define filepath
       (apply build-path (cons (current-directory) nonempty-urls)))

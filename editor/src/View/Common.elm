@@ -40,14 +40,24 @@ breadcrumb pathname =
     let
         paths =
             explodePath "Dashboard" "/dashboard" pathname
-    in
-        ul [ class "breadcrumb" ]
-            (List.map
-                (\( name, path ) ->
-                    li [] [ a [ href path, class "breadcrumbElement" ] [ text name ] ]
+
+        makeItem ( name, path ) =
+            li [] [ a [ href path, class "breadcrumbElement" ] [ text name ] ]
+
+        dropLastLink =
+            List.reverse
+                (case List.reverse paths of
+                    [] ->
+                        []
+
+                    hd :: [] ->
+                        [ makeItem hd ]
+
+                    ( name, path ) :: rest ->
+                        (li [] [text name]) :: (List.map makeItem rest)
                 )
-                paths
-            )
+    in
+        ul [ class "breadcrumb" ] dropLastLink
 
 
 {-| Show breadcrumb
