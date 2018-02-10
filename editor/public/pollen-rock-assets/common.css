@@ -44,7 +44,8 @@ a:hover {
     flex: 1;
     text-align: center;
     width: 100%;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+    display: none;  /* shows this only for wider screen */
 }
 .headerBottom {
     display: flex;
@@ -109,9 +110,15 @@ ul.breadcrumb li:not(:first-child):before {
     html, .CodeMirror {
         font-size: 16px;
     }
+    .headerTop {
+        display: block;
+    }
 }
 @media (min-width: 800px) {
     html, .CodeMirror {
         font-size: 17px;
+    }
+    .headerTop {
+        display: block;
     }
 }

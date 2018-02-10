@@ -27,46 +27,12 @@
 }
 
 /* Header */
-.editorHeader {
-    display: flex;
-    flex-flow: column;
-    margin: 1rem 1rem 0 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #DDD;
-    color: #d2d0cd;
-    transition: color 1s;
-}
-.editorHeader:hover {
-    color: #352f26;
-}
-.headerTop {
-    flex: 1;
-    text-align: center;
-    width: 100%;
-    margin-bottom: 2rem;
-}
-.headerBottom {
-    display: flex;
-}
-.headerLeft {
-    flex: 1;
-}
-.headerRight ul {
-    list-style: none;
-    display: inline;
-}
-.headerRight ul li {
-    display: inline;
-    margin-left: 1rem;
-}
-
 .docState {
     color: #d2d0cd;
 }
 
 /* Resizer and rendering panel */
 #liveView {
-    xheight: 40%;
     position: relative;
     overflow: auto;  /* So iframe can be treated as overflow */
     -webkit-overflow-scrolling: touch;
