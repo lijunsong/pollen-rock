@@ -24,13 +24,10 @@
   ;; We can't filter url-parts here! webserver would complain
   ;; url-parts: cannot use before initialization. No idea why.
   ;;
-  ;; (define url-parts (filter non-empty-string? url-parts))
-  (define filepath
-    (apply build-path (cons (current-directory)
-                            (filter non-empty-string? url-parts))))
-  (let ((pollen-source (get-source filepath)))
-    (when pollen-source
-      (render-to-file-if-needed pollen-source))
+  (let ((nonempty-urls (filter non-empty-string? url-parts)))
+    (define filepath
+      (apply build-path (cons (current-directory) nonempty-urls)))
+    (render-from-source-or-output-path filepath)
     (next-dispatcher)))
 
 (define (dashboard-handler req url-parts)
