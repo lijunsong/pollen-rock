@@ -227,7 +227,9 @@ class RenderPanel {
       console.log('[updateLayout] unknown layout: ' + this.layout);
     }
 
-	$editor.refresh();
+	if ($editor) {
+		$editor.refresh();
+	}
   }
 
 }
