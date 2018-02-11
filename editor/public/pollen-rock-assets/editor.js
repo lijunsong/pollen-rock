@@ -92,7 +92,7 @@ function initEditor() {
   app.ports.liveView.subscribe(function(path) {
     console.log('liveView ' + path);
     var frame = document.getElementById('liveViewFrame');
-    if (! frame.src) {
+    if (! frame.src || frame.contentWindow.location.pathname != path) {
       frame.src = path;
     } else {
       frame.contentWindow.location.reload();
@@ -234,5 +234,35 @@ class RenderPanel {
 
 }
 
+// When new document loaded in iframe and the target is one pollen
+// source file, pollen-rock needs to redirect the editor to a new
+// source.
+function initFrame() {
+  var $frame = document.getElementById('liveViewFrame');
+  $frame.addEventListener('load', function() {
+    var editingPath = window.location.pathname;
+    var goingPath = $frame.contentWindow.location.pathname;
+
+    if (editingPath.replace('/editor', '').startsWith(goingPath)) {
+      return;
+    }
+    // redirect to the source that can produce goingPath
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() {
+      if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+        let response = JSON.parse(xmlHttp.responseText);
+        if (response.errno != 0) {
+          console.log(`${goingPath} is not found on filesystem`);
+        } else if (! editingPath.endsWith(response.source)){
+          window.location.href = `/editor/${response.source}`;
+        }
+      }
+    };
+    xmlHttp.open('GET', `/rest/search${goingPath}`, true);
+    xmlHttp.send(null);
+  });
+}
+
 var $renderPanel = new RenderPanel();
 initEditor();
+initFrame();

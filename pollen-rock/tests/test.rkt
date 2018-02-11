@@ -348,6 +348,56 @@ TODO: implement front end and see what the result is supposed to be.
       (check-equal? (hash-ref tag 'value false) 1)
       (check-equal? (hash-ref tag 'type false) "number")))))
 
+
+(test-case
+ "/search when the source exists and the query is querying source"
+ (define conn (get-conn))
+ (create-directory "file5")
+ (create-file "file5/search1.html.pm" "empty")
+ (check-get-response
+  conn "/rest/search/file5/search1.html.pm"
+  (lambda (stsatus headers contents)
+    (define res (bytes->jsexpr contents))
+    (check-equal? (hash-ref res 'errno null) 0)
+    (check-equal? (hash-ref res 'source-exists null) true)
+    (check-equal? (hash-ref res 'source null) "file5/search1.html.pm")
+    (check-equal? (hash-ref res 'output null) "file5/search1.html"))))
+
+(test-case
+ "/search when the source doesn't exist and the query is querying source"
+ (define conn (get-conn))
+ (check-get-response
+  conn "/rest/search/file5/search-x.html.pm"
+  (lambda (stsatus headers contents)
+    (define res (bytes->jsexpr contents))
+    (check-equal? (hash-ref res 'errno null) 0)
+    (check-equal? (hash-ref res 'source-exists null) false)
+    (check-equal? (hash-ref res 'source null) "file5/search-x.html.pm")
+    (check-equal? (hash-ref res 'output null) "file5/search-x.html"))))
+
+(test-case
+ "/search when the source exists and the query is querying output"
+ (define conn (get-conn))
+ (create-directory "file5")
+ (create-file "file5/search2.html.pm" "empty")
+ (check-get-response
+  conn "/rest/search/file5/search2.html"
+  (lambda (stsatus headers contents)
+    (define res (bytes->jsexpr contents))
+    (check-equal? (hash-ref res 'errno null) 0)
+    (check-equal? (hash-ref res 'source-exists null) true)
+    (check-equal? (hash-ref res 'source null) "file5/search2.html.pm")
+    (check-equal? (hash-ref res 'output null) "file5/search2.html"))))
+
+(test-case
+ "/search when the source doesn't exist and the query is querying output"
+ (define conn (get-conn))
+ (check-get-response
+  conn "/rest/search/file5/search-y.html"
+  (lambda (stsatus headers contents)
+    (define res (bytes->jsexpr contents))
+    (check-not-equal? (hash-ref res 'errno null) 0))))
+
 (test-case
  "watch handler shouldn't return if there is no change to the file"
  (define conn (get-conn))

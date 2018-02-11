@@ -7,8 +7,9 @@
          "handlers/fs-handler.rkt"
          "handlers/get-contents-handler.rkt"
          "handlers/get-config-handler.rkt"
-         "handlers/tags-handler.rkt"
          "handlers/render-handler.rkt"
+         "handlers/search-handler.rkt"
+         "handlers/tags-handler.rkt"
          "handlers/watch-handler.rkt"
          "handlers/dump-handler.rkt")
 
@@ -38,9 +39,10 @@
     (match type
       ["fs" (get-contents-handler req url-parts)]
       ["config" (get-config-handler req url-parts do-get-config)]
+      ["render" (render-handler req url-parts do-render)]
+      ["search" (search-handler req url-parts)]
       ["tags" (get-config-handler req url-parts do-get-tags)]
       ["watch" (watch-handler req url-parts do-watch)]
-      ["render" (render-handler req url-parts do-render)]
       ;; dump handler for testing
       ["dump" (dump-handler req url-parts)]))
   ;;; convert ans to jsexp
