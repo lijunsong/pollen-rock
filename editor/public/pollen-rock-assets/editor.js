@@ -1,5 +1,8 @@
 'use strict';
 
+// notification
+var notify = new Notify();
+
 // codemirror instance
 var $editor;
 
@@ -44,6 +47,15 @@ function initEditor() {
   $editor = CodeMirror.fromTextArea(area, settings);
 
   // -- Elm setup --
+  // Elm calls info to pop up info message
+  app.ports.notifyInfo.subscribe(function(arg) {
+    var [msg, time] = arg;
+    notify.info(msg, time);
+  });
+  app.ports.notifyError.subscribe(function(arg) {
+    var [msg, time] = arg;
+    notify.error(msg, time);
+  });
   // Elm calls initDoc to set CM content
   app.ports.initDoc.subscribe(function(text) {
     $editor.setValue(text);
@@ -121,10 +133,6 @@ function initEditor() {
   // -- key map setup --
   $editor.setOption("extraKeys", {
     "'@'": insertCommandCharHandler
-  });
-
-  $editor.on('cursorActivity', function() {
-    app.ports.token.send('cursor!');
   });
 }
 
@@ -254,7 +262,7 @@ function initFrame() {
         if (response.errno != 0) {
           console.log(`${goingPath} is not found on filesystem`);
         } else if (! editingPath.endsWith(response.source)){
-          window.location.href = `/editor/${response.source}`;
+          notify.info(`Click <a href="/editor/${response.source}">here</a> to edit ${response.source}.`, 5000);
         }
       }
     };

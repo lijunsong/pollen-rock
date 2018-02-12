@@ -141,6 +141,7 @@ sourceType filePath =
     in
         match
             [ ( ".pm", Pollen "pm" )
+            , ( ".pp", Pollen "pp" )
             , ( ".p", Pollen "p" )
             , ( ".html", Xml )
             , ( ".rkt", Racket )

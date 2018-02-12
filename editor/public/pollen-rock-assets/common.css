@@ -101,6 +101,35 @@ ul.breadcrumb li:not(:first-child):before {
     opacity: 0.1;
 }
 
+/* notification */
+#pollenNotify {
+  width: 300px;
+  position: fixed;
+  top: 2px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 99;
+  text-align: center;
+  line-height: 1.5em;
+  color: white;
+}
+
+.notify-error {
+    background-color: red;
+}
+.notify-error a, .notify-error a:hover {
+    color: white;
+}
+
+.notify-info {
+    background-color: #333;
+}
+.notify-info a, .notify-info a:hover {
+    color: white;
+}
+
+
 @media (min-width: 374px) {
     html, .CodeMirror {
         font-size: 15px;

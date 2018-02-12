@@ -24,7 +24,7 @@ main =
 initModel : JSSettings -> Route -> DashboardModel
 initModel settings route =
     { route = route
-    , fsListDirectory = RemoteData.NotAsked
+    , fsListDirectory = RemoteData.Loading
     , settings = toSettingsDict settings
     , watchResponse = RemoteData.NotAsked
     , renderLocation = Nothing

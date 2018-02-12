@@ -33,11 +33,6 @@ main =
 -- JS Native functions. One Command is paired with one Subscription
 
 
-{-| get the token under the cursor
--}
-port token : (String -> msg) -> Sub msg
-
-
 {-| ask CodeMirror to show the doc
 -}
 port initDoc : String -> Cmd msg
@@ -83,8 +78,23 @@ port setCMOption : ( String, String ) -> Cmd msg
 port updatePollenSetup : PollenSetup -> Cmd msg
 
 
+{-| ask JS to popup info message. Time is ms
+-}
+port notifyInfo : ( String, Int ) -> Cmd msg
+
+
+{-| ask JS to popup error message. Time is ms
+-}
+port notifyError : ( String, Int ) -> Cmd msg
+
+
 
 -- Model
+
+
+defaultNotifyTimeout : Int
+defaultNotifyTimeout =
+    3000
 
 
 {-| initially, we want javascript passes the following value to init:
@@ -236,13 +246,18 @@ update msg model =
             case response of
                 RemoteData.Success { errno, tags } ->
                     if errno /= 0 then
-                        ( model, Cmd.none )
+                        ( model, notifyError ( "Failed to load config", defaultNotifyTimeout ) )
                     else
                         let
                             newModel =
                                 updateConfig model tags
                         in
-                            ( newModel, updatePollenSetup newModel.pollenSetup )
+                            ( newModel
+                            , Cmd.batch
+                                [ updatePollenSetup newModel.pollenSetup
+                                , notifyInfo ( "Ready to Rock!", defaultNotifyTimeout )
+                                ]
+                            )
 
                 _ ->
                     ( model, Cmd.none )

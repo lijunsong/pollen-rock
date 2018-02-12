@@ -10065,16 +10065,24 @@ var _lijunsong$pollen_rock$Models$sourceType = function (filePath) {
 				ctor: '::',
 				_0: {
 					ctor: '_Tuple2',
-					_0: '.p',
-					_1: _lijunsong$pollen_rock$Models$Pollen('p')
+					_0: '.pp',
+					_1: _lijunsong$pollen_rock$Models$Pollen('pp')
 				},
 				_1: {
 					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: '.html', _1: _lijunsong$pollen_rock$Models$Xml},
+					_0: {
+						ctor: '_Tuple2',
+						_0: '.p',
+						_1: _lijunsong$pollen_rock$Models$Pollen('p')
+					},
 					_1: {
 						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: '.rkt', _1: _lijunsong$pollen_rock$Models$Racket},
-						_1: {ctor: '[]'}
+						_0: {ctor: '_Tuple2', _0: '.html', _1: _lijunsong$pollen_rock$Models$Xml},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: '.rkt', _1: _lijunsong$pollen_rock$Models$Racket},
+							_1: {ctor: '[]'}
+						}
 					}
 				}
 			}
@@ -10431,36 +10439,19 @@ var _lijunsong$pollen_rock$View_Dashboard$sortItems = function (items) {
 	return A2(_elm_lang$core$List$sortBy, toComparable, items);
 };
 var _lijunsong$pollen_rock$View_Dashboard$isSupportedSource = function (path) {
-	var suffixList = {
-		ctor: '::',
-		_0: '.pm',
-		_1: {
-			ctor: '::',
-			_0: '.html',
-			_1: {
-				ctor: '::',
-				_0: '.p',
-				_1: {
-					ctor: '::',
-					_0: 'rkt',
-					_1: {ctor: '[]'}
-				}
-			}
-		}
-	};
-	return A2(
-		_elm_lang$core$List$any,
-		function (s) {
-			return A2(_elm_lang$core$String$endsWith, s, path);
-		},
-		suffixList);
+	var _p1 = _lijunsong$pollen_rock$Models$sourceType(path);
+	if (_p1.ctor === 'Text') {
+		return false;
+	} else {
+		return true;
+	}
 };
 var _lijunsong$pollen_rock$View_Dashboard$itemView = F2(
 	function (parent, item) {
 		var row = function () {
-			var _p1 = item;
-			if (_p1.ctor === 'Directory') {
-				var _p2 = _p1._0;
+			var _p2 = item;
+			if (_p2.ctor === 'Directory') {
+				var _p3 = _p2._0;
 				return A2(
 					_elm_lang$html$Html$a,
 					{
@@ -10475,7 +10466,7 @@ var _lijunsong$pollen_rock$View_Dashboard$itemView = F2(
 										_0: parent,
 										_1: {
 											ctor: '::',
-											_0: _p2,
+											_0: _p3,
 											_1: {ctor: '[]'}
 										}
 									}
@@ -10485,12 +10476,12 @@ var _lijunsong$pollen_rock$View_Dashboard$itemView = F2(
 					{
 						ctor: '::',
 						_0: _elm_lang$html$Html$text(
-							A2(_elm_lang$core$Basics_ops['++'], _p2, '/')),
+							A2(_elm_lang$core$Basics_ops['++'], _p3, '/')),
 						_1: {ctor: '[]'}
 					});
 			} else {
-				var _p3 = _p1._0;
-				return _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p3) ? A2(
+				var _p4 = _p2._0;
+				return _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p4) ? A2(
 					_elm_lang$html$Html$a,
 					{
 						ctor: '::',
@@ -10504,7 +10495,7 @@ var _lijunsong$pollen_rock$View_Dashboard$itemView = F2(
 										_0: parent,
 										_1: {
 											ctor: '::',
-											_0: _p3,
+											_0: _p4,
 											_1: {ctor: '[]'}
 										}
 									}
@@ -10513,9 +10504,9 @@ var _lijunsong$pollen_rock$View_Dashboard$itemView = F2(
 					},
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html$text(_p3),
+						_0: _elm_lang$html$Html$text(_p4),
 						_1: {ctor: '[]'}
-					}) : _elm_lang$html$Html$text(_p3);
+					}) : _elm_lang$html$Html$text(_p4);
 			}
 		}();
 		return A2(
@@ -10533,10 +10524,10 @@ var _lijunsong$pollen_rock$View_Dashboard$itemView = F2(
 	});
 var _lijunsong$pollen_rock$View_Dashboard$makeEntry = F2(
 	function (parent, item) {
-		var _p4 = item;
-		if (_p4.ctor === 'Directory') {
-			var _p5 = _p4._0;
-			var newName = A2(_elm_lang$core$Basics_ops['++'], _p5, '/');
+		var _p5 = item;
+		if (_p5.ctor === 'Directory') {
+			var _p6 = _p5._0;
+			var newName = A2(_elm_lang$core$Basics_ops['++'], _p6, '/');
 			var url = _lijunsong$pollen_rock$Util$concatUrl(
 				{
 					ctor: '::',
@@ -10546,7 +10537,7 @@ var _lijunsong$pollen_rock$View_Dashboard$makeEntry = F2(
 						_0: parent,
 						_1: {
 							ctor: '::',
-							_0: _p5,
+							_0: _p6,
 							_1: {ctor: '[]'}
 						}
 					}
@@ -10592,7 +10583,7 @@ var _lijunsong$pollen_rock$View_Dashboard$makeEntry = F2(
 					}
 				});
 		} else {
-			var _p6 = _p4._0;
+			var _p7 = _p5._0;
 			var renderUrl = _lijunsong$pollen_rock$Util$concatUrl(
 				{
 					ctor: '::',
@@ -10602,12 +10593,12 @@ var _lijunsong$pollen_rock$View_Dashboard$makeEntry = F2(
 						_0: parent,
 						_1: {
 							ctor: '::',
-							_0: _p6,
+							_0: _p7,
 							_1: {ctor: '[]'}
 						}
 					}
 				});
-			var renderColumn = _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p6) ? A2(
+			var renderColumn = _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p7) ? A2(
 				_elm_lang$html$Html$a,
 				{
 					ctor: '::',
@@ -10628,12 +10619,12 @@ var _lijunsong$pollen_rock$View_Dashboard$makeEntry = F2(
 						_0: parent,
 						_1: {
 							ctor: '::',
-							_0: _p6,
+							_0: _p7,
 							_1: {ctor: '[]'}
 						}
 					}
 				});
-			var editorColumn = _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p6) ? A2(
+			var editorColumn = _lijunsong$pollen_rock$View_Dashboard$isSupportedSource(_p7) ? A2(
 				_elm_lang$html$Html$a,
 				{
 					ctor: '::',
@@ -10655,7 +10646,7 @@ var _lijunsong$pollen_rock$View_Dashboard$makeEntry = F2(
 						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text(_p6),
+							_0: _elm_lang$html$Html$text(_p7),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
@@ -10702,17 +10693,17 @@ var _lijunsong$pollen_rock$View_Dashboard$tabulate = F2(
 	});
 var _lijunsong$pollen_rock$View_Dashboard$page = F2(
 	function (path, model) {
-		var _p7 = model.fsListDirectory;
-		switch (_p7.ctor) {
+		var _p8 = model.fsListDirectory;
+		switch (_p8.ctor) {
 			case 'NotAsked':
 				return _elm_lang$html$Html$text('Not asked');
 			case 'Loading':
 				return _elm_lang$html$Html$text('Loading');
 			case 'Success':
-				var _p8 = _p7._0;
-				switch (_p8.ctor) {
+				var _p9 = _p8._0;
+				switch (_p9.ctor) {
 					case 'FolderContents':
-						var sortedItems = _lijunsong$pollen_rock$View_Dashboard$sortItems(_p8._0);
+						var sortedItems = _lijunsong$pollen_rock$View_Dashboard$sortItems(_p9._0);
 						return A2(_lijunsong$pollen_rock$View_Dashboard$tabulate, path, sortedItems);
 					case 'FileContents':
 						return A2(
@@ -10720,7 +10711,7 @@ var _lijunsong$pollen_rock$View_Dashboard$page = F2(
 							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html$text(_p8._0),
+								_0: _elm_lang$html$Html$text(_p9._0),
 								_1: {ctor: '[]'}
 							});
 					default:
@@ -10733,13 +10724,13 @@ var _lijunsong$pollen_rock$View_Dashboard$page = F2(
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'error code: ',
-										_elm_lang$core$Basics$toString(_p8._0))),
+										_elm_lang$core$Basics$toString(_p9._0))),
 								_1: {ctor: '[]'}
 							});
 				}
 			default:
 				return _elm_lang$html$Html$text(
-					_elm_lang$core$Basics$toString(_p7._0));
+					_elm_lang$core$Basics$toString(_p8._0));
 		}
 	});
 var _lijunsong$pollen_rock$View_Dashboard$view = F2(
@@ -11591,7 +11582,7 @@ var _lijunsong$pollen_rock$Dashboard$initModel = F2(
 	function (settings, route) {
 		return {
 			route: route,
-			fsListDirectory: _krisajenkins$remotedata$RemoteData$NotAsked,
+			fsListDirectory: _krisajenkins$remotedata$RemoteData$Loading,
 			settings: _lijunsong$pollen_rock$Models$toSettingsDict(settings),
 			watchResponse: _krisajenkins$remotedata$RemoteData$NotAsked,
 			renderLocation: _elm_lang$core$Maybe$Nothing

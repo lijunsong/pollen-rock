@@ -20,11 +20,12 @@ view pathname model =
 -}
 isSupportedSource : String -> Bool
 isSupportedSource path =
-    let
-        suffixList =
-            [ ".pm", ".html", ".p", "rkt" ]
-    in
-        List.any (\s -> String.endsWith s path) suffixList
+    case sourceType path of
+        Text ->
+            False
+
+        _ ->
+            True
 
 
 {-| Show individual file items
