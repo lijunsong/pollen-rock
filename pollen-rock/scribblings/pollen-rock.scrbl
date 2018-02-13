@@ -214,11 +214,11 @@ $ curl http://localhost:8000/rest/tags/dir1/file3.html.pm
       "kind": "procedure",
       "arity": 1,
       "required-keywords": [
-        
+
       ],
       "name": "tag0",
       "all-keywords": [
-        
+
       ]
     },
     {
@@ -273,7 +273,7 @@ Request parameter:
  }
  @param[#:name "data" #:type "string" #:optional #t]{
    extra data
- }                                                            
+ }
  ]
 
 Response parameter:
@@ -400,7 +400,7 @@ $ curl http://localhost:8000/rest/tags/file1.html.pm
     ]
 }
 }|
-  
+
 @subsubsection{GET /rest/config/$file}
 
 Get project configuration of the given @tt{$file}. If @tt{pollen.rkt} doesn't exist, this API fetches pre-defined tags from @secref["Setup" #:doc '(lib "pollen/scribblings/pollen.scrbl")].
@@ -435,6 +435,53 @@ $ time curl http://localhost:8000/rest/watch/file1.html.pm
 real	0m9.445s
 user	0m0.012s
 sys	0m0.021s
+}|
+
+@subsubsection{GET /rest/search/$file}
+
+Search source and output file.
+
+If the given file is a pollen source file, i.e. @tt{pp}, @tt{pm},
+@tt{p}, etc., Pollen-rock always returns @tt{source} and @tt{output}
+paths, and @tt{source-exists} indicates whether the source file
+exists. If the given file is not a pollen source, it's treated as an
+output file, and returns non-zero errno if no source files on the file
+system can generate the output, and returns 0 errno and set
+@tt{source} and @tt{output} accordingly, in which case,
+@tt{source-exists} is always @tt{true}.
+
+Query parameter: None
+
+Response parameter:
+@paramlist[
+ @param-errno{0 means no error, non-zero means some error has occurred}
+ @param[#:name "source-exists" #:type "bool"]{Whether the source exists}
+ @param[#:name "source" #:type "string"]{The source path relative to project root. The value is undefined when @tt{errno} is non-zero.}
+ @param[#:name "output" #:type "string"]{The output path relative to project root. The value is undefined when @tt{errno} is non-zero.}
+]
+
+Example: the following command gets the output path of one nonexistent pollen source
+
+@verbatim|{
+$ curl http://localhost:8000/rest/search/nonexist.html.pm
+{
+    "errno": 0,
+    "output": "nonexist.html",
+    "source": "nonexist.html.pm",
+    "source-exists": false
+}
+}|
+
+The following command demonstrates querying an output path that doesn't exist.
+
+@verbatim|{
+$ curl localhost:8000/rest/search/nonexist-dir/
+{
+    "errno": 1,
+    "output": "",
+    "source": "",
+    "source-exists": false
+}
 }|
 
 @subsubsection{GET /rest/render/$file}
