@@ -8,54 +8,12 @@ Pollen-Rock provides an improved rendering server and an in-browser editor for
 This project is still at its early development stage. Feedback and
 suggestions are welcome.
 
-## Development
-Everything about the development goes into the Pollen-rock documentation. But we still
-repeat a few things here.
+## Document
 
-### install
-The following command will clone the repo and install (link) the repo as a
-local package for development. The installation is a soft link, so any source
-change can take effect immediately.
+See [pollen-rock](https://docs.racket-lang.org/pollen-rock/) for documentation for both server and editor.
 
-```
-git clone https://github.com/lijunsong/pollen-rock.git
-cd pollen-rock
-raco pkg install -l
-```
+![pollen-rock editor](./pollen-rock/scribblings/images/side-by-side.png?raw=true "pollen-rockk editor")
 
-If you encounter cache problem, you can run
-
-```
-raco setup -l pollen-rock
-```
-
-to rebuild the package.
-
-### RESTful API
-
-The documentation of RESTful API is available locally in Racket Documentation.
-The above installation will also build the documentation. Run the following
-command to open Racket Documentation.
-
-```
-raco docs
-```
-
-Then search pollen-rock. You'll find it.
-
-### rebuild docs
-
-Pollen-rock documentation live in `pollen-rock/scribblings/`. To rebuild the
-document if you've made changes, run the following command to rebuild the html
-
-```
-raco setup --doc-index -l pollen-rock
-```
-
-### run the server and beyond
-
-Seriously, run `raco docs` to open the documentation locally. Everything is there.
-And we want the documentation to be the source of truth.
 
 # ChangeLog
 ## 0.6.0

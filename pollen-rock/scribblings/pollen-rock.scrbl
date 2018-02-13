@@ -2,6 +2,9 @@
 
 @(require (for-label racket))
 @(require scribble/decode)
+@(require scribble/core)
+@(require racket/runtime-path)
+@(require scribble/html-properties)
 
 @(define paramlist itemlist)
 @(define (param
@@ -17,6 +20,12 @@
 
 @(define (param-errno . str)
    (apply param str #:name "errno" #:type "int"))
+
+@(define-runtime-path scribble-root ".")
+
+@(define (use-image name scale)
+  (let ((path (build-path scribble-root "images" name)))
+    (image path #:scale scale)))
 
 @title{Pollen-rock: an improved Pollen server}
 
@@ -69,7 +78,7 @@ If @code{--start-dir} argument is not specified, the project root will be curren
 
 @subsection{Dashboard}
 
-Open @code{http://localhost:8000/dashboard} and you'll see a screen smilar to [this].
+The dashboard is at @code{http://localhost:8000/dashboard}.
 
 On the dashboard, you can
 
@@ -86,7 +95,10 @@ On the dashboard, you can click Render to render a Pollen source file.
 
 When Pollen-rock starts to render a file, it actually does two things: It renders and shows the rendered page in the browser, and it watches the source code changes and reloads the rendered page.
 
-This is convenient when you open your editor and the browser side by side: [insert a gif]
+
+This is convenient when you open your editor and the browser side by side
+
+@(use-image "side-by-side.png" 0.4)
 
 There are a few things you should be aware of:
 
@@ -110,6 +122,9 @@ In the header area, you can also see
 @item{@tt{Render}: split the view. It can cycle through horizontal and vertical split view, and automatically render the file and reload the rendered page when the source code syntax is correct}
 @item{@tt{Settings}: open settings page. Any changes to the setting will take effect immediately}
 ]
+
+@;(image (build-path scribble-root "images" "auto-render.gif") #:style "width:100%; height:100%")
+@(use-image "auto-render.gif" 0.8)
 
 
 @section[#:tag "server-spec"]{Pollen-rock Server Specification}
@@ -516,4 +531,49 @@ Once you've cloned the Pollen-rock source, you're ready to work on the server. I
 raco test pollen-rock/pollen-rock
 }|
 
-Elm development envionrment needs a bit setup. Follow steps described in @tt{README.md} in the @tt{editor} folder.
+@subsection{Install}
+
+The following command will clone the repo and install (link) the repo
+as a local package for development. The installation is a soft link,
+so any source change can take effect immediately.
+
+@verbatim|{
+$ git clone https://github.com/lijunsong/pollen-rock.git
+$ cd pollen-rock
+$ raco pkg install -l
+}|
+
+If you encounter cache problem, you can run
+
+@verbatim|{
+$ raco setup -l pollen-rock
+}|
+
+to rebuild the package.
+
+@subsection{RESTful API}
+
+The documentation of RESTful API is available locally in Racket
+documentation. The above installation will also build it. Run the
+following command to open Racket Documentation:
+
+@verbatim|{
+$ raco docs
+}|
+
+Then search Pollen-rock. You won't miss it.
+
+@subsection{Rebuild the Docs}
+
+Pollen-rock documentation lives in @tt{pollen-rock/scribblings/}. To rebuild
+the document when you make changes, run the following command
+
+@verbatim|{
+raco setup --doc-index -l pollen-rock
+}|
+
+@subsection{The Editor}
+
+Elm development envionrment needs a bit setup. Follow steps described
+in @tt{README.md} in the @tt{editor} folder.
+
