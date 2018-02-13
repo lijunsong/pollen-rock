@@ -3,16 +3,17 @@
 Pollen-Rock provides an improved rendering server and an in-browser editor for
 [pollen](http://docs.racket-lang.org/pollen/).
 
+![pollen-rock editor](./pollen-rock/scribblings/images/side-by-side.png?raw=true "pollen-rockk editor")
+
+
 ## Note
 
 This project is still at its early development stage. Feedback and
 suggestions are welcome.
 
-## Document
+## Documentation
 
-See [pollen-rock](https://docs.racket-lang.org/pollen-rock/) for documentation for both server and editor.
-
-![pollen-rock editor](./pollen-rock/scribblings/images/side-by-side.png?raw=true "pollen-rockk editor")
+See [pollen-rock](https://docs.racket-lang.org/pollen-rock/) for documentation of both server and editor.
 
 
 # ChangeLog
