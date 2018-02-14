@@ -1,0 +1,75 @@
+/* editor style */
+#container {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+#editorView {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+}
+#editorContainer {
+    overflow: auto;
+    width: 90%;
+    height: 100%;
+    margin: 0 auto;
+}
+.hidden {
+    display: none;
+}
+.CodeMirror {
+    height: 100%;
+    color: #352f26;
+    background-color: #f7f7f7;
+}
+
+/* Header */
+.docState {
+    color: #d2d0cd;
+}
+
+/* Resizer and rendering panel */
+#liveView {
+    position: relative;
+    overflow: auto;  /* So iframe can be treated as overflow */
+    -webkit-overflow-scrolling: touch;
+}
+#liveViewFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: white;
+}
+#resizer {
+    background-color: #AAA;
+    box-shadow: 0px 0px 1px 1px #b3b3b3;
+    z-index: 10;
+}
+#listener {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+}
+
+@media (min-width: 374px) {
+    #editorContainer {
+        width: 90%;
+    }
+}
+@media (min-width: 575px) {
+    #editorContainer {
+        width: 80%;
+    }
+}
+@media (min-width: 800px) {
+    #editorContainer {
+        width: 70%;
+        max-width: 600px;
+    }
+}

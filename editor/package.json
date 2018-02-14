@@ -1,0 +1,40 @@
+{
+  "name": "editor-src",
+  "version": "0.0.1",
+  "description": "Pollen-rock in-browser editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "run-p server elm:**",
+    "build": "run-p elm:dashboard elm:editor",
+    "server": "racket ../pollen-rock/main.rkt --start-dir ../pollen-rock/tests/project-root --log-level debug --port 8000",
+    "elm:dashboard": "elm-make src/Dashboard.elm --output=public/pollen-rock-assets/elm-dashboard.js",
+    "elm:editor": "elm-make src/Editor.elm --output=public/pollen-rock-assets/elm-editor.js",
+    "elm:dashboard:live": "elm-live src/Dashboard.elm --output=public/pollen-rock-assets/elm-dashboard.js --open --port=7000 --dir=public --pushstate",
+    "elm:editor:live": "elm-live src/Editor.elm --output=public/pollen-rock-assets/elm-editor.js --open --port=7001 --dir=public --pushstate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lijunsong/pollen-rock.git"
+  },
+  "keywords": [
+    "pollen",
+    "editor"
+  ],
+  "author": "Junsong Li",
+  "license": "LGPL",
+  "bugs": {
+    "url": "https://github.com/lijunsong/pollen-rock/issues"
+  },
+  "homepage": "https://github.com/lijunsong/pollen-rock#readme",
+  "dependencies": {
+    "font-awesome": "^4.7.0"
+  },
+  "devDependencies": {
+    "elm": "^0.18.0",
+    "elm-live": "^2.7.5",
+    "http-server": "^0.10.0",
+    "json-server": "^0.12.0",
+    "npm-run-all": "^4.1.2"
+  }
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Pollen-rock Editor</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/pollen-rock-assets/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" type="text/css" href="/pollen-rock-assets/common.css">
+    <link rel="stylesheet" type="text/css" href="/pollen-rock-assets/editor.css">
+  </head>
+  <body>
+    <div id="container">
+      <div id="editorView">
+        <div id="control"><!-- control of the editor goes here --></div>
+        <div id="editorContainer">
+          <textarea name="input" id="input"></textarea>
+        </div>
+      </div>
+
+      <div id="liveView">
+        <div id="resizer"></div>
+        <div id="listener"><!-- listen to resize event --></div>
+        <iframe id="liveViewFrame"></iframe>
+      </div>
+    </div>
+    <script src="/pollen-rock-assets/elm-editor.js"></script>
+    <script src="/pollen-rock-assets/codemirror/lib/codemirror.js"></script>
+    <script src="/pollen-rock-assets/codemirror/mode/pollen.js"></script>
+    <script src="/pollen-rock-assets/codemirror/mode/scheme.js"></script>
+    <script src="/pollen-rock-assets/codemirror/mode/pollenmixed.js"></script>
+    <script src="/pollen-rock-assets/notify.js"></script>
+    <script src="/pollen-rock-assets/settings.js"></script>
+    <script src="/pollen-rock-assets/editor.js"></script>
+  </body>
+</html>

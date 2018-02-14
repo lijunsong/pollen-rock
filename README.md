@@ -1,115 +1,27 @@
 # Pollen-Rock
 
-Pollen-Rock provides an improved rendering server and an in-browser editor for [pollen](http://docs.racket-lang.org/pollen/).
+Pollen-Rock provides an improved rendering server and an in-browser editor for
+[pollen](http://docs.racket-lang.org/pollen/).
+
+![pollen-rock editor](./pollen-rock/scribblings/images/side-by-side.png?raw=true "pollen-rockk editor")
+
 
 ## Note
 
 This project is still at its early development stage. Feedback and
 suggestions are welcome.
 
-## Pollen Server
+## Documentation
 
-The main contribution of Pollen-Rock is its rendering server: the
-server can respond to various HTTP POST requests in [JSON RPC](http://jsonrpc.org/);
-your program can dynamically fetch useful project specific information
-from the server.
+See [pollen-rock](https://docs.racket-lang.org/pollen-rock/) for documentation of both server and editor.
 
-Why is this useful? Take the built-in editor as an example. The editor talks
-to the server before opening a pm file. It
-asks the server to gether project info (e.g. list all functions exported from
-pollen.rkt) and uses these info when you typing (e.g. auto-complete known function names).
-
-## Editor
-
-Pollen-Rock also comes with a built-in editor that makes it easy to edit
-text mixed with racket code.
-
-To help you compose your prose, the editor
-
-- [x] provides a distraction-free mode
-- [x] saves the file automatically for you
-- [x] inserts CommandChar using `@`
-- [x] provides useful syntax highlight for pollen files
-
-To help typeset, the editor
-
-- [x] detects project settings (e.g. CommandChar)
-- [x] warns unbalanced braces
-- [x] provides document preview
-- [x] reloads preview (only when pollen syntax is correct) during editing
-- [x] auto-completes your tag functions
-- [ ] warns runtime errors in your document
-- [ ] warns undefined tag functions
-- [ ] inlines Racket document
-
-Also, the server
-
-- [x] watches file changes and auto-reloads your pages.
-
-*Note:*
-- [x] means the feature has been implemented.
-- The built-in editor supports only Chrome and Safari (Other browsers are not tested)
-
-These useful features are made possible because the back-end of
-Pollen-Rock is written in Racket. It understands your configuration
-file `pollen.rkt`, and serves you better than tranditional editors
-(like Vim, Emacs, Sublime Text, etc.).
-
-## Project Management
-
-Pollen-Rock also provides a simple interface to add, rename,
-delete files in your pollen projects.
-
-## Installation
-```
-raco pkg install pollen-rock
-```
-
-## Usage
-
-`raco pollen-rock -h` shows available options.
-
-### Start Server
-
-Run `raco pollen-rock` in your pollen project root directory.
-
-```
-$ raco pollen-rock
-Welcome to Pollen Rock 0.5.0 (Racket 6.8)
-Project root is /home/user/pollen-doc
-Pollen Editor is running at http://localhost:8000 (accessible by all machines on your network)
-Ctrl-C at any time to terminate Pollen Rock.
-```
-
-Open http://localhost:8000 in your browser. Your browser will display an index page that lists all files in your project.
-
-To secure your server, use `--local` option to limit server access to local apps.
-
-### Use built-in editor
-
-The built-in editor supports only Racket (.rkt), HTML (.html), pollen files (.pm, .pp, .p). You can open supported file with the built-in editor on index page. Clicking an icon on the right of the file name opens the editor.
-
-The editor comes with render and auto-render when you modifies the file. You can turn off auto render in settings.
-
-You can also see what key bindings are provided in settings. For example, autocomplete by default is `Ctrl-Space` (only when the cursor is after
-a command char). `@` is used to insert either a command char or a `@`.
-
-(Key binding customization is not implemented so far)
-
-### Watch file changes
-
-When the built-in editor is not sufficient for you, you can always switch back to your favorite editor. Pollen-Rock can watch changes made to pollen files, and refresh the rendered HTML in your browser.
-
-On the index page, pollen source file has an icon on the right to open rendered page. Server will watch changes on source files and auto refresh
-the auto rendered page.
-
-## Known Issues
-
- - Opening multiple built-in editors to edit the same file will result in data loss.
- - Editor settings are ephemeral; closing browser will reset all settings.
- - Render panel on ipad won't scroll :(
 
 # ChangeLog
+## 0.6.0
+Features
+ - Server provides RESTful APIs
+ - Docs are available. Yea!
+
 ## 0.5.0
 Features
  - Support create/rename/delete project files on index page

@@ -1,0 +1,153 @@
+/* Common css for Dashboard and editor */
+* {
+    margin: 0;
+    padding: 0;
+}
+html, .CodeMirror {
+    font-family: 'SF Mono', 'Source Code Pro', Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 14px;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    background-color: #f7f7f7;
+    color: #352f26;
+}
+
+a {
+    text-decoration: underline;
+    cursor: pointer;
+}
+a:hover {
+    font-weight: bold;
+}
+
+/* Header */
+.header {
+    display: flex;
+    flex-flow: column;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #DDD;
+    padding: 1rem;
+}
+.header, .header a {
+    color: #d2d0cd;
+    transition: color 0.5s;
+}
+.header:hover, .header:hover a {
+    color: #352f26;
+}
+.headerTop {
+    flex: 1;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 1rem;
+    display: none;  /* shows this only for wider screen */
+}
+.headerBottom {
+    display: flex;
+}
+.headerLeft {
+    flex: 1;
+}
+.headerRight ul {
+    list-style: none;
+    display: inline;
+}
+.headerRight ul li {
+    display: inline;
+    margin-left: 1rem;
+}
+
+
+.btn {
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0.2rem 0.1rem 0.2rem 0.1rem;
+}
+.btn:hover {
+    font-weight: bold;
+}
+
+
+/*breadcrumb*/
+ul.breadcrumb {
+    list-style: none;
+}
+ul.breadcrumb li {
+    display: inline;
+}
+ul.breadcrumb li:not(:first-child):before {
+    content: "/";
+}
+
+/* option buttons */
+.settingsOptions {
+    background-color: #CCC;
+    border: 3px solid #CCC;
+}
+.settingsOptions .active {
+    background-color: #f7f7f7;
+    font-weight: bold;
+}
+.settingsOption {
+    padding: 1px 10px;
+}
+.settingsOption:not(.active) {
+    cursor: pointer;
+    opacity: 0.1;
+}
+
+/* notification */
+#pollenNotify {
+  width: 300px;
+  position: fixed;
+  top: 2px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 99;
+  text-align: center;
+  line-height: 1.5em;
+  color: white;
+}
+
+.notify-error {
+    background-color: red;
+}
+.notify-error a, .notify-error a:hover {
+    color: white;
+}
+
+.notify-info {
+    background-color: #333;
+}
+.notify-info a, .notify-info a:hover {
+    color: white;
+}
+
+
+@media (min-width: 374px) {
+    html, .CodeMirror {
+        font-size: 15px;
+    }
+}
+@media (min-width: 575px) {
+    html, .CodeMirror {
+        font-size: 16px;
+    }
+    .headerTop {
+        display: block;
+    }
+}
+@media (min-width: 800px) {
+    html, .CodeMirror {
+        font-size: 17px;
+    }
+    .headerTop {
+        display: block;
+    }
+}
