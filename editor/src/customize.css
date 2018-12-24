@@ -24,6 +24,9 @@
 #canvasPanelContents {
     padding: 1rem 1rem 0 1rem;
 }
+.spacer {
+    margin-left: 3rem;
+}
 .entry {
     padding: 2px 0 2px 0;
 }
@@ -61,4 +64,13 @@
     border-style: solid;
     border-color:  #d9d9d9;
     border-width: 0 1px 0 1px;
+}
+
+/* Size and vertical align everything */
+.material-icons {
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    /* keep the font size the same in skeleton */
+    font-size: 1.5rem;
 }
