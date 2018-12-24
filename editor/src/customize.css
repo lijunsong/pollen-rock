@@ -1,0 +1,56 @@
+#canvas {
+    background-color:#fff; /* #f7f7f7; */
+    height: 100vh;
+}
+
+.side {
+    height: 100vh;
+}
+
+
+/* NonFullscreen view from left to right, top to bottom*/
+#canvasHeader {
+    border-bottom: 1px solid #EEE;
+    height: 2rem;
+    padding: 1rem;
+}
+
+#canvasPanelHeader {
+    font-weight: bold;
+    border-bottom: 2px solid #EEE;
+    padding: 1rem 1rem 0 1rem;
+}
+
+#canvasPanelContents {
+    padding: 1rem 1rem 0 1rem;
+}
+.entry:hover {
+    background-color: #EEE;
+    cursor: pointer;
+}
+.isDir {
+    text-decoration: underline;
+}
+
+.sideBySideWrapper {
+    display: flex;
+}
+
+.sideBySideWrapper #canvasPanel {
+    width: 300px;
+    flex: 0 0 auto;
+}
+
+.sideBySideWrapper #editorBody {
+    flex: 1 1 auto;
+}
+
+
+/* Fullscreen View */
+#editorFrame {
+    background-color: white;
+    height: 100vh;
+    border-style: solid;
+    border-color:  #d9d9d9;
+    border-width: 0 1px 0 1px;
+}
