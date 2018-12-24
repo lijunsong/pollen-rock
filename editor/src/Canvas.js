@@ -18,19 +18,19 @@ function CanvasHeader(props) {
 function CanvasPanelContents(props) {
   const entries = props.entries.map((e, i) => {
     if (e.endsWith("/")) {
-      return <li className="isDir entry"
-              key={i}>{e}</li>;
+      return <div className="isDir entry"
+              key={i}>{e}</div>;
     } else {
-      return <li className="isFile entry"
+      return <div className="isFile entry"
                  key={i}
                  onClick={() => { props.onClick(e); }}>
                 {e}
-              </li>;
+              </div>;
     }
   });
 
   return (
-    <ul>{entries}</ul>
+    <div className="entries">{entries}</div>
   );
 }
 
