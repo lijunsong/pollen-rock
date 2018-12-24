@@ -1,3 +1,7 @@
+body {
+    font-family: "source code pro";
+}
+
 #canvas {
     background-color:#fff; /* #f7f7f7; */
     height: 100vh;
@@ -25,9 +29,9 @@
     padding: 1rem 1rem 0 1rem;
 }
 .spacer {
-    margin-left: 3rem;
+    margin-left: 2rem;
 }
-.entry {
+.entries div {
     padding: 2px 0 2px 0;
 }
 .entry:hover {
@@ -40,6 +44,10 @@
 .isDir {
     text-decoration: underline;
 }
+.isDir .entry:hover {
+    text-decoration: underline;
+}
+
 
 .sideBySideWrapper {
     display: flex;
