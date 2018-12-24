@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { CM } from './Editor';
 import * as Api from './Api.js';
 import * as Icons from './Icons.js';
-import { Map, List } from 'immutable';
+import { Map, List, Set } from 'immutable';
 import Path from 'path';
 
 function CanvasHeader(props) {
@@ -11,51 +11,60 @@ function CanvasHeader(props) {
   );
 }
 
-/// rendering all entry items
-function CanvasPanelContents(props) {
-  const entries = props.entries.map((e, i) => {
-    if (e.endsWith("/")) {
-      return <div className="isDir entry"
-                  key={i}>{Icons.arrowRight} {e}</div>;
-    } else {
-      return <div className="isFile entry"
-                  key={i}
-                  onClick={() => { props.onClick(e); }}>
-               {e}
-             </div>;
-    }
-  });
-
-  return (
-    <div className="entries">{entries}</div>
-  );
-}
-
 /// The entry tab of the panel
 class CanvasPanelEntries extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      // a set of paths that have expanded
+      expanded: Set()
+    };
+  }
+
   _getFileOnClick(path) {
     return () => this.props.fileOnClick(path);
   }
+
   _getFolderOnClick(path) {
     return () => {
-      console.log("folder click " + path);
-      this.props.folderOnClick(path);
+      let expanded;
+      if (this.state.expanded.has(path)) {
+        expanded = this.state.expanded.delete(path);
+      } else {
+        this.props.folderOnClick(path);
+        expanded = this.state.expanded.add(path);
+      }
+      this.setState({expanded});
     };
   }
+
   /// recursively render folders and it's children
   _renderFolder(parentPath, folderName) {
     const fullPath = Path.join(parentPath, folderName);
-    const folder = <span onClick={this._getFolderOnClick(fullPath)}>
-                     {Icons.arrowRight} {folderName}
-                   </span>;
-    const children = this.props.entries.get(fullPath);
+    let arrow = Icons.arrowRight;
+    // render all children if this folder is expanded
     let childrenView = "";
-    if (children) {
-      childrenView = this._renderEntryList(fullPath, children);
+    if (this.state.expanded.has(fullPath)) {
+      arrow = Icons.arrowDown;
+      const children = this.props.entries.get(fullPath);
+      if (children) {
+        childrenView = (
+          <div className="spacer">
+            {this._renderEntryList(fullPath, children)}
+          </div>
+        );
+      }
     }
-    return <div className="isDir entry" key={fullPath}>
+
+    const folder = (
+      <span className="entry" onClick={this._getFolderOnClick(fullPath)}>
+        {arrow}{folderName}
+      </span>
+    );
+
+    return <div className="isDir" key={fullPath}>
              {folder}
-             <div className="spacer">{childrenView}</div>
+             {childrenView}
            </div>;
   }
 
