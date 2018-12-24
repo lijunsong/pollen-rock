@@ -24,9 +24,15 @@
 #canvasPanelContents {
     padding: 1rem 1rem 0 1rem;
 }
+.entry {
+    padding: 2px 0 2px 0;
+}
 .entry:hover {
     background-color: #EEE;
     cursor: pointer;
+    /* trick to extend background hover to overflow text */
+    display: inline-block;
+    min-width: 100%;
 }
 .isDir {
     text-decoration: underline;
@@ -39,6 +45,8 @@
 .sideBySideWrapper #canvasPanel {
     width: 300px;
     flex: 0 0 auto;
+    white-space: nowrap;
+    overflow: auto;
 }
 
 .sideBySideWrapper #editorBody {
