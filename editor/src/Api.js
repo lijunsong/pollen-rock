@@ -16,9 +16,13 @@ function get(urlStr) {
 }
 
 
-function getContents(path) {
+export function getContents(path) {
   const url = `${remote}/rest/fs/${path}`;
   return get(url);
 }
 
-export {getContents};
+export function getConfig(path) {
+  path = path || "";
+  const url = `${remote}/rest/config/${path}`;
+  return get(url);
+}
