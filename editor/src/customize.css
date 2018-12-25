@@ -3,7 +3,7 @@ body {
 }
 
 #canvas {
-    background-color:#fff; /* #f7f7f7; */
+    background-color:#FFF;
     height: 100vh;
 }
 
@@ -17,6 +17,11 @@ body {
     border-bottom: 1px solid #EEE;
     height: 2rem;
     padding: 1rem;
+}
+
+#canvasPanel {
+    background-color: #FAFAFA;
+    border-right: 2px solid #EEE;
 }
 
 #canvasPanelHeader {
@@ -40,12 +45,6 @@ body {
     /* trick to extend background hover to overflow text */
     display: inline-block;
     min-width: 100%;
-}
-.isDir {
-    text-decoration: underline;
-}
-.isDir .entry:hover {
-    text-decoration: underline;
 }
 
 #canvasOverview {
@@ -84,4 +83,18 @@ body {
     vertical-align: middle;
     /* keep the font size the same in skeleton */
     font-size: 1.5rem;
+}
+
+/* CodeMirror customized css */
+.CodeMirror {
+    font-family: 'Source Code Pro', 'SFMono-Regular';
+    font-size: 85%;
+}
+.CodeMirror-gutters {
+    background-color: white;
+    border-right: 0px;
+}
+
+.CodeMirror-linenumber{
+    color: #999;
 }
