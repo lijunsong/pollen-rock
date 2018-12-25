@@ -48,6 +48,9 @@ body {
     text-decoration: underline;
 }
 
+#canvasOverview {
+    margin: 1rem 2rem 0 2rem;
+}
 
 .sideBySideWrapper {
     display: flex;
@@ -60,7 +63,7 @@ body {
     overflow: auto;
 }
 
-.sideBySideWrapper #editorBody {
+.sideBySideWrapper #canvasOverview {
     flex: 1 1 auto;
 }
 
