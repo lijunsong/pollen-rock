@@ -16,16 +16,19 @@ class EditorHeader extends Component {
   }
 }
 
+
 class CM extends Component {
   constructor(props) {
     super(props);
     this.state = {
       contents: "Loading...",
-      path: null
+      path: null,
+      tags: [],
     };
   }
 
   findMode(path) {
+    let modeName = 'pollen';
     if (! path) {
       return modeName;
     }
@@ -34,7 +37,6 @@ class CM extends Component {
       pm: 'pollen',
       rkt: 'scheme',
     };
-    let modeName = 'pollen';
 
     const pathComponents = path.split('.');
     let ext = pathComponents.pop();
@@ -56,32 +58,88 @@ class CM extends Component {
     return modeName;
   }
 
+  getCommandChar() {
+    for (var tag of this.state.tags) {
+      if (tag.name === 'default-command-char') {
+        return tag.value;
+      }
+    }
+    return '@';
+  }
+
+  insertCommandCharHandler(e) {
+    let pos = e.getCursor();
+    let commandChar = this.getCommandChar();
+    if (pos.ch == 0) {
+      e.replaceSelection(commandChar);
+    } else {
+      let lastPos = CodeMirror.Pos(pos.line, pos.ch-1);
+      if (e.getRange(lastPos, pos) == commandChar) {
+        e.replaceRange('@', lastPos, pos);
+      } else {
+        e.replaceSelection(commandChar);
+      }
+    }
+  }
+
   render() {
     const modeName = this.findMode(this.props.path);
+    const options = {
+      mode: modeName,
+      lineWrapping: true,
+      extraKeys: {
+        "'@'": this.insertCommandCharHandler.bind(this)
+      }
+    };
     return (
       <div id="editorBody">
         <ReactCodeMirror value={this.state.contents}
-                         options={{mode: modeName, lineWrapping: true}} />
+                         options={options} />
       </div>
     );
   }
 
   componentDidMount() {
-    this._loadContents();
+    const path = this.props.path;
+
+    this._loadContents(path).then(e => {
+      console.log(`Successfully loaded config of ${path}`);
+    }).catch(e => {
+      console.log(`Failed to load ${path}: ${e}`);
+    });
   }
 
-  _loadContents() {
-    let path = this.props.path;
-    Api.getContents(path).then((res) => {
-      if ('contents' in res.data) {
-        this.setState({
-          path: path,
-          contents: res.data.contents
-        });
-      } else {
-        this.setState({contents: 'Error: Cannot read a dir'});
-      }
-    });
+  async _loadContents (path) {
+    let contents;
+    let config;
+
+    try {
+      let waitContents = Api.getContents(path);
+      let waitConfig = Api.getConfig(path);
+
+      contents = await waitContents;
+      config = await waitConfig;
+    } catch (err) {
+      throw new Error(`Error occurs when sending requests`);
+    }
+
+    let newState = {};
+    if (contents.data.errno == 0 && 'contents' in contents.data) {
+      newState.contents = contents.data.contents;
+      newState.path = path;
+    } else {
+      throw new Error(`${path} contents are not available`);
+    }
+
+    if (config.data.errno == 0) {
+      newState.tags = config.data.tags;
+    } else {
+      throw new Error(`${path} tags are not available`);
+    }
+
+    console.log(newState);
+
+    this.setState({...newState});
   }
 }
 
