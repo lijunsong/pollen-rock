@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
+import ReactCodeMirror from '@uiw/react-codemirror';
 import * as Api from './Api';
+import './mode/pollen';
+import CodeMirror from 'codemirror';
+import 'codemirror/mode/meta';
+
 
 
 class EditorHeader extends Component {
@@ -21,10 +25,43 @@ class CM extends Component {
     };
   }
 
+  findMode(path) {
+    if (! path) {
+      return modeName;
+    }
+
+    const modes = {
+      pm: 'pollen',
+      rkt: 'scheme',
+    };
+    let modeName = 'pollen';
+
+    const pathComponents = path.split('.');
+    let ext = pathComponents.pop();
+    if (ext === "pp" || ext === "p") {
+      ext = pathComponents.pop();
+    }
+
+    if (modes[ext]) {
+      return modes[ext];
+    }
+
+    const mode = CodeMirror.findModeByExtension(ext);
+    // Use name here because ReactCodeMirror looks for mode by name
+    // (name is defined in codemirror/mode/meta.js), not the mode string
+    if (mode && mode.name) {
+      modeName = mode.name;
+    }
+
+    return modeName;
+  }
+
   render() {
+    const modeName = this.findMode(this.props.path);
     return (
       <div id="editorBody">
-        <CodeMirror value={this.state.contents} options={{mode: 'pollen', lineWrapping: true}} />
+        <ReactCodeMirror value={this.state.contents}
+                         options={{mode: modeName, lineWrapping: true}} />
       </div>
     );
   }
@@ -34,10 +71,11 @@ class CM extends Component {
   }
 
   _loadContents() {
-    Api.getContents(this.props.path).then((res) => {
+    let path = this.props.path;
+    Api.getContents(path).then((res) => {
       if ('contents' in res.data) {
         this.setState({
-          path: this.props.path,
+          path: path,
           contents: res.data.contents
         });
       } else {
