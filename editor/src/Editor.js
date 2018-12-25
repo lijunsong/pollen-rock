@@ -24,7 +24,7 @@ class CM extends Component {
   render() {
     return (
       <div id="editorBody">
-        <CodeMirror value={this.state.contents} options={{mode: 'pollen'}} />
+        <CodeMirror value={this.state.contents} options={{mode: 'pollen', lineWrapping: true}} />
       </div>
     );
   }

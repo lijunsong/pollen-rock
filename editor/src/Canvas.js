@@ -204,8 +204,12 @@ class Canvas extends Component {
 
   _loadEntryData() {
     Api.getContents("/").then((res) => {
-      const oldEntries = this.state.entries;
-      const newEntries = oldEntries.set("/", List(res.data.items));
+      const list = List(res.data.items);
+      const folders = list.filter(f => f.endsWith("/"));
+      const files = list.filterNot(f => f.endsWith("/"));
+      const finalList = folders.concat(files);
+
+      const newEntries = this.state.entries.set("/", finalList);
       this.setState({entries: newEntries});
     });
   }
