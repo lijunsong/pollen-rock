@@ -11,6 +11,25 @@ function CanvasHeader(props) {
   );
 }
 
+
+/// Components for the left panel bar when canvas is not in fullscreen
+function CanvasPanel(props) {
+  return (
+    <div id="canvasPanel">
+      <div id="canvasPanelHeader">Entries
+      </div>
+      <div id="canvasPanelContents">
+        <CanvasPanelEntries
+          entries={props.entries}
+          fileOnClick={props.fileOnClick}
+          folderOnClick={props.folderOnClick}
+        />
+      </div>
+    </div>
+  );
+}
+
+
 /// The entry tab of the panel
 class CanvasPanelEntries extends Component {
   constructor(props) {
@@ -100,35 +119,26 @@ class CanvasPanelEntries extends Component {
   }
 }
 
-/// Render the left panel bar when Canvas is not in fullscreen
-///
-///        <CanvasPanelContents
-///          entries={props.entries}
-///          onClick={props.entryOnClick}
-///        />
-function CanvasPanel(props) {
-  return (
-    <div id="canvasPanel">
-      <div id="canvasPanelHeader">Entries
-      </div>
-      <div id="canvasPanelContents">
-        <CanvasPanelEntries
-          entries={props.entries}
-          fileOnClick={props.fileOnClick}
-          folderOnClick={props.folderOnClick}
-        />
-      </div>
-    </div>
-  );
+
+/// Components of the right side area when Canvas is not fullscreen
+class CanvasOverview extends Component {
+  render() {
+    return (
+      <div id="canvasOverview">overview </div>
+    );
+  }
 }
 
+
+
+/// The whole canvas
 class Canvas extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      /// entries key is path, value is it's children, a list of string.
-      /// Same as pollen-rock fs api, if item ends with /, the item is
-      /// a folder
+      /// The key is path, value is it's children, a list of string.
+      /// Same as pollen-rock fs api, if an item ends with /, the item
+      /// is a folder
       entries: Map({"/": List(["Loading"])}),
       openFile: null
     };
@@ -166,6 +176,13 @@ class Canvas extends Component {
   renderNonFullscreen() {
     const openFile = this.state.openFile;
 
+    let rightSide;
+    if (openFile) {
+      rightSide = <CM path={openFile} key={openFile}/>;
+    } else {
+      const entryList = this.state.entries.get("/");
+      rightSide = <CanvasOverview parent="/" entryList={entryList}/>;
+    }
     return (
       <div id="canvas">
         <CanvasHeader path={openFile} />
@@ -175,7 +192,7 @@ class Canvas extends Component {
             fileOnClick={this.fileOnClick.bind(this)}
             folderOnClick={this.folderOnClick.bind(this)}
           />
-          <CM path={openFile} key={openFile}/>
+          {rightSide}
         </div>
       </div>
     );
