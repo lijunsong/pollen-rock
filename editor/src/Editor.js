@@ -21,11 +21,11 @@ class CM extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      contents: "Loading...",
-      path: null,
+      // pollen tags of the open file
       tags: [],
     };
   }
+
 
   findMode(path) {
     let modeName = 'pollen';
@@ -82,10 +82,53 @@ class CM extends Component {
     }
   }
 
+  async saveToDisk(path, cm) {
+    if (cm.isClean(this.savedGeneration)) {
+      console.log("No need to save the doc");
+      return;
+    }
+
+    let thisGen = cm.changeGeneration();
+    let contents = cm.getValue();
+    let res = await Api.saveContents(path, contents);
+    if (res.data.errno != 0) {
+      console.log(`Failed to save contents: ${res.data.message}`);
+      return;
+    }
+
+    console.log(`Saved ${path}`);
+    this.savedGeneration = thisGen;
+  }
+
+  handleOnChanges(path, cm, changes) {
+    if (! path) {
+      return;
+    }
+
+    if (this.savedGeneration < 0) {
+      // the first time this function is called. This happens
+      // only when we load the doc the first time. Mark clean
+      // now, and later check clean in saver
+      this.savedGeneration = cm.changeGeneration();
+    } else {
+      // cancel previous timer and schedule a new one
+      window.clearTimeout(this.saveTimer);
+      this.saveTimer = window.setTimeout(
+        this.saveToDisk.bind(this, path, cm),
+        500);
+    }
+  }
+
   render() {
-    const modeName = this.findMode(this.props.path);
+    if (! this.initContents) {
+      return <p>Loading...</p>;
+    }
+
+    const path = this.props.path;
+    const modeName = this.findMode(path);
     const options = {
       mode: modeName,
+      lineNumbers: true,
       lineWrapping: true,
       extraKeys: {
         "'@'": this.insertCommandCharHandler.bind(this)
@@ -93,12 +136,17 @@ class CM extends Component {
     };
     return (
       <div id="editorBody">
-        <ReactCodeMirror value={this.state.contents}
-                         options={options} />
+        <ReactCodeMirror
+          value={this.initContents}
+          options={options}
+          onChanges={this.handleOnChanges.bind(this, path)}
+        />
       </div>
     );
   }
 
+  /// Save a lot of data that are not needed in render.
+  /// This saves a lot of unnecessary render calls
   componentDidMount() {
     const path = this.props.path;
 
@@ -107,6 +155,11 @@ class CM extends Component {
     }).catch(e => {
       console.log(`Failed to load ${path}: ${e}`);
     });
+
+    // reference to the timeout for autosave
+    this.saveTimer = null;
+    // the codemirror generation of which contents have been saved to disk
+    this.savedGeneration = -1;
   }
 
   async _loadContents (path) {
@@ -125,21 +178,21 @@ class CM extends Component {
 
     let newState = {};
     if (contents.data.errno == 0 && 'contents' in contents.data) {
-      newState.contents = contents.data.contents;
-      newState.path = path;
+      this.initContents = contents.data.contents;
     } else {
       throw new Error(`${path} contents are not available`);
     }
 
     if (config.data.errno == 0) {
-      newState.tags = config.data.tags;
+      this.setState({tags : config.data.tags});
     } else {
       throw new Error(`${path} tags are not available`);
     }
 
-    console.log(newState);
+  }
 
-    this.setState({...newState});
+  componentWillUnmount() {
+    window.clearTimeout(this.saveTimer);
   }
 }
 
