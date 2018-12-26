@@ -10,3 +10,7 @@ export const arrowRight = (
 export const arrowDown = (
   <i className="material-icons md18">keyboard_arrow_down</i>
 );
+
+export const preview = (
+  <i className="material-icons md18">visibility</i>
+)

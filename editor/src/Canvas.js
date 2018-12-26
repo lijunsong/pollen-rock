@@ -6,8 +6,15 @@ import { Map, List, Set } from 'immutable';
 import Path from 'path';
 
 function CanvasHeader(props) {
+  let operations = "";
+  if (props.path) {
+    operations = <span id="preview" onClick={props.onClickPreview}>{Icons.preview}</span>;
+  }
   return (
-    <div id="canvasHeader">{props.path}</div>
+    <div id="canvasHeader">
+      <div id="canvasHeaderPath">{props.path}</div>
+      <div id="canvasHeaderOps">{operations}</div>
+    </div>
   );
 }
 
@@ -16,8 +23,7 @@ function CanvasHeader(props) {
 function CanvasPanel(props) {
   return (
     <div id="canvasPanel">
-      <div id="canvasPanelHeader">Entries
-      </div>
+      <div id="canvasPanelHeader">Entries</div>
       <div id="canvasPanelContents">
         <CanvasPanelEntries
           entries={props.entries}
@@ -130,6 +136,41 @@ class CanvasOverview extends Component {
 }
 
 
+class CanvasPreview extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      location: null,
+    };
+  }
+  render() {
+    if (this.state.location) {
+      return <div className="previewFrame">
+               <iframe sandbox="allow-scripts" src={Api.remote + "/" + this.state.location}/>
+             </div>;
+    } else {
+      return <p>Loading...</p>;
+    }
+  }
+  componentDidMount() {
+    let path = this.props.path;
+
+    this.renderRequest(path).then(() => {
+      console.log(`Successfully render ${path}`);
+    }).catch((e) => {
+      console.log(`Failed to render ${path}: ${e}`);
+    });
+  }
+
+  async renderRequest(path) {
+    let res = await Api.render(path);
+    if (res.data.errno != 0) {
+      throw new Error(`Render failed on ${path}`);
+    }
+
+    this.setState({location: res.data.location});
+  }
+}
 
 /// The whole canvas
 class Canvas extends Component {
@@ -140,7 +181,8 @@ class Canvas extends Component {
       /// Same as pollen-rock fs api, if an item ends with /, the item
       /// is a folder
       entries: Map({"/": List(["Loading"])}),
-      openFile: null
+      openFile: null,
+      previewOpened: false,
     };
   }
 
@@ -168,34 +210,49 @@ class Canvas extends Component {
     Api.getContents(folderPath).then((res) => {
       console.log(`set ${folderPath} in the entries map`);
       const entries = this.state.entries.set(folderPath, List(res.data.items));
-      console.log(entries);
       this.setState({entries});
     });
   }
 
-  renderNonFullscreen() {
-    const openFile = this.state.openFile;
+  onClickPreview() {
+    this.setState({previewOpened: !this.state.previewOpened});
+  }
 
-    let rightSide;
+  renderNonFullscreen() {
+    const {openFile, previewOpened} = this.state;
+
+    let editorView;
     if (openFile) {
-      rightSide = <CM path={openFile} key={openFile}/>;
+      editorView = <CM path={openFile} key={openFile}/>;
     } else {
       const entryList = this.state.entries.get("/");
-      rightSide = <CanvasOverview parent="/" entryList={entryList}/>;
+      editorView = <CanvasOverview parent="/" entryList={entryList}/>;
     }
-    return (
+
+    let preview;
+    if (previewOpened) {
+      preview = <CanvasPreview path={openFile} />;
+    }
+
+    let canvas = (
       <div id="canvas">
-        <CanvasHeader path={openFile} />
+        <CanvasHeader
+          path={openFile}
+          onClickPreview={this.onClickPreview.bind(this)}
+        />
         <div className="sideBySideWrapper">
           <CanvasPanel
             entries={this.state.entries}
             fileOnClick={this.fileOnClick.bind(this)}
             folderOnClick={this.folderOnClick.bind(this)}
           />
-          {rightSide}
+          {editorView}
+          {preview}
         </div>
       </div>
     );
+
+    return canvas;
   }
 
   componentDidMount() {
