@@ -119,6 +119,12 @@ class CM extends Component {
     }
   }
 
+  refresh() {
+    if (this.editor) {
+      this.editor.editor.refresh();
+    }
+  }
+
   render() {
     if (! this.initContents) {
       return <p>Loading...</p>;
@@ -134,12 +140,14 @@ class CM extends Component {
         "'@'": this.insertCommandCharHandler.bind(this)
       }
     };
+
     return (
       <div id="editorBody">
         <ReactCodeMirror
           value={this.initContents}
           options={options}
           onChanges={this.handleOnChanges.bind(this, path)}
+          ref={r => this.editor = r}
         />
       </div>
     );
