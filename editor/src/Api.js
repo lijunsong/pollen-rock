@@ -6,7 +6,7 @@ const devRemote = "http://localhost:8000";
 /// Send to this endpoint when in pord
 const prodRemote = "";
 
-const remote = devRemote;
+export const remote = devRemote;
 
 
 function get(urlStr) {
@@ -50,4 +50,9 @@ export function saveContents(path, contents) {
     data: contents,
   };
   return post(url, postData);
+}
+
+export function render(path) {
+  const url = `${remote}/rest/render/${path}`;
+  return get(url);
 }
