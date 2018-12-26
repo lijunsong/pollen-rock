@@ -168,7 +168,9 @@ class CanvasPreview extends Component {
       throw new Error(`Render failed on ${path}`);
     }
 
-    this.setState({location: res.data.location});
+    this.setState({location: res.data.location}, ()=>{
+      this.props.callAfterShow();
+    });
   }
 }
 
@@ -223,7 +225,9 @@ class Canvas extends Component {
 
     let editorView;
     if (openFile) {
-      editorView = <CM path={openFile} key={openFile}/>;
+      editorView = <CM path={openFile} key={openFile}
+                       ref={r => this.cm = r}
+                   />;
     } else {
       const entryList = this.state.entries.get("/");
       editorView = <CanvasOverview parent="/" entryList={entryList}/>;
@@ -231,7 +235,14 @@ class Canvas extends Component {
 
     let preview;
     if (previewOpened) {
-      preview = <CanvasPreview path={openFile} />;
+      preview = <CanvasPreview
+                  path={openFile}
+                  callAfterShow={() => {
+                    if (this.cm) {
+                      this.cm.refresh();
+                    }
+                  }}
+                />;
     }
 
     let canvas = (
