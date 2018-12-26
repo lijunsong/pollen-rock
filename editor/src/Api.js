@@ -8,10 +8,26 @@ const prodRemote = "";
 
 const remote = devRemote;
 
+
 function get(urlStr) {
   return Axios({
-    method: 'get',
+    method: 'GET',
     url: urlStr
+  });
+}
+
+function post(urlStr, data) {
+  let str = [];
+  for (var key in data) {
+    str.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]));
+  }
+  let encodedData = str.join('&');
+
+  return Axios({
+    method: 'POST',
+    url: urlStr,
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    data: encodedData,
   });
 }
 
@@ -25,4 +41,13 @@ export function getConfig(path) {
   path = path || "";
   const url = `${remote}/rest/config/${path}`;
   return get(url);
+}
+
+export function saveContents(path, contents) {
+  const url = `${remote}/rest/fs/${path}`;
+  const postData = {
+    op: "write",
+    data: contents,
+  };
+  return post(url, postData);
 }
