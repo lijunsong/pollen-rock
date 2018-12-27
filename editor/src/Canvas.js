@@ -5,6 +5,7 @@ import * as Icons from './Icons.js';
 import { Map, List, Set } from 'immutable';
 import Path from 'path';
 
+
 function CanvasHeader(props) {
   let operations = "";
   if (props.path) {
@@ -25,10 +26,10 @@ function CanvasPanel(props) {
     <div id="canvasPanel">
       <div id="canvasPanelHeader">Entries</div>
       <div id="canvasPanelContents">
-        <CanvasPanelEntries
+        <CanvasNavigation
           entries={props.entries}
-          fileOnClick={props.fileOnClick}
-          folderOnClick={props.folderOnClick}
+          onClickFile={props.onClickFile}
+          onClickFolder={props.onClickFolder}
         />
       </div>
     </div>
@@ -37,7 +38,7 @@ function CanvasPanel(props) {
 
 
 /// The entry tab of the panel
-class CanvasPanelEntries extends Component {
+class CanvasNavigation extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -47,7 +48,7 @@ class CanvasPanelEntries extends Component {
   }
 
   _getFileOnClick(path) {
-    return () => this.props.fileOnClick(path);
+    return () => this.props.onClickFile(path);
   }
 
   _getFolderOnClick(path) {
@@ -56,7 +57,7 @@ class CanvasPanelEntries extends Component {
       if (this.state.expanded.has(path)) {
         expanded = this.state.expanded.delete(path);
       } else {
-        this.props.folderOnClick(path);
+        this.props.onClickFolder(path);
         expanded = this.state.expanded.add(path);
       }
       this.setState({expanded});
@@ -204,11 +205,11 @@ class Canvas extends Component {
     );
   }
 
-  fileOnClick(filePath) {
+  onClickFile(filePath) {
     this.setState({openFile: filePath});
   }
 
-  folderOnClick(folderPath) {
+  onClickFolder(folderPath) {
     Api.getContents(folderPath).then((res) => {
       console.log(`set ${folderPath} in the entries map`);
       const entries = this.state.entries.set(folderPath, List(res.data.items));
@@ -254,8 +255,8 @@ class Canvas extends Component {
         <div className="sideBySideWrapper">
           <CanvasPanel
             entries={this.state.entries}
-            fileOnClick={this.fileOnClick.bind(this)}
-            folderOnClick={this.folderOnClick.bind(this)}
+            onClickFile={this.onClickFile.bind(this)}
+            onClickFolder={this.onClickFolder.bind(this)}
           />
           {editorView}
           {preview}
