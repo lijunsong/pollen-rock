@@ -23,25 +23,43 @@ body {
     flex: 1 1 auto;
 }
 
-#canvasPanel {
+#App {
+    display: flex;
+}
+#Navigation {
     background-color: #FAFAFA;
     border-right: 2px solid #EEE;
+    width: 300px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    overflow: auto;
 }
 
-#canvasPanelHeader {
+#NavHeader {
     font-weight: bold;
     border-bottom: 2px solid #EEE;
     padding: 1rem 1rem 0 1rem;
 }
 
-#canvasPanelContents {
-    padding: 1rem 1rem 0 1rem;
+#NavEntries {
+    xpadding: 1rem 1rem 0 1rem;
 }
-.spacer {
-    margin-left: 2rem;
+.entrySpacer {
+    margin-left: 1rem;
 }
 .entries div {
     padding: 2px 0 2px 0;
+}
+
+/* File entries align with folder on the left */
+.isFile {
+    padding-left: 1rem;
+    border-left: 3px solid;
+    border-color: #FAFAFA;
+}
+.selectedEntry {
+    border-color: red;
+    background-color: #EEE;
 }
 .entry:hover {
     background-color: #EEE;

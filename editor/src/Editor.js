@@ -204,4 +204,13 @@ class CM extends Component {
   }
 }
 
-export { CM, EditorHeader };
+
+/// Editor contains code mirror and a small header for
+/// icons. It optionally contains Preview page
+class Editor extends Component {
+  render() {
+    return <div id="Editor">Editor</div>;
+  }
+}
+
+export { CM, EditorHeader, Editor };
