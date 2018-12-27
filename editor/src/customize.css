@@ -35,7 +35,7 @@ body {
     overflow: auto;
 }
 
-#NavHeader {
+#NavHeader, #EditorHeader {
     font-weight: bold;
     border-bottom: 2px solid #EEE;
     padding: 1rem 1rem 0 1rem;
@@ -69,12 +69,25 @@ body {
     min-width: 100%;
 }
 
-#canvasOverview {
-    margin: 1rem 2rem 0 2rem;
+#Editor {
+    flex: 1 1 auto;
 }
 
-.sideBySideWrapper {
+.split {
     display: flex;
+    flex-direction: row;
+    position: relative;
+    height: 100vh;
+}
+
+.gutter.gutter-horizontal {
+    cursor: ew-resize;
+    height: 100%;
+    background-color: #EEE;
+}
+
+#EditingArea {
+    overflow: auto;
 }
 
 .sideBySideWrapper #canvasPanel {

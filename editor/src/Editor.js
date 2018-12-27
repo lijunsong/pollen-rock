@@ -4,20 +4,20 @@ import * as Api from './Api';
 import './mode/pollen';
 import CodeMirror from 'codemirror';
 import 'codemirror/mode/meta';
+import Split from 'react-split';
 
 
 
 class EditorHeader extends Component {
   render() {
     return (
-      <div id="editorHeader"> header here
-      </div>
+      <div id="EditorHeader"> {this.props.path} </div>
     );
   }
 }
 
 
-class CM extends Component {
+class EditorBody extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -205,12 +205,80 @@ class CM extends Component {
 }
 
 
+class EditingArea extends Component {
+  render() {
+    return <div id="EditingArea">
+             <EditorHeader path={this.props.path}/>
+             <EditorBody path={this.props.path}/>
+           </div>;
+  }
+}
+
+class PreviewArea extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      location: null,
+    };
+  }
+
+  async renderRequest(path) {
+    let res = await Api.render(path);
+    if (res.data.errno != 0) {
+      throw new Error(`Render failed on ${path}`);
+    }
+
+    this.setState({location: res.data.location});
+  }
+
+  componentDidMount() {
+    let path = this.props.path;
+
+    if (!path) {
+      return;
+    }
+
+    this.renderRequest(path).then(() => {
+      console.log(`Successfully render ${path}`);
+    }).catch((e) => {
+      console.log(`Failed to render ${path}: ${e}`);
+    });
+  }
+
+  renderLoading() {
+    return <div id="PreviewArea">
+             "Loading";
+           </div>;
+  }
+
+  renderPreview(location) {
+    let url = `${Api.remote}/${location}`;
+    return <div id="PreviewArea">
+             <iframe sandbox="allow-scripts" src={url} />
+           </div>;
+  }
+
+  render() {
+    if (this.state.location) {
+      return this.renderPreview(this.state.location);
+    } else {
+      return this.renderLoading();
+    }
+  }
+}
+
+
 /// Editor contains code mirror and a small header for
 /// icons. It optionally contains Preview page
 class Editor extends Component {
   render() {
-    return <div id="Editor">Editor</div>;
+    return <div id="Editor">
+             <Split className="split" sizes={[75, 25]}>
+               <EditingArea path={this.props.path}/>
+               <PreviewArea path={this.props.path}/>
+             </Split>
+           </div>;
   }
 }
 
-export { CM, EditorHeader, Editor };
+export { Editor };
