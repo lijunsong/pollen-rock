@@ -4,6 +4,7 @@ import * as Api from './Api.js';
 import * as Icons from './Icons.js';
 import { Map, List, Set } from 'immutable';
 import Path from 'path';
+import Split from 'react-split';
 
 
 function CanvasHeader(props) {
@@ -38,93 +39,7 @@ function CanvasPanel(props) {
 
 
 /// The entry tab of the panel
-class CanvasNavigation extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      // a set of paths that have expanded
-      expanded: Set()
-    };
-  }
 
-  _getFileOnClick(path) {
-    return () => this.props.onClickFile(path);
-  }
-
-  _getFolderOnClick(path) {
-    return () => {
-      let expanded;
-      if (this.state.expanded.has(path)) {
-        expanded = this.state.expanded.delete(path);
-      } else {
-        this.props.onClickFolder(path);
-        expanded = this.state.expanded.add(path);
-      }
-      this.setState({expanded});
-    };
-  }
-
-  /// recursively render folders and it's children
-  _renderFolder(parentPath, folderName) {
-    const fullPath = Path.join(parentPath, folderName);
-    let arrow = Icons.arrowRight;
-    // render all children if this folder is expanded
-    let childrenView = "";
-    if (this.state.expanded.has(fullPath)) {
-      arrow = Icons.arrowDown;
-      const children = this.props.entries.get(fullPath);
-      if (children) {
-        childrenView = (
-          <div className="spacer">
-            {this._renderEntryList(fullPath, children)}
-          </div>
-        );
-      }
-    }
-
-    const folder = (
-      <span className="entry" onClick={this._getFolderOnClick(fullPath)}>
-        {arrow}{folderName}
-      </span>
-    );
-
-    return <div className="isDir" key={fullPath}>
-             {folder}
-             {childrenView}
-           </div>;
-  }
-
-  /// render a single file entry
-  _renderFile(parentPath, fileName) {
-    const fullPath = Path.join(parentPath, fileName);
-    return <div className="isFile entry" key={fullPath}
-                onClick={this._getFileOnClick((fullPath))}>
-             {fileName}
-           </div>;
-  }
-
-  /// Return a list of rendered entries
-  _renderEntryList(parentPath, list) {
-    return list.map((e) => {
-      if (e.endsWith("/")) {
-        return this._renderFolder(parentPath, e);
-      } else {
-        return this._renderFile(parentPath, e);
-      }
-    });
-  }
-
-  render() {
-    const parentPath = "/";
-    const list = this.props.entries.get(parentPath);
-    const renderedList = this._renderEntryList(parentPath, list);
-
-    if (renderedList.isEmpty()) {
-      renderedList = "No files";
-    }
-     return <div className="entries">{renderedList}</div>;
-  }
-}
 
 
 /// Components of the right side area when Canvas is not fullscreen
@@ -179,30 +94,7 @@ class CanvasPreview extends Component {
 class Canvas extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      /// The key is path, value is it's children, a list of string.
-      /// Same as pollen-rock fs api, if an item ends with /, the item
-      /// is a folder
-      entries: Map({"/": List(["Loading"])}),
-      openFile: null,
-      previewOpened: false,
-    };
-  }
-
-  renderFullscreen() {
-    return (
-      <div id="canvas">
-        <div className="container">
-          <div className="row">
-            <div className="two columns side">leftbar</div>
-            <div id="editorFrame" className="eight columns">
-              <CM path={this.state.openFile}/>
-            </div>
-            <div className="two columns side">rightbar</div>
-          </div>
-        </div>
-      </div>
-    );
+;
   }
 
   onClickFile(filePath) {
@@ -222,6 +114,11 @@ class Canvas extends Component {
   }
 
   renderNonFullscreen() {
+    return (
+    );
+  }
+
+  renderNonFullscreen1() {
     const {openFile, previewOpened} = this.state;
 
     let editorView;
@@ -266,6 +163,8 @@ class Canvas extends Component {
 
     return canvas;
   }
+
+  
 
   componentDidMount() {
     this._loadEntryData();
