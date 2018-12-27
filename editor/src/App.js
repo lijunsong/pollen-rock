@@ -39,13 +39,21 @@ class App extends Component {
     );
   }
 
-  render() {
+  renderEditor(path) {
     return (
       <div id="App">
         {this.renderNavigation()}
-        <Editor />
+        <Editor path={path} key={path} />
       </div>
     );
+  }
+
+  render() {
+    if (this.state.openFile) {
+      return this.renderEditor(this.state.openFile);
+    } else {
+      return this.renderSplash();
+    }
   }
 }
 
