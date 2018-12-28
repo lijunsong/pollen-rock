@@ -5,13 +5,19 @@ import './mode/pollen';
 import CodeMirror from 'codemirror';
 import 'codemirror/mode/meta';
 import Split from 'react-split';
-
+import * as Icons from './Icons';
 
 
 class EditorHeader extends Component {
   render() {
     return (
-      <div id="EditorHeader"> {this.props.path} </div>
+      <div id="EditorHeader">
+        <span id="EditorPath">{this.props.path}</span>
+        <span id="Preview" className="clickable"
+              onClick={this.props.onClickZen}>
+          {Icons.fullscreen}
+        </span>
+      </div>
     );
   }
 }
@@ -205,15 +211,6 @@ class EditorBody extends Component {
 }
 
 
-class EditingArea extends Component {
-  render() {
-    return <div id="EditingArea">
-             <EditorHeader path={this.props.path}/>
-             <EditorBody path={this.props.path}/>
-           </div>;
-  }
-}
-
 class PreviewArea extends Component {
   constructor(props) {
     super(props);
@@ -271,11 +268,58 @@ class PreviewArea extends Component {
 /// Editor contains code mirror and a small header for
 /// icons. It optionally contains Preview page
 class Editor extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      zenMode: false,
+    };
+
+    this.onClickZen = this.onClickZen.bind(this);
+    this.onDragEnd = this.onDragEnd.bind(this);
+  }
+  onClickZen() {
+    console.log("clicked");
+    this.setState((state, props) => ({
+      zenMode: ! state.zenMode
+    }));
+  }
+  onDragEnd() {
+    if (this.editorBody) {
+      this.editorBody.refresh();
+    }
+  }
+  elementStyle(dimension, size, gutterSize) {
+    return {
+      'flex-basis': 'calc(' + size + '% - ' + gutterSize + 'px)',
+    };
+  }
+  gutterStyle(dimension, size) {
+    return {
+      'flex-basis': size + 'px'
+    };
+  }
   render() {
+    let direction = 'horizontal';
+    if (this.state.zenMode) {
+      direction = 'vertical';
+    }
+    // Split does not handle refresh so well, so we use flex-style,
+    // passing in elementStyle and gutterStyle, and change only Split
+    // className
     return <div id="Editor">
-             <Split className="split" sizes={[75, 25]}>
-               <EditingArea path={this.props.path}/>
-               <PreviewArea path={this.props.path}/>
+             <Split className={`split-${direction}`} sizes={[50, 50]}
+                    onDragEnd={this.onDragEnd}
+                    direction={direction}
+                    elementStyle={this.elementStyle.bind(this)}
+                    gutterStyle={this.gutterStyle.bind(this)}
+             >
+               <div id="EditingArea">
+                 <EditorHeader path={this.props.path}
+                               onClickZen={this.onClickZen}/>
+                 <EditorBody path={this.props.path}
+                             ref={r => this.editorBody = r} />
+               </div>
+               <PreviewArea path={this.props.path} />
              </Split>
            </div>;
   }
