@@ -1,5 +1,5 @@
 body {
-    font-family: "source code pro";
+    font-family: 'Source Code Pro', 'SFMono-Regular', consolas, menlo, monospace;
 }
 
 .clickable {
@@ -20,16 +20,22 @@ body {
     flex: 0 0 auto;
     white-space: nowrap;
     overflow: auto;
+    height: 100vh;
 }
 
 #NavHeader, #EditorHeader {
-    font-weight: bold;
+    display: flex;
+    color: #555;
     border-bottom: 2px solid #EEE;
-    padding: 1rem 1rem 0 1rem;
+    padding: 0rem 1rem 0 0.5rem;
+    font-size: 85%;
+    height: 2.5rem;
+    align-items: center;
+    vertical-align: middle;
 }
 
-#NavEntries {
-    xpadding: 1rem 1rem 0 1rem;
+#NavEntries div {
+    margin-bottom: 0.5rem;
 }
 .entrySpacer {
     margin-left: 1rem;
@@ -60,9 +66,6 @@ body {
     flex: 1 1 auto;
 }
 
-#EditorHeader {
-    display: flex;
-}
 #EditorPath {
     flex: 1 1 auto;
 }
@@ -120,10 +123,13 @@ body {
     border-width: 0 1px 0 1px;
 }
 
-.previewFrame {
-    position: relative;
-    flex: 1 0 auto;
-    width: 50%;
+.split-horizontal #PreviewArea {
+    height: 100vh;
+    overflow: auto;
+}
+.split-vertical #PreviewArea {
+    width: 100%;
+    overflow: auto;
 }
 iframe {
     border-width: 0px 1px 0 1px;
@@ -144,7 +150,7 @@ iframe {
 
 /* CodeMirror customized css */
 .CodeMirror {
-    font-family: 'Source Code Pro', 'SFMono-Regular';
+    font-family: 'Source Code Pro', 'SFMono-Regular', consolas, menlo, monospace;
     font-size: 85%;
 }
 .CodeMirror-gutters {
