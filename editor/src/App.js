@@ -19,7 +19,15 @@ class App extends Component {
     this.state = {
       /// Current opened file
       openFile: null,
+      /// fullscreen
+      fullscreen: false,
     };
+  }
+
+  onClickFullscreen() {
+    this.setState((state, props) => ({
+      fullscreen: !state.fullscreen
+    }));
   }
 
   renderNavigation() {
@@ -39,18 +47,29 @@ class App extends Component {
     );
   }
 
-  renderEditor(path) {
+  renderEditor(path, fullscreen) {
+    let nav;
+    let className = "fullscreen";
+    if (! fullscreen) {
+      nav = this.renderNavigation();
+      className = "";
+    }
     return (
-      <div id="App">
-        {this.renderNavigation()}
-        <Editor path={path} key={path} />
+      <div id="App" className={className}>
+        {nav}
+        <Editor
+          path={path} key={path}
+          fullscreen={this.state.fullscreen}
+          onClickFullscreen={this.onClickFullscreen.bind(this)}/>
       </div>
     );
   }
 
   render() {
     if (this.state.openFile) {
-      return this.renderEditor(this.state.openFile);
+      let fullscreen = this.state.fullscreen;
+      let openFile = this.state.openFile;
+      return this.renderEditor(openFile, fullscreen);
     } else {
       return this.renderSplash();
     }
