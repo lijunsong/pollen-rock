@@ -9,14 +9,25 @@ import * as Icons from './Icons';
 
 
 class EditorHeader extends Component {
+  constructor(props) {
+    super(props);
+    this.onClickHorizontal = () => this.props.onClickDirection("vertical");
+    this.onClickVertical = () => this.props.onClickDirection("horizontal");
+  }
   render() {
     return (
       <div id="EditorHeader">
         <span id="EditorPath">{this.props.path}</span>
-        <span id="Preview" className="clickable"
-              onClick={this.props.onClickZen}>
-          {Icons.fullscreen}
+        <span id="horizontalIcon" className="icons clickable"
+              onClick={this.onClickHorizontal}>
         </span>
+        <span id="verticalIcon" className="icons clickable"
+              onClick={this.onClickVertical}>
+        </span>
+        <span id="fullscreenIcon" className="icons clickable"
+              onClick={this.props.onClickFullscreen}>
+        </span>
+
       </div>
     );
   }
@@ -271,14 +282,26 @@ class Editor extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      splitDirection: 'horizontal',
       zenMode: false,
     };
 
     this.onClickZen = this.onClickZen.bind(this);
     this.onDragEnd = this.onDragEnd.bind(this);
+    this.onClickDirection = this.onClickDirection.bind(this);
+    this.onClickFullscreen = this.onClickFullscreen.bind(this);
   }
   onClickZen() {
-    console.log("clicked");
+    this.setState((state, props) => ({
+      zenMode: ! state.zenMode
+    }));
+  }
+  onClickDirection(newDirection) {
+    if (this.state.splitDirection != newDirection) {
+      this.setState({splitDirection: newDirection});
+    }
+  }
+  onClickFullscreen() {
     this.setState((state, props) => ({
       zenMode: ! state.zenMode
     }));
@@ -299,10 +322,7 @@ class Editor extends Component {
     };
   }
   render() {
-    let direction = 'horizontal';
-    if (this.state.zenMode) {
-      direction = 'vertical';
-    }
+    let direction = this.state.splitDirection;
     // Split does not handle refresh so well, so we use flex-style,
     // passing in elementStyle and gutterStyle, and change only Split
     // className
@@ -315,7 +335,10 @@ class Editor extends Component {
              >
                <div id="EditingArea">
                  <EditorHeader path={this.props.path}
-                               onClickZen={this.onClickZen}/>
+                               onClickZen={this.onClickZen}
+                               onClickDirection={this.onClickDirection}
+                               onClickFullscreen={this.onClickFullscreen}
+                 />
                  <EditorBody path={this.props.path}
                              ref={r => this.editorBody = r} />
                </div>
