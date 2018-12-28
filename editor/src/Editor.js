@@ -314,10 +314,10 @@ class Editor extends Component {
     let icons = [
       <Icons.HorizontalSplitIcon
         key={1}
-        onClick={() => this.onClickDirection('horizontal')} />,
+        onClick={() => this.onClickDirection('vertical')} />,
       <Icons.VerticalSplitIcon
         key={2}
-        onClick={() => this.onClickDirection('vertical')} />,
+        onClick={() => this.onClickDirection('horizontal')} />,
       <Icons.FullscreenIcon
         key={3}
         onClick={this.props.onClickFullscreen}
