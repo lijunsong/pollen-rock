@@ -8,31 +8,14 @@ import Split from 'react-split';
 import * as Icons from './Icons';
 
 
-class EditorHeader extends Component {
-  constructor(props) {
-    super(props);
-    this.onClickHorizontal = () => this.props.onClickDirection("vertical");
-    this.onClickVertical = () => this.props.onClickDirection("horizontal");
-  }
-  render() {
-    return (
-      <div id="EditorHeader">
-        <span id="EditorPath">{this.props.path}</span>
-        <span id="horizontalIcon" className="icons clickable"
-              onClick={this.onClickHorizontal}>
-        </span>
-        <span id="verticalIcon" className="icons clickable"
-              onClick={this.onClickVertical}>
-        </span>
-        <span id="fullscreenIcon" className="icons clickable"
-              onClick={this.props.onClickFullscreen}>
-        </span>
-
-      </div>
-    );
-  }
+function EditorHeader(props) {
+  return (
+    <div id="EditorHeader">
+      <span id="EditorPath">{props.path}</span>
+      {props.children}
+    </div>
+  );
 }
-
 
 class EditorBody extends Component {
   constructor(props) {
@@ -283,28 +266,15 @@ class Editor extends Component {
     super(props);
     this.state = {
       splitDirection: 'horizontal',
-      zenMode: false,
     };
 
-    this.onClickZen = this.onClickZen.bind(this);
     this.onDragEnd = this.onDragEnd.bind(this);
     this.onClickDirection = this.onClickDirection.bind(this);
-    this.onClickFullscreen = this.onClickFullscreen.bind(this);
-  }
-  onClickZen() {
-    this.setState((state, props) => ({
-      zenMode: ! state.zenMode
-    }));
   }
   onClickDirection(newDirection) {
     if (this.state.splitDirection != newDirection) {
       this.setState({splitDirection: newDirection});
     }
-  }
-  onClickFullscreen() {
-    this.setState((state, props) => ({
-      zenMode: ! state.zenMode
-    }));
   }
   onDragEnd() {
     if (this.editorBody) {
@@ -321,30 +291,60 @@ class Editor extends Component {
       'flex-basis': size + 'px'
     };
   }
-  render() {
+  renderEditingArea(icons) {
+    return <div id="EditingArea">
+             <EditorHeader path={this.props.path} >
+               {icons}
+             </EditorHeader>
+             <EditorBody path={this.props.path}
+                         ref={r => this.editorBody = r} />
+           </div>;
+  }
+  renderFullscreen() {
+    return <div id="Editor" className="fullscreen">
+             {this.renderEditingArea([
+               <Icons.FullscreenIcon
+                 key={4}
+                 onClick={this.props.onClickFullscreen}
+               />,
+             ])}
+           </div>;
+  }
+  renderNonFullscreen() {
+    let icons = [
+      <Icons.HorizontalSplitIcon
+        key={1}
+        onClick={() => this.onClickDirection('horizontal')} />,
+      <Icons.VerticalSplitIcon
+        key={2}
+        onClick={() => this.onClickDirection('vertical')} />,
+      <Icons.FullscreenIcon
+        key={3}
+        onClick={this.props.onClickFullscreen}
+      />,
+    ];
     let direction = this.state.splitDirection;
     // Split does not handle refresh so well, so we use flex-style,
     // passing in elementStyle and gutterStyle, and change only Split
     // className
-    return <div id="Editor">
+    return <div id="Editor" className="nonFullscreen">
              <Split className={`split-${direction}`} sizes={[50, 50]}
                     onDragEnd={this.onDragEnd}
                     direction={direction}
                     elementStyle={this.elementStyle.bind(this)}
                     gutterStyle={this.gutterStyle.bind(this)}
              >
-               <div id="EditingArea">
-                 <EditorHeader path={this.props.path}
-                               onClickZen={this.onClickZen}
-                               onClickDirection={this.onClickDirection}
-                               onClickFullscreen={this.onClickFullscreen}
-                 />
-                 <EditorBody path={this.props.path}
-                             ref={r => this.editorBody = r} />
-               </div>
+               {this.renderEditingArea(icons)}
                <PreviewArea path={this.props.path} />
              </Split>
            </div>;
+  }
+  render() {
+    if (this.props.fullscreen) {
+      return this.renderFullscreen();
+    } else {
+      return this.renderNonFullscreen();
+    }
   }
 }
 
