@@ -2,6 +2,14 @@ body {
     font-family: "source code pro";
 }
 
+.clickable {
+    opacity: 0.5;
+}
+.clickable:hover {
+    cursor: pointer;
+    opacity: 1;
+}
+
 #canvas {
     background-color:#FFF;
     height: 100vh;
@@ -73,18 +81,40 @@ body {
     flex: 1 1 auto;
 }
 
-.split {
+#EditorHeader {
+    display: flex;
+}
+#EditorPath {
+    flex: 1 1 auto;
+}
+
+.split-horizontal {
     display: flex;
     flex-direction: row;
     position: relative;
     height: 100vh;
 }
 
-.gutter.gutter-horizontal {
+.split-vertical {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    height: 100vh;
+}
+
+.split-horizontal .gutter {
     cursor: ew-resize;
     height: 100%;
     background-color: #EEE;
 }
+
+.split-vertical .gutter {
+    cursor: ns-resize;
+    width: 100%;
+    background-color: #EEE;
+}
+
 
 #EditingArea {
     overflow: auto;

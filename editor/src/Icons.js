@@ -11,6 +11,6 @@ export const arrowDown = (
   <i className="material-icons md18">keyboard_arrow_down</i>
 );
 
-export const preview = (
-  <i className="material-icons md18">visibility</i>
-)
+export const fullscreen = (
+  <i className="material-icons md18">fullscreen</i>
+);
