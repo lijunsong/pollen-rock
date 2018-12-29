@@ -27,17 +27,11 @@
     (render-from-source-or-output-path filepath)
     (next-dispatcher)))
 
-(define (dashboard-handler req url-parts)
-  (log-web-request-debug "dashboard on ~a" url-parts)
-  (response/text
-   (file->string
-        (build-path editor-root "pollen-rock-dashboard.html"))))
-
 (define (editor-handler req url-parts)
   (log-web-request-debug "editor on url-parts")
   (response/text
    (file->string
-    (build-path editor-root "pollen-rock-editor.html"))))
+    (build-path editor-root "index.html"))))
 
 
 (define-values (server-dispatch url)
@@ -46,14 +40,8 @@
     restful:main-post-handler]
    [("rest" (string-arg) (string-arg) ...)
     restful:main-get-handler]
-   [("dashboard" (string-arg) ...)
-    dashboard-handler]
    [("editor" (string-arg) ...)
     editor-handler]
-   [("settings" (string-arg) ...)
-    dashboard-handler]
-   [("render" (string-arg) ...)
-    dashboard-handler]
    [((string-arg) ...) static-file-handler]))
 
 
@@ -104,7 +92,7 @@
           ((get-info/full runtimeroot) 'version)
           (version))
   (printf "Project root is ~a\n" (current-directory))
-  (printf "Pollen Editor is running at http://localhost:~a/dashboard (accessible by ~a)\n"
+  (printf "Pollen Editor is running at http://localhost:~a/editor (accessible by ~a)\n"
           (server-port)
           (if (listen-ip)
               "only this machine"

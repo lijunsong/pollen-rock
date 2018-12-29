@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="125px" height="125px" viewBox="0 0 125 125" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch -->
+    <title>Logo Fill</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Welcome" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icons" transform="translate(-710.000000, -297.000000)">
+            <g id="Logo-Fill" transform="translate(710.000000, 297.000000)">
+                <circle id="Oval" fill="#444444" cx="62.5" cy="62.5" r="62.5"></circle>
+                <path d="M60.9347927,3.00467603 C57.4664941,16.0522112 29,63.4516117 29,63.4516117 C29,63.4516117 35.2596114,62.8743043 40.699738,88.0575431 C46.1398647,113.240782 44.8907204,119 44.8907204,119 L60.7216607,119 C60.7216607,119 61.1622344,2.14905388 60.9347927,3.00467603 Z" id="Path-2" fill="#FFFFFF"></path>
+                <path d="M95.9347927,3.00467603 C92.4664941,16.0522112 64,63.4516117 64,63.4516117 C64,63.4516117 70.2596114,62.8743043 75.699738,88.0575431 C81.1398647,113.240782 79.8907204,119 79.8907204,119 L95.7216607,119 C95.7216607,119 96.1622344,2.14905388 95.9347927,3.00467603 Z" id="Path-2" fill="#FFFFFF" transform="translate(80.000000, 61.000000) scale(-1, 1) translate(-80.000000, -61.000000) "></path>
+            </g>
+        </g>
+    </g>
+</svg>

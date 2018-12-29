@@ -131,7 +131,7 @@ class NavEntries extends Component {
     try {
       res = await Api.getContents(folderPath);
     } catch (err) {
-      throw new Error(`Couldn't fetch files under ${folderPath}: {err}`);
+      throw new Error(`Couldn't fetch files under ${folderPath}: ${err}`);
     }
 
     let errno = res.data.errno;

@@ -13,6 +13,17 @@ body {
 #App {
     display: flex;
 }
+#Splash {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+}
+#Splash img {
+    width: 100px;
+    height: 100px;
+    margin: auto;
+    opacity: 0.1;
+}
 #Navigation {
     background-color: #FAFAFA;
     border-right: 2px solid #EEE;

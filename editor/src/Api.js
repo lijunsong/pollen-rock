@@ -1,13 +1,8 @@
 import Axios from 'axios';
 
-/// Send all GET/POST to this endpoint during development
-const devRemote = "http://localhost:8000";
-
-/// Send to this endpoint when in pord
-const prodRemote = "";
-
-export const remote = devRemote;
-
+/// DO NOT import process again. Experiment shows it will overwrite
+/// data in process.env
+export const remote = process.env.REACT_APP_DEV_REMOTE || "";
 
 function get(urlStr) {
   return Axios({

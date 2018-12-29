@@ -6,10 +6,12 @@ import * as Icons from './Icons.js';
 import { Map, List, Set } from 'immutable';
 import Path from 'path';
 import Split from 'react-split';
-
+import logo from './icons/logo.svg';
 
 function Splash(props) {
-  return <div id="Splash">Splash</div>;
+  return <div id="Splash">
+           <img src={logo}/>
+         </div>;
 }
 
 
