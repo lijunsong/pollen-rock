@@ -25,16 +25,7 @@ raco pollen-rock --local -p 8000
 ```
 
 `npm start` runs the app in the development mode, talking to
-pollen-rock at point 8000.
-
-If pollen-rock is running in a different server (running WITHOUT
-`--local` option), you can use `npm run starteditor` with
-`REACT_APP_DEV_REMOTE` env var to let the editor
-connects to a different remote. Take a look at package.json file.
-
-```
-REACT_APP_DEV_REMOTE=http://myweb.com npm run starteditor
-```
+pollen-rock at point 8000 (see .setupProxy.js).
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the
 browser.

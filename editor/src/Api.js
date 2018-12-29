@@ -1,8 +1,16 @@
 import Axios from 'axios';
 
-/// DO NOT import process again. Experiment shows it will overwrite
-/// data in process.env
-export const remote = process.env.REACT_APP_DEV_REMOTE || "";
+/// Note 1: A note about process.env. DO NOT import process
+/// again. Experiment shows it will overwrite data in process.env
+///
+/// Note 2: we don't explicitly specify remote host and port here,
+/// instead, we prefix all remote requests with /devremote, and use
+/// proxy to redirect all requests. Also see ./setupProxy.js
+export let remote = "";
+
+if (process.env.NODE_ENV === "development") {
+  remote = "/devremote";
+}
 
 function get(urlStr) {
   return Axios({

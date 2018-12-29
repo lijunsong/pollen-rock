@@ -6,6 +6,7 @@ import CodeMirror from 'codemirror';
 import 'codemirror/mode/meta';
 import Split from 'react-split';
 import * as Icons from './Icons';
+import PreviewArea from './PreviewArea';
 
 
 function EditorHeader(props) {
@@ -125,6 +126,48 @@ class EditorBody extends Component {
     }
   }
 
+  markSyncText(wanted) {
+    if (! this.editor) {
+      return;
+    }
+
+    /// cache already highlighted markers into this.syncMarkers
+    this.clearSyncText();
+
+    /// now find the wanted text, and highlight them
+    let matchedPos = [];
+    let doc = this.editor.editor.getDoc();
+    this.editor.editor.eachLine((line) => {
+      let lineText = line.text;
+      let matched = lineText.match(wanted);
+      if (matched) {
+        let lineNumber = doc.getLineNumber(line);
+        let fromPos = {line: lineNumber, ch: matched.index};
+        let toPos = {line: lineNumber, ch: matched.index + wanted.length};
+        matchedPos.push({fromPos: fromPos, toPos: toPos});
+      }
+    });
+    if (matchedPos.length !== 0) {
+      matchedPos.forEach(obj => {
+        let marker = doc.markText(obj.fromPos, obj.toPos, {
+          className: "previewTextFound"
+        });
+        this.syncMarkers.push(marker);
+      });
+
+      this.editor.editor.scrollIntoView(matchedPos[0].fromPos);
+    }
+  }
+
+  clearSyncText() {
+    if (this.syncMarkers) {
+      this.syncMarkers.forEach(m => {
+        m.clear();
+      });
+    }
+    this.syncMarkers = [];
+  }
+
   render() {
     if (! this.initContents) {
       return <p>Loading...</p>;
@@ -205,89 +248,6 @@ class EditorBody extends Component {
 }
 
 
-class PreviewArea extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      location: null,
-    };
-  }
-
-  async renderRequest(path) {
-    let res = await Api.render(path);
-    if (res.data.errno != 0) {
-      throw new Error(`Render failed on ${path}`);
-    }
-
-    this.setState({location: res.data.location});
-  }
-
-  async watchPath(path) {
-    console.log("Watching " + path);
-    let res = await Api.watch(path);
-    if (res.data.errno != 0) {
-      throw new Error(`This file is removed`);
-    }
-
-    this.reloadIframe();
-
-    return this.watchPath(path);
-  }
-
-  reloadIframe() {
-    if (this.iframe) {
-      console.log("reloading iframe");
-      try {
-        this.iframe.contentWindow.location.reload(true);
-      } catch (err) {
-        console.warn("Please switch to Production build to use full preview feature");
-        console.warn("Because of same-origin policy, the editor can only refresh blindly");
-        this.iframe.src += '';
-      }
-    }
-  }
-
-  componentDidMount() {
-    let path = this.props.path;
-
-    if (!path) {
-      return;
-    }
-
-    this.renderRequest(path).then(() => {
-      console.log(`Successfully render ${path}`);
-      this.reloadIframe();
-    }).catch((e) => {
-      console.log(`Failed to render ${path}: ${e}`);
-    });
-
-    this.watchPath(path);
-  }
-
-  renderLoading() {
-    return <div id="PreviewArea">
-             "Loading";
-           </div>;
-  }
-
-  renderPreview(location) {
-    let url = `${Api.remote}/${this.state.location}`;
-    return <div id="PreviewArea">
-             <iframe src={url}
-                     ref={r => this.iframe=r}/>
-           </div>;
-  }
-
-  render() {
-    if (this.state.location) {
-      return this.renderPreview(this.state.location);
-    } else {
-      return this.renderLoading();
-    }
-  }
-}
-
-
 /// Editor contains code mirror and a small header for
 /// icons. It optionally contains Preview page
 class Editor extends Component {
@@ -299,6 +259,7 @@ class Editor extends Component {
 
     this.onDragEnd = this.onDragEnd.bind(this);
     this.onClickDirection = this.onClickDirection.bind(this);
+    this.onPreviewSelected = this.onPreviewSelected.bind(this);
   }
   onClickDirection(newDirection) {
     if (this.state.splitDirection != newDirection) {
@@ -308,6 +269,15 @@ class Editor extends Component {
   onDragEnd() {
     if (this.editorBody) {
       this.editorBody.refresh();
+    }
+  }
+  /// textOrClear is the text selected, or false for selection clear up
+  onPreviewSelected(textOrClear) {
+    if (this.editorBody) {
+      if (textOrClear === false) {
+        this.editorBody.clearSyncText();
+      }
+        this.editorBody.markSyncText(textOrClear);
     }
   }
   elementStyle(dimension, size, gutterSize) {
@@ -364,7 +334,9 @@ class Editor extends Component {
                     gutterStyle={this.gutterStyle.bind(this)}
              >
                {this.renderEditingArea(icons)}
-               <PreviewArea path={this.props.path} />
+               <PreviewArea path={this.props.path}
+                            key={this.props.path}
+                            onSelected={this.onPreviewSelected}/>
              </Split>
            </div>;
   }
