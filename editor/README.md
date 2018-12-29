@@ -1,6 +1,16 @@
 Pollen-rock Editor was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-To develop the editor, you'll need pollen-rock installed and running.
+To work on the editor, you'll need
+
+- nodejs
+- pollen-rock installed and running.
+
+To install all npm packages, run the following command in editor's
+root director:
+
+```
+npm install
+```
 
 ## Available Scripts
 
@@ -14,9 +24,17 @@ Before running this script, you'll need pollen-rock running at port 8000
 raco pollen-rock --local -p 8000
 ```
 
-`npm start` runs the app in the development mode, pointing remote
-inside the app (via `REACT_APP_DEV_REMOTE` env var) at
-`localhost:8000`.
+`npm start` runs the app in the development mode, talking to
+pollen-rock at point 8000.
+
+If pollen-rock is running in a different server (running WITHOUT
+`--local` option), you can use `npm run starteditor` with
+`REACT_APP_DEV_REMOTE` env var to let the editor
+connects to a different remote. Take a look at package.json file.
+
+```
+REACT_APP_DEV_REMOTE=http://myweb.com npm run starteditor
+```
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the
 browser.
