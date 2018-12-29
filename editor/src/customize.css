@@ -62,7 +62,7 @@ body {
     border-color: #FAFAFA;
 }
 .selectedEntry {
-    border-color: red;
+    border-color: #ff8585;
     background-color: #EEE;
 }
 .entry:hover {
@@ -189,7 +189,13 @@ iframe {
     background-color: #F7F7F7;
 }
 
+.previewTextFound {
+    background-color: #ff8585;
+    border-radius: 4px;
+}
 
+
+/* Last, all of our icons */
 
 #HorizontalSplitIcon {
     background-image: url(./icons/horizontal_split.svg);
