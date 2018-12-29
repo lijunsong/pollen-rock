@@ -13,4 +13,4 @@
 
 ;;; Runtime root for the whole project
 (define-runtime-path runtimeroot "..")
-(define editor-root (build-path runtimeroot "editor" "public"))
+(define editor-root (build-path runtimeroot "editor" "build"))
