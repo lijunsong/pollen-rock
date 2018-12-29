@@ -7,7 +7,7 @@ export const remote = process.env.REACT_APP_DEV_REMOTE || "";
 function get(urlStr) {
   return Axios({
     method: 'GET',
-    url: urlStr
+    url: urlStr,
   });
 }
 
@@ -47,7 +47,18 @@ export function saveContents(path, contents) {
   return post(url, postData);
 }
 
+/// render the path. The path can be destination or source
 export function render(path) {
   const url = `${remote}/rest/render/${path}`;
   return get(url);
+}
+
+/// Long polling the path
+export function watch(path) {
+  const url = `${remote}/rest/watch/${path}`;
+  return Axios({
+    method: 'GET',
+    url: url,
+    timeout: 0,
+  });
 }
