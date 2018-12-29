@@ -222,6 +222,31 @@ class PreviewArea extends Component {
     this.setState({location: res.data.location});
   }
 
+  async watchPath(path) {
+    console.log("Watching " + path);
+    let res = await Api.watch(path);
+    if (res.data.errno != 0) {
+      throw new Error(`This file is removed`);
+    }
+
+    this.reloadIframe();
+
+    return this.watchPath(path);
+  }
+
+  reloadIframe() {
+    if (this.iframe) {
+      console.log("reloading iframe");
+      try {
+        this.iframe.contentWindow.location.reload(true);
+      } catch (err) {
+        console.warn("Please switch to Production build to use full preview feature");
+        console.warn("Because of same-origin policy, the editor can only refresh blindly");
+        this.iframe.src += '';
+      }
+    }
+  }
+
   componentDidMount() {
     let path = this.props.path;
 
@@ -231,9 +256,12 @@ class PreviewArea extends Component {
 
     this.renderRequest(path).then(() => {
       console.log(`Successfully render ${path}`);
+      this.reloadIframe();
     }).catch((e) => {
       console.log(`Failed to render ${path}: ${e}`);
     });
+
+    this.watchPath(path);
   }
 
   renderLoading() {
@@ -243,9 +271,10 @@ class PreviewArea extends Component {
   }
 
   renderPreview(location) {
-    let url = `${Api.remote}/${location}`;
+    let url = `${Api.remote}/${this.state.location}`;
     return <div id="PreviewArea">
-             <iframe sandbox="allow-scripts" src={url} />
+             <iframe src={url}
+                     ref={r => this.iframe=r}/>
            </div>;
   }
 
