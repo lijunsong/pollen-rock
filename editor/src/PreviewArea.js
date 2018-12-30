@@ -9,6 +9,13 @@ class PreviewArea extends Component {
     };
   }
 
+  onIframeLoad() {
+    if (this.iframe) {
+      console.log("got iframe loaded");
+      this.installSelectHandler(this.iframe.contentWindow);
+    }
+  }
+
   async renderRequest(path) {
     let res = await Api.render(path);
     if (res.data.errno !== 0) {
@@ -27,7 +34,7 @@ class PreviewArea extends Component {
 
     this.reloadIframe();
 
-    return this.watchPath(path);
+    this.watchPath(path);
   }
 
   reloadIframe() {
@@ -35,10 +42,10 @@ class PreviewArea extends Component {
       return;
     }
 
-    console.log("reloading iframe");
     try {
+      /// always install new selectHandler after reload
+      this.iframe.onload = this.onIframeLoad.bind(this);
       this.iframe.contentWindow.location.reload(true);
-      this.installSelectHandler(this.iframe.contentWindow);
     } catch (err) {
       console.warn("Please switch to Production build to use the preview feature");
       console.warn("Because of same-origin policy, the editor can only refresh blindly");
@@ -47,13 +54,11 @@ class PreviewArea extends Component {
   }
 
   installSelectHandler(contentWindow) {
+    console.log("Install select handler in iframe");
     contentWindow.addEventListener("mouseup", event => {
       let selected = contentWindow.getSelection().toString();
-      if (selected) {
-        this.props.onSelected(selected);
-      } else {
-        this.props.onSelected(false);
-      }
+      // contract here is that false means no selection
+      this.props.onSelected(selected || false);
     });
   }
 
