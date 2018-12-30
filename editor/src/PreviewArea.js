@@ -89,6 +89,7 @@ class PreviewArea extends Component {
     let url = `${Api.remote}/${this.state.location}`;
     return <div id="PreviewArea">
              <iframe src={url}
+                     title="preview"
                      ref={r => this.iframe=r}/>
            </div>;
   }
