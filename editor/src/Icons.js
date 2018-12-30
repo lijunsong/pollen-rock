@@ -1,6 +1,5 @@
 import React from 'react';
 import 'material-design-icons/iconfont/material-icons.css';
-import hsplit from './icons/horizontal_split.svg';
 
 /// This file contains Icons used in the editor
 function iconGen(name) {

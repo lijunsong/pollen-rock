@@ -4,12 +4,13 @@ import CodeMirror from 'codemirror';
 CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
   console.log("lint.pollen");
   let state = cm.getStateAfter(line, true);
-  return state.pollenState.braceStack.length == 0;
+  return state.pollenState.braceStack.length === 0;
 });
 
 CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
   var cmdChar = cmConfig['command-char'] || '◊';
-  var racketId = '[' +  "^ \\n(){}\\[\\]\",'`;#|\\\\" + cmdChar + ']';
+  //var racketId = '[' +  "^ \\n(){}\\[\\]\",'`;#|\\\\" + cmdChar + ']';
+  var racketId = `[^ \\n(){}\\[\\]",'\`;#|\\\\${cmdChar}]`;
   var racketIdReg = new RegExp(racketId);
 
   function stackPush(stack, v) {
@@ -21,11 +22,11 @@ CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
   }
 
   function stackEmpty(stack) {
-    return stack == [];
+    return stack === [];
   }
 
   function stackTopMatch(stack, v) {
-    return (!stackEmpty(stack)) && stack[stack.length-1] == v;
+    return (!stackEmpty(stack)) && stack[stack.length-1] === v;
   }
 
   return {
@@ -48,11 +49,11 @@ CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
       // TODO: to clean this, push tag-function and its brace (either { or |{) information
       // on the stack. if current char is in tag function ";", it is in comment.
       // '}' in ";" with "|{" will be matched one more with "|", etc.
-      if (state.mode == 'block-comment') {
+      if (state.mode === 'block-comment') {
         ch = stream.next();
         // keep track of left brace in comment only when the comment
         // starts with { (instead of |{)
-        if (ch == '{') {
+        if (ch === '{') {
           if (stackTopMatch(state.braceStack, "comment{") || stackTopMatch(state.braceStack, "{")) {
             // if previous open brace is comment{, push this brace.
             // or if the previous is {, which means this brace is in a
@@ -60,7 +61,7 @@ CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
             stackPush (state.braceStack, '{');
           }
         }
-        else if (ch == '}') {
+        else if (ch === '}') {
           if (stackTopMatch(state.braceStack, "comment{")) {
             state.mode = false;
           }
@@ -77,7 +78,7 @@ CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
       else {
         ch = stream.next();
         //console.log('char is: ' + ch);
-        if (ch == cmdChar) {
+        if (ch === cmdChar) {
           // @; or @;{ or @;|{
           if (stream.eat(";")) {
             if (stream.eat("|") && stream.eat("{")) {
@@ -95,8 +96,8 @@ CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
           }
           // @keyword
           else {
-            var tag = '';
-            var letter;
+            // var tag = '';
+            // var letter;
 
             if (stream.eat("|")) {
               // racket bar quoted identifier, e.g. @|one, two|
@@ -104,22 +105,22 @@ CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
               stream.eatWhile(/[^|]/);
               stream.eat("|");
             } else {
-              while ((letter = stream.eat(racketIdReg)) != null) {
-                tag += letter;
+              while ((/*letter = */stream.eat(racketIdReg)) != null) {
+                // tag += letter;
               }
             }
             return 'keyword';
           }
         }
-        else if (ch == '|') {
+        else if (ch === '|') {
           if (stream.eat("{")) {
             stackPush(state.braceStack, ch);
           }
         }
-        else if (ch == '{') {
+        else if (ch === '{') {
           stackPush(state.braceStack, ch);
         }
-        else if (ch == '}') {
+        else if (ch === '}') {
           if (stackEmpty(state.braceStack)) {
             // mismatched pair
             return 'invalid';

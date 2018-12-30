@@ -118,7 +118,7 @@ class NavEntries extends Component {
   render() {
     const parentPath = "/";
     const list = this.state.entries.get(parentPath);
-    const renderedList = this.renderEntryList(parentPath, list);
+    let renderedList = this.renderEntryList(parentPath, list);
 
     if (renderedList.isEmpty()) {
       renderedList = "No files";
@@ -135,7 +135,7 @@ class NavEntries extends Component {
     }
 
     let errno = res.data.errno;
-    if (errno != 0) {
+    if (errno !== 0) {
       throw new Error(
         `Error occurred on folder ${folderPath}: errno = ${errno}`
       );

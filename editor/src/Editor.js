@@ -71,11 +71,11 @@ class EditorBody extends Component {
   insertCommandCharHandler(e) {
     let pos = e.getCursor();
     let commandChar = this.getCommandChar();
-    if (pos.ch == 0) {
+    if (pos.ch === 0) {
       e.replaceSelection(commandChar);
     } else {
       let lastPos = CodeMirror.Pos(pos.line, pos.ch-1);
-      if (e.getRange(lastPos, pos) == commandChar) {
+      if (e.getRange(lastPos, pos) === commandChar) {
         e.replaceRange('@', lastPos, pos);
       } else {
         e.replaceSelection(commandChar);
@@ -92,7 +92,7 @@ class EditorBody extends Component {
     let thisGen = cm.changeGeneration();
     let contents = cm.getValue();
     let res = await Api.saveContents(path, contents);
-    if (res.data.errno != 0) {
+    if (res.data.errno !== 0) {
       console.log(`Failed to save contents: ${res.data.message}`);
       return;
     }
@@ -228,14 +228,13 @@ class EditorBody extends Component {
       throw new Error(`Error occurs when sending requests`);
     }
 
-    let newState = {};
-    if (contents.data.errno == 0 && 'contents' in contents.data) {
+    if (contents.data.errno === 0 && 'contents' in contents.data) {
       this.initContents = contents.data.contents;
     } else {
       throw new Error(`${path} contents are not available`);
     }
 
-    if (config.data.errno == 0) {
+    if (config.data.errno === 0) {
       this.setState({tags : config.data.tags});
     } else {
       throw new Error(`${path} tags are not available`);
@@ -263,7 +262,7 @@ class Editor extends Component {
     this.onPreviewSelected = this.onPreviewSelected.bind(this);
   }
   onClickDirection(newDirection) {
-    if (this.state.splitDirection != newDirection) {
+    if (this.state.splitDirection !== newDirection) {
       this.setState({splitDirection: newDirection});
     }
   }
