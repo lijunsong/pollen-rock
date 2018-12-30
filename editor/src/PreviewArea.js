@@ -11,7 +11,6 @@ class PreviewArea extends Component {
 
   onIframeLoad() {
     if (this.iframe) {
-      console.log("got iframe loaded");
       this.installSelectHandler(this.iframe.contentWindow);
     }
   }
@@ -26,14 +25,25 @@ class PreviewArea extends Component {
   }
 
   async watchPath(path) {
-    console.log("Watching " + path);
-    let res = await Api.watch(path);
-    if (res.data.errno !== 0) {
-      throw new Error(`This file is removed`);
+    if (path !== this.props.path) {
+      return;
     }
 
-    this.reloadIframe();
+    console.log("Watching " + path);
+    let res;
+    try {
+      res = await Api.watch(path);
+      if (res.data.errno !== 0) {
+        throw new Error(`This file is removed`);
+      }
+      this.reloadIframe();
+    } catch (err) {
+    }
 
+    // FIXME: this watchPath will loop forever even if path is different
+    // TO reproduce, reduce the Api.watch timeout to 5seconds, and open
+    // a few docs and see the log. We need to cancel async tasks in
+    // componentWillUnmount
     this.watchPath(path);
   }
 

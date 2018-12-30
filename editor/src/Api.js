@@ -67,6 +67,6 @@ export function watch(path) {
   return Axios({
     method: 'GET',
     url: url,
-    timeout: 0,
+    timeout: 60000,
   });
 }
