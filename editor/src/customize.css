@@ -34,11 +34,11 @@ body {
     height: 100vh;
 }
 
-#NavHeader, #EditorHeader {
+#NavHeader, #EditorHeader, #PreviewHeader {
     display: flex;
     color: #555;
     border-bottom: 2px solid #EEE;
-    padding: 0rem 1rem 0 0.5rem;
+    padding: 0rem 0.5rem 0 0.5rem;
     font-size: 85%;
     height: 2.5rem;
     align-items: center;
@@ -73,6 +73,11 @@ body {
     min-width: 100%;
 }
 
+/* Because SplitPane uses absolution position */
+#Editor {
+    position: relative;
+}
+
 #Editor.nonFullscreen {
     flex: 1 1 auto;
 }
@@ -81,47 +86,44 @@ body {
     flex: 1 1 auto;
 }
 
-.split-horizontal {
-    display: flex;
-    flex-direction: row;
-    position: relative;
-    height: 100vh;
+.Resizer.vertical {
+    background-color: #EEE;
+    width: 10px;
+    cursor: col-resize;
+}
+.Resizer.horizontal {
+    background-color: #EEE;
+    height: 10px;
+    cursor: row-resize;
 }
 
-.split-vertical {
+.fullscreen .Resizer {
+    width: 0;
+    height: 0;
+}
+
+
+#PreviewArea {
     display: flex;
     flex-direction: column;
-    position: relative;
     width: 100%;
     height: 100vh;
 }
-
-.split-horizontal .gutter {
-    cursor: ew-resize;
-    height: 100%;
-    background-color: #EEE;
+#PreviewPath {
+    flex: 1 1 auto;
 }
-
-.split-vertical .gutter {
-    cursor: ns-resize;
+iframe.previewIframe {
+    border: 0;
     width: 100%;
-    background-color: #EEE;
+    flex: 1 1 auto;
 }
-
 
 #EditingArea {
     overflow: auto;
 }
 
-.sideBySideWrapper #canvasPanel {
-    width: 300px;
-    flex: 0 0 auto;
-    white-space: nowrap;
-    overflow: auto;
-}
-
-.sideBySideWrapper #canvasOverview {
-    flex: 1 1 auto;
+.hidePointerEvents {
+    pointer-events: none;
 }
 
 
@@ -132,22 +134,6 @@ body {
     border-style: solid;
     border-color:  #d9d9d9;
     border-width: 0 1px 0 1px;
-}
-
-.split-horizontal #PreviewArea {
-    height: 100vh;
-    overflow: auto;
-}
-.split-vertical #PreviewArea {
-    width: 100%;
-    overflow: auto;
-}
-iframe {
-    border-width: 0px 1px 0 1px;
-    border-color: #d9d9d9;
-    border-style: solid;
-    width: 100%;
-    height: 100%;
 }
 
 /* Size and vertical align everything */

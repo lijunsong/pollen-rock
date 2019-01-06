@@ -4,7 +4,7 @@ import * as Api from './Api';
 import './mode/pollen';
 import CodeMirror from 'codemirror';
 import 'codemirror/mode/meta';
-import Split from 'react-split';
+import SplitPane from 'react-split-pane';
 import * as Icons from './Icons';
 import PreviewArea from './PreviewArea';
 
@@ -254,10 +254,16 @@ class Editor extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      splitDirection: 'horizontal',
+      splitDirection: 'vertical',
+      /// this state is needed for SplitPanel's drag event. Because
+      /// SplitPanel doesn't set pointer-events to none, I have to
+      /// set it on dragging here. Making it in state may not be
+      /// necessary.
+      dragging: false,
     };
 
-    this.onDragEnd = this.onDragEnd.bind(this);
+    this.onDragStarted = this.onDragStarted.bind(this);
+    this.onDragFinished = this.onDragFinished.bind(this);
     this.onClickDirection = this.onClickDirection.bind(this);
     this.onPreviewSelected = this.onPreviewSelected.bind(this);
   }
@@ -266,7 +272,12 @@ class Editor extends Component {
       this.setState({splitDirection: newDirection});
     }
   }
-  onDragEnd() {
+  onDragStarted() {
+    this.setState({dragging: true});
+  }
+  onDragFinished() {
+    this.setState({dragging: false});
+
     if (this.editorBody) {
       this.editorBody.refresh();
     }
@@ -280,72 +291,68 @@ class Editor extends Component {
         this.editorBody.markSyncText(textOrClear);
     }
   }
-  elementStyle(dimension, size, gutterSize) {
-    return {
-      'flex-basis': 'calc(' + size + '% - ' + gutterSize + 'px)',
-    };
-  }
-  gutterStyle(dimension, size) {
-    return {
-      'flex-basis': size + 'px'
-    };
-  }
-  renderEditingArea(icons) {
-    return <div id="EditingArea">
+  renderEditingArea() {
+    let className = "";
+    if (this.state.dragging) {
+      className = "hidePointerEvents";
+    }
+    return <div id="EditingArea" className={className}>
              <EditorHeader path={this.props.path} >
-               {icons}
+               <Icons.FullscreenIcon onClick={this.props.onClickFullscreen} />
              </EditorHeader>
              <EditorBody path={this.props.path}
+                         key={this.props.path}
                          ref={r => this.editorBody = r} />
            </div>;
   }
-  renderFullscreen() {
-    return <div id="Editor" className="fullscreen">
-             {this.renderEditingArea([
-               <Icons.FullscreenIcon
-                 key={4}
-                 onClick={this.props.onClickFullscreen}
-               />,
-             ])}
-           </div>;
-  }
-  renderNonFullscreen() {
-    let icons = [
-      <Icons.HorizontalSplitIcon
-        key={1}
-        onClick={() => this.onClickDirection('vertical')} />,
-      <Icons.VerticalSplitIcon
-        key={2}
-        onClick={() => this.onClickDirection('horizontal')} />,
-      <Icons.FullscreenIcon
-        key={3}
-        onClick={this.props.onClickFullscreen}
-      />,
-    ];
-    let direction = this.state.splitDirection;
-    // Split does not handle refresh so well, so we use flex-style,
-    // passing in elementStyle and gutterStyle, and change only Split
-    // className
-    return <div id="Editor" className="nonFullscreen">
-             <Split className={`split-${direction}`} sizes={[50, 50]}
-                    onDragEnd={this.onDragEnd}
-                    direction={direction}
-                    elementStyle={this.elementStyle.bind(this)}
-                    gutterStyle={this.gutterStyle.bind(this)}
-             >
-               {this.renderEditingArea(icons)}
-               <PreviewArea path={this.props.path}
-                            key={this.props.path}
-                            onSelected={this.onPreviewSelected}/>
-             </Split>
-           </div>;
-  }
-  render() {
-    if (this.props.fullscreen) {
-      return this.renderFullscreen();
-    } else {
-      return this.renderNonFullscreen();
+
+  /// render the preview area with a wrapper that hides
+  /// pointerEvents when necessary. Because the div is just
+  /// a wrapper, so we use inline style here
+  renderPreviewArea() {
+    let className = "";
+    if (this.state.dragging) {
+      className = "hidePointerEvents";
     }
+    let style = {
+      width: "100%",
+      height: "100%",
+    };
+    return (
+      <div className={className} style={style}>
+        <PreviewArea path={this.props.path}
+                     ref={r => this.previewArea = r}
+                     key={this.props.path}
+                     onClickDirection={this.onClickDirection}
+                     onTextSelected={this.onPreviewSelected} />
+      </div>
+    );
+  }
+
+  /// Render the Editor and preview area based on fullscreen states
+  /// We use SplitPane to split editor and preview
+  render() {
+    let className = "nonFullscreen";
+    let direction = this.state.splitDirection;
+    let previewSize = "50%";
+
+    if (this.props.fullscreen) {
+      className = "fullscreen";
+      previewSize = "0";
+    }
+    return (
+      <div id="Editor" className={className}>
+        <SplitPane split={direction}
+                   primary="second"
+                   paneStyle={{overflow: "auto"}}
+                   onDragFinished={this.onDragFinished}
+                   onDragStarted={this.onDragStarted}
+                   size={previewSize}>
+          {this.renderEditingArea()}
+          {this.renderPreviewArea()}
+        </SplitPane>
+      </div>
+    );
   }
 }
 

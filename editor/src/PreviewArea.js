@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import * as Api from './Api';
+import * as Icons from './Icons';
 
 class PreviewArea extends Component {
   constructor(props) {
@@ -7,6 +8,8 @@ class PreviewArea extends Component {
     this.state = {
       location: null,
     };
+    this.onClickViewColumn = () => this.props.onClickDirection("vertical");
+    this.onClickViewRow = () => this.props.onClickDirection("horizontal");
   }
 
   onIframeLoad() {
@@ -68,7 +71,7 @@ class PreviewArea extends Component {
     contentWindow.addEventListener("mouseup", event => {
       let selected = contentWindow.getSelection().toString();
       // contract here is that false means no selection
-      this.props.onSelected(selected || false);
+      this.props.onTextSelected(selected || false);
     });
   }
 
@@ -95,17 +98,27 @@ class PreviewArea extends Component {
            </div>;
   }
 
+  renderHeader() {
+    return <div id="PreviewHeader">
+             <span id="PreviewPath">{this.state.location}</span>
+             <Icons.HorizontalSplitIcon onClick={this.onClickViewRow} />
+             <Icons.VerticalSplitIcon onClick={this.onClickViewColumn} />
+           </div>;
+  }
+
+  /// Render Preview using iframe
   renderPreview(location) {
     let url = `${Api.remote}/${this.state.location}`;
     return <div id="PreviewArea">
-             <iframe src={url}
+             {this.renderHeader()}
+             <iframe className="previewIframe"
+                     src={url}
                      title="preview"
                      ref={r => this.iframe=r}/>
            </div>;
   }
 
   render() {
-    console.log("rendering preview");
     if (this.state.location) {
       return this.renderPreview(this.state.location);
     } else {

@@ -55,7 +55,7 @@ class App extends Component {
       <div id="App" className={className}>
         {nav}
         <Editor
-          path={path} key={path}
+          path={path}
           fullscreen={this.state.fullscreen}
           onClickFullscreen={this.onClickFullscreen.bind(this)}/>
       </div>
