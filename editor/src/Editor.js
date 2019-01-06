@@ -260,6 +260,8 @@ class Editor extends Component {
       /// set it on dragging here. Making it in state may not be
       /// necessary.
       dragging: false,
+      /// file location to send to preview to load
+      location: null,
     };
 
     this.onDragStarted = this.onDragStarted.bind(this);
@@ -291,6 +293,28 @@ class Editor extends Component {
         this.editorBody.markSyncText(textOrClear);
     }
   }
+
+  async fetchLocation(path) {
+    console.log("Fetch location of " + path);
+    let res = await Api.render(path);
+    if (res.data.errno !== 0) {
+      throw new Error(`Render failed on ${path}`);
+    }
+
+    this.setState({location: res.data.location});
+  }
+
+  componentDidMount() {
+    this.fetchLocation(this.props.path);
+  }
+
+  componentDidUpdate(prevProps) {
+    let path = this.props.path;
+    if (path !== prevProps.path) {
+      this.fetchLocation(path);
+    }
+  }
+
   renderEditingArea() {
     let className = "";
     if (this.state.dragging) {
@@ -320,9 +344,8 @@ class Editor extends Component {
     };
     return (
       <div className={className} style={style}>
-        <PreviewArea path={this.props.path}
+        <PreviewArea location={this.state.location}
                      ref={r => this.previewArea = r}
-                     key={this.props.path}
                      onClickDirection={this.onClickDirection}
                      onTextSelected={this.onPreviewSelected} />
       </div>

@@ -5,49 +5,15 @@ import * as Icons from './Icons';
 class PreviewArea extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      location: null,
-    };
     this.onClickViewColumn = () => this.props.onClickDirection("vertical");
     this.onClickViewRow = () => this.props.onClickDirection("horizontal");
+    this.onLoad = this.onLoad.bind(this);
   }
 
-  onIframeLoad() {
+  onLoad() {
     if (this.iframe) {
       this.installSelectHandler(this.iframe.contentWindow);
     }
-  }
-
-  async renderRequest(path) {
-    let res = await Api.render(path);
-    if (res.data.errno !== 0) {
-      throw new Error(`Render failed on ${path}`);
-    }
-
-    this.setState({location: res.data.location});
-  }
-
-  async watchPath(path) {
-    if (path !== this.props.path) {
-      return;
-    }
-
-    console.log("Watching " + path);
-    let res;
-    try {
-      res = await Api.watch(path);
-      if (res.data.errno !== 0) {
-        throw new Error(`This file is removed`);
-      }
-      this.reloadIframe();
-    } catch (err) {
-    }
-
-    // FIXME: this watchPath will loop forever even if path is different
-    // TO reproduce, reduce the Api.watch timeout to 5seconds, and open
-    // a few docs and see the log. We need to cancel async tasks in
-    // componentWillUnmount
-    this.watchPath(path);
   }
 
   reloadIframe() {
@@ -57,7 +23,7 @@ class PreviewArea extends Component {
 
     try {
       /// always install new selectHandler after reload
-      this.iframe.onload = this.onIframeLoad.bind(this);
+      this.iframe.onload = this.onLoad;
       this.iframe.contentWindow.location.reload(true);
     } catch (err) {
       console.warn("Please switch to Production build to use the preview feature");
@@ -75,32 +41,15 @@ class PreviewArea extends Component {
     });
   }
 
-  componentDidMount() {
-    let path = this.props.path;
-
-    if (!path) {
-      return;
-    }
-
-    this.renderRequest(path).then(() => {
-      console.log(`Successfully render ${path}`);
-      this.reloadIframe();
-    }).catch((e) => {
-      console.log(`Failed to render ${path}: ${e}`);
-    });
-
-    this.watchPath(path);
-  }
-
   renderLoading() {
     return <div id="PreviewArea">
              "Loading";
            </div>;
   }
 
-  renderHeader() {
+  renderHeader(location) {
     return <div id="PreviewHeader">
-             <span id="PreviewPath">{this.state.location}</span>
+             <span id="PreviewPath">{location}</span>
              <Icons.HorizontalSplitIcon onClick={this.onClickViewRow} />
              <Icons.VerticalSplitIcon onClick={this.onClickViewColumn} />
            </div>;
@@ -108,9 +57,9 @@ class PreviewArea extends Component {
 
   /// Render Preview using iframe
   renderPreview(location) {
-    let url = `${Api.remote}/${this.state.location}`;
+    let url = `${Api.remote}/${location}`;
     return <div id="PreviewArea">
-             {this.renderHeader()}
+             {this.renderHeader(location)}
              <iframe className="previewIframe"
                      src={url}
                      title="preview"
@@ -119,8 +68,8 @@ class PreviewArea extends Component {
   }
 
   render() {
-    if (this.state.location) {
-      return this.renderPreview(this.state.location);
+    if (this.props.location) {
+      return this.renderPreview(this.props.location);
     } else {
       return this.renderLoading();
     }
