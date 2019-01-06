@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import * as Api from './Api';
 import * as Icons from './Icons';
+import PropTypes from 'prop-types';
+
 
 class PreviewArea extends Component {
   constructor(props) {
@@ -24,7 +26,7 @@ class PreviewArea extends Component {
     try {
       this.iframe.contentWindow.location.reload(true);
     } catch (err) {
-      console.warn("Failed to reload, Likely caused by same-origin policy");
+      console.warn("Failed to reload, likely caused by same-origin policy");
       this.iframe.src += '';
     }
   }
@@ -74,6 +76,11 @@ class PreviewArea extends Component {
       return this.renderLoading();
     }
   }
+}
+
+
+PreviewArea.propTypes = {
+  location: PropTypes.string
 }
 
 export default PreviewArea;
