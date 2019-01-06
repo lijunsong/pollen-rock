@@ -114,9 +114,22 @@ class EditorBody extends Component {
     } else {
       // cancel previous timer and schedule a new one
       window.clearTimeout(this.saveTimer);
-      this.saveTimer = window.setTimeout(
-        this.saveToDisk.bind(this, path, cm),
-        500);
+      this.saveTimer = window.setTimeout(() => {
+        this.saveToDisk(path, cm).then(() => {
+          // check syntax error and call synxtax check callback
+          let doc = cm.doc;
+          let mode = doc.getMode();
+          let checkFunc = CodeMirror.syntaxCheck[mode.name];
+          let checkResult = true;
+          if (checkFunc) {
+            checkResult = checkFunc(cm, doc.lastLine());
+            console.log("Check syntax: " + checkResult);
+          }
+          this.props.onSyntaxCheck(checkResult);
+        }).catch(() => {
+          throw new Error("Save to disk failed");
+        });
+      }, 500);
     }
   }
 
@@ -268,6 +281,7 @@ class Editor extends Component {
     this.onDragFinished = this.onDragFinished.bind(this);
     this.onClickDirection = this.onClickDirection.bind(this);
     this.onPreviewSelected = this.onPreviewSelected.bind(this);
+    this.onSyntaxCheck = this.onSyntaxCheck.bind(this);
   }
   onClickDirection(newDirection) {
     if (this.state.splitDirection !== newDirection) {
@@ -291,6 +305,14 @@ class Editor extends Component {
         this.editorBody.clearSyncText();
       }
         this.editorBody.markSyncText(textOrClear);
+    }
+  }
+
+  onSyntaxCheck(result) {
+    if (result === true) {
+      this.previewArea.reload();
+    } else {
+      console.log("Syntax error. No preview reload");
     }
   }
 
@@ -326,6 +348,7 @@ class Editor extends Component {
              </EditorHeader>
              <EditorBody path={this.props.path}
                          key={this.props.path}
+                         onSyntaxCheck={this.onSyntaxCheck}
                          ref={r => this.editorBody = r} />
            </div>;
   }

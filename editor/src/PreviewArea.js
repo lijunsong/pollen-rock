@@ -16,18 +16,15 @@ class PreviewArea extends Component {
     }
   }
 
-  reloadIframe() {
+  reload() {
     if (! this.iframe) {
       return;
     }
 
     try {
-      /// always install new selectHandler after reload
-      this.iframe.onload = this.onLoad;
       this.iframe.contentWindow.location.reload(true);
     } catch (err) {
-      console.warn("Please switch to Production build to use the preview feature");
-      console.warn("Because of same-origin policy, the editor can only refresh blindly");
+      console.warn("Failed to reload, Likely caused by same-origin policy");
       this.iframe.src += '';
     }
   }
@@ -63,7 +60,10 @@ class PreviewArea extends Component {
              <iframe className="previewIframe"
                      src={url}
                      title="preview"
-                     ref={r => this.iframe=r}/>
+                     ref={r => {
+                       this.iframe = r;
+                       this.iframe.onload = this.onLoad;
+                     }}/>
            </div>;
   }
 
