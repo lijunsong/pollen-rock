@@ -3,6 +3,7 @@ import Path from 'path';
 import * as Icons from './Icons';
 import { Map, Set, List } from 'immutable';
 import * as Api from './Api';
+import PropTypes from 'prop-types';
 
 
 function NavHeader(props) {
@@ -174,5 +175,10 @@ class Navigation extends Component {
     );
   }
 }
+
+Navigation.propTypes = {
+  onClickFile: PropTypes.func.isRequired,
+  onClickFolder: PropTypes.func.isRequired,
+};
 
 export default Navigation;
