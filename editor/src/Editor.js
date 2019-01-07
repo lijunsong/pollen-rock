@@ -153,8 +153,8 @@ class EditorBody extends Component {
     let doc = this.editor.editor.getDoc();
     this.editor.editor.eachLine((line) => {
       let lineText = line.text;
-      // FIXME: if wanted contains half parens, we'll get exception
-      let matched = lineText.match(wanted);
+      let wantedRegex = new RegExp(wanted, "i");
+      let matched = lineText.match(wantedRegex);
       if (matched) {
         let lineNumber = doc.getLineNumber(line);
         let fromPos = {line: lineNumber, ch: matched.index};
