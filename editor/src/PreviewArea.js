@@ -34,7 +34,9 @@ class PreviewArea extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    this.iframe.onload = this.onLoad;
+    if (this.iframe) {
+      this.iframe.onload = this.onLoad;
+    }
   }
 
   installSelectHandler(contentWindow) {
