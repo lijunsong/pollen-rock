@@ -13,11 +13,6 @@ function NavHeader(props) {
 
 /// NavEntries is responsible for the view of files and folders, and
 /// the events on clicking the entry
-///
-/// Required props:
-///
-/// onClickFile: will be called when a file is clicked
-/// onClickFolder: will be called when a folder is expanded
 class NavEntries extends Component {
   constructor(props) {
     super(props);
@@ -42,10 +37,6 @@ class NavEntries extends Component {
   }
 
   onClickFolder(path) {
-    if (this.props.onClickFolder) {
-      this.props.onClickFolder(path);
-    }
-
     if (this.state.expanded.has(path)) {
       let expanded = this.state.expanded.delete(path);
       this.setState({expanded});
@@ -169,7 +160,6 @@ class Navigation extends Component {
         <NavHeader />
         <NavEntries
           onClickFile={this.props.onClickFile}
-          onClickFolder={this.props.onClickFolder}
         />
       </div>
     );
@@ -178,7 +168,6 @@ class Navigation extends Component {
 
 Navigation.propTypes = {
   onClickFile: PropTypes.func.isRequired,
-  onClickFolder: PropTypes.func.isRequired,
 };
 
 export default Navigation;

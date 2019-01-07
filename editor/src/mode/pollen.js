@@ -2,7 +2,6 @@ import CodeMirror from 'codemirror';
 
 
 CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
-  console.log("lint.pollen");
   let state = cm.getStateAfter(line, true);
   return state.braceStack.length === 0;
 });
