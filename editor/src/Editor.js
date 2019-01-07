@@ -342,6 +342,12 @@ class Editor extends Component {
     if (path !== prevProps.path) {
       this.fetchLocation(path);
     }
+    // all props change will cause editor view change, so
+    // we call code mirror refresh for all cases
+    if (this.editorBody) {
+      console.log("refresh the editor for window change");
+      this.editorBody.refresh();
+    }
   }
 
   renderEditingArea() {
