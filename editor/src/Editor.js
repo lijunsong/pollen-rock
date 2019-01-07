@@ -7,6 +7,7 @@ import 'codemirror/mode/meta';
 import SplitPane from 'react-split-pane';
 import * as Icons from './Icons';
 import PreviewArea from './PreviewArea';
+import PropTypes from 'prop-types';
 
 
 function EditorHeader(props) {
@@ -17,6 +18,7 @@ function EditorHeader(props) {
     </div>
   );
 }
+
 
 class EditorBody extends Component {
   constructor(props) {
@@ -123,7 +125,6 @@ class EditorBody extends Component {
           let checkResult = true;
           if (checkFunc) {
             checkResult = checkFunc(cm, doc.lastLine());
-            console.log("Check syntax: " + checkResult);
           }
           this.props.onSyntaxCheck(checkResult);
         }).catch(() => {
@@ -259,6 +260,12 @@ class EditorBody extends Component {
     window.clearTimeout(this.saveTimer);
   }
 }
+
+EditorBody.propTypes = {
+  path: PropTypes.string.isRequired,
+  onSyntaxCheck: PropTypes.func.isRequired,
+};
+
 
 
 /// Editor contains code mirror and a small header for
@@ -401,5 +408,11 @@ class Editor extends Component {
     );
   }
 }
+
+Editor.propTypes = {
+  path: PropTypes.string.isRequired,
+  fullscreen: PropTypes.bool.isRequired,
+  onClickFullscreen: PropTypes.func.isRequired,
+};
 
 export { Editor };

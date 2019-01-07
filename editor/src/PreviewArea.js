@@ -18,12 +18,15 @@ class PreviewArea extends Component {
     }
   }
 
+  /// reload will reload the iframe (this function is provided for parent
+  /// component)
   reload() {
     if (! this.iframe) {
       return;
     }
 
     try {
+      this.iframe.onload = this.onLoad;
       this.iframe.contentWindow.location.reload(true);
     } catch (err) {
       console.warn("Failed to reload, likely caused by same-origin policy");
@@ -62,10 +65,7 @@ class PreviewArea extends Component {
              <iframe className="previewIframe"
                      src={url}
                      title="preview"
-                     ref={r => {
-                       this.iframe = r;
-                       this.iframe.onload = this.onLoad;
-                     }}/>
+                     ref={r => this.iframe = r } />
            </div>;
   }
 
@@ -80,7 +80,9 @@ class PreviewArea extends Component {
 
 
 PreviewArea.propTypes = {
-  location: PropTypes.string
-}
+  location: PropTypes.string,
+  onTextSelected: PropTypes.func.isRequired,
+  onClickDirection: PropTypes.func.isRequired,
+};
 
 export default PreviewArea;
