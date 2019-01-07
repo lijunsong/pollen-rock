@@ -26,12 +26,15 @@ class PreviewArea extends Component {
     }
 
     try {
-      this.iframe.onload = this.onLoad;
       this.iframe.contentWindow.location.reload(true);
     } catch (err) {
       console.warn("Failed to reload, likely caused by same-origin policy");
       this.iframe.src += '';
     }
+  }
+
+  componentDidUpdate(prevProps) {
+    this.iframe.onload = this.onLoad;
   }
 
   installSelectHandler(contentWindow) {
