@@ -27,6 +27,7 @@ class EditorBody extends Component {
       // pollen tags of the open file
       tags: [],
     };
+    this.initContents = null;
   }
 
 
@@ -184,7 +185,7 @@ class EditorBody extends Component {
   }
 
   render() {
-    if (! this.initContents) {
+    if (this.initContents === null) {
       return <p>Loading...</p>;
     }
 
@@ -327,7 +328,8 @@ class Editor extends Component {
     console.log("Fetch location of " + path);
     let res = await Api.render(path);
     if (res.data.errno !== 0) {
-      throw new Error(`Render failed on ${path}`);
+      console.error(`Render failed on ${path}`);
+      return;
     }
 
     this.setState({location: res.data.location});
