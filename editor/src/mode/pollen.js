@@ -2,11 +2,183 @@ import CodeMirror from 'codemirror';
 
 
 CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
+  return true;
   let state = cm.getStateAfter(line, true);
   return state.braceStack.length === 0;
 });
 
-CodeMirror.defineMode("pollen", function(cmConfig, modeConfig) {
+/// BNF:
+///
+///        <char> ::= any character
+///   <racket-id> ::= [^ \n(){}[]",'`;#|\\]+
+///                 | '|' <char>+ '|'
+///  <left-brace> ::= '{' | '|{'
+/// <right-brace> ::= '}' | '}|'
+///         <tag> ::= '◊' <racket-id>
+///                 | '◊;'
+///         <cmd> ::= <tag> <left-brace> <text> <right-brace>
+///                 | <tag> '[' <datum> ']'
+///                 | <tag> '[' <datum> ']' <left-brace> <text> <right-brace>
+///       <datum> ::= <racket-expr>
+///        <text> ::= <char> <text>
+///                 | <cmd>
+function mode(config) {
+  let cmdChar = config['command-char'] || '◊';
+  let racketId = `[^ \\n(){}\\[\\]",'\`;#|\\\\${cmdChar}]+`;
+  let racketIdRegex = new RegExp(racketId);
+
+  function leftRightBraceMatch(left, right) {
+    if (left === '{' && right === '}') {
+      return true;
+    }
+
+    if (left === '|{' && right === '}|') {
+      return true;
+    }
+
+    return false;
+  }
+
+
+  class Stack {
+    constructor() {
+      this.stack = []
+    }
+    get length() {
+      return this.stack.length;
+    }
+    push(tag, brace) {
+      this.stack.push({
+        tag: tag,
+        brace: brace
+      })
+    }
+    matchAndPop(rightBrace) {
+      let tag = this.currentTag();
+      if (! tag) {
+        return null;
+      }
+      if (leftRightBraceMatch(tag.brace, rightBrace)) {
+        this.stack.pop();
+      }
+    }
+    currentTag() {
+      if (this.stack.length === 0) {
+        return null;
+      }
+      return this.stack[this.stack.length - 1];
+    }
+    currentBrace() {
+      let tag = this.stack[this.stack.length - 1];
+      if (! tag) {
+        return null;
+      }
+      return tag.brace;
+    }
+  };
+
+  function startState() {
+    return {
+      braceStack: new Stack(),
+      // a cache for looking back
+      lastTag: null,
+      // remember the end pos of <cmd> (because syntax does not allow
+      // space between cmd components)
+      cmdEnds: -1,
+    };
+  }
+
+  /// call this function to match the tag and advance the
+  /// position. Return the tag or null
+  function eatTag(stream) {
+    let tag = undefined;
+    if (! stream.eat(cmdChar)) {
+      return null;
+    }
+    let matched = stream.match(racketIdRegex);
+    if (matched === null) {
+      tag = stream.eat(";")
+      return tag || null;
+    }
+    return matched[0];
+  }
+
+  function _eatBrace(stream, brace) {
+    let matched = stream.match(brace);
+    if (matched !== null) {
+      return matched[0];
+    }
+    return null;
+  }
+
+  function eatLeftSimpleBrace(stream) {
+    return _eatBrace(stream, /\{/);
+  }
+  function eatRightSimpleBrace(stream) {
+    return _eatBrace(stream, /\}/);
+  }
+  function eatLeftBlockBrace(stream) {
+    return _eatBrace(stream, /\|\{/);
+  }
+  function eatRightBlockBrace(stream) {
+    return _eatBrace(stream, /\|\}/);
+  }
+
+  function token(stream, state) {
+    let stack = state.braceStack;
+
+    if (eatTag(stream)) {
+      let tag = stream.current();
+      state.lastTag = tag;
+      state.cmdEnds = stream.column() + tag.length;
+      return 'keyword';
+    }
+
+    if (eatLeftSimpleBrace(stream)) {
+      let brace = '{';
+      // test case ◊func[...]{
+      if (state.cmdEnds === stream.column() || stack.currentBrace() === '{') {
+        stack.push(state.lastTag, brace);
+        state.lastTag = null;
+      }
+      return null;
+    }
+
+    if (eatLeftBlockBrace(stream)) {
+      let brace = stream.current();
+      // test case ◊func[...]|{
+      if (state.cmdEnds === stream.column() || stack.currentBrace() === '|{') {
+        stack.push(state.lastTag, brace);
+        state.lastTag = null;
+        return null;
+      } else {
+        // backup the stream to treat the first char of '|{' similarly
+        // to other chars
+        stream.backUp(brace.length);
+      }
+    }
+
+    if (_eatBrace(stream, /\}\|?/)) {
+      let brace = stream.current();
+      stack.matchAndPop(brace);
+      return null;
+    }
+
+    stream.next();
+
+    return null;
+  }
+
+  return {
+    startState,
+    token,
+  };
+}
+
+
+CodeMirror.defineMode("pollen", mode);
+
+CodeMirror.defineMode("pollen1", function(cmConfig, modeConfig) {
   var cmdChar = cmConfig['command-char'] || '◊';
   //var racketId = '[' +  "^ \\n(){}\\[\\]\",'`;#|\\\\" + cmdChar + ']';
   var racketId = `[^ \\n(){}\\[\\]",'\`;#|\\\\${cmdChar}]`;
