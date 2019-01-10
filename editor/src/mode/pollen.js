@@ -26,6 +26,7 @@ function mode(config) {
   let cmdChar = config['command-char'] || '◊';
   let racketId = `[^ \\n(){}\\[\\]",'\`;#|\\\\${cmdChar}]+`;
   let racketIdRegex = new RegExp(racketId);
+  let commentTag = `${cmdChar};`
 
   function leftRightBraceMatch(left, right) {
     if (left === '{' && right === '}') {
@@ -81,7 +82,7 @@ function mode(config) {
     return {
       braceStack: new Stack(),
       // a cache for looking back
-      lastTag: null,
+      currentTagName: null,
       // remember the end pos of <cmd> (because syntax does not allow
       // space between cmd components)
       cmdEnds: -1,
@@ -126,11 +127,19 @@ function mode(config) {
 
   function token(stream, state) {
     let stack = state.braceStack;
+    let inComments = false;
+    if (state.currentTagName === commentTag) {
+      inComments = true;
+    }
 
-    if (eatTag(stream)) {
+    if (! inComments && eatTag(stream)) {
       let tag = stream.current();
-      state.lastTag = tag;
+      state.currentTagName = tag;
       state.cmdEnds = stream.column() + tag.length;
+      if (tag === commentTag) {
+        return 'comment';
+      }
+
       return 'keyword';
     }
 
@@ -138,19 +147,18 @@ function mode(config) {
       let brace = '{';
       // test case ◊func[...]{
       if (state.cmdEnds === stream.column() || stack.currentBrace() === '{') {
-        stack.push(state.lastTag, brace);
-        state.lastTag = null;
+        stack.push(state.currentTagName, brace);
       }
-      return null;
+
+      return inComments ? "comment" : null;
     }
 
     if (eatLeftBlockBrace(stream)) {
       let brace = stream.current();
       // test case ◊func[...]|{
       if (state.cmdEnds === stream.column() || stack.currentBrace() === '|{') {
-        stack.push(state.lastTag, brace);
-        state.lastTag = null;
-        return null;
+        stack.push(state.currentTagName, brace);
+        return inComments ? "comment" : null;
       } else {
         // backup the stream to treat the first char of '|{' similarly
         // to other chars
@@ -158,15 +166,22 @@ function mode(config) {
       }
     }
 
-    if (_eatBrace(stream, /\}\|?/)) {
+    let currentBrace = stack.currentBrace();
+    if ((currentBrace === '{' && _eatBrace(stream, /\}/))
+        || (currentBrace === '|{' && _eatBrace(stream, /\}\|/))) {
       let brace = stream.current();
       stack.matchAndPop(brace);
-      return null;
+      // go out of scope, sync currentTagName now
+      state.currentTagName = null;
+      let tag = stack.currentTag();
+      if (tag) {
+        state.currentTagName = tag.tag;
+      }
+      return inComments ? "comment" : null;
     }
 
     stream.next();
-
-    return null;
+    return inComments ? "comment" : null;
   }
 
   return {
