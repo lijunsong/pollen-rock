@@ -2,7 +2,9 @@ import CodeMirror from 'codemirror';
 import './pollen';
 
 /// NOTE for developer: in each test, you can console.log the state
-/// object or token to pretty print the object
+/// object or token to pretty print the object. Also print out all
+/// tokens in a line can help debugging: cm.getLineTokens(1, true)
+
 
 /// Inject necessary method so codemirror can run successfully
 global.navigator = 'gecko';
@@ -30,6 +32,13 @@ function getCM(text) {
   return cm;
 }
 
+function debugTokens(cm, line) {
+  let tokens = cm.getLineTokens(line);
+  for (let t of tokens) {
+    console.log(t);
+    console.log(t.state.braceStack);
+  }
+}
 
 test('stack tracks {. syntax error.', () => {
   let cm = getCM('◊func{data');
@@ -61,7 +70,7 @@ test('{ matches only with }. syntax okay', () => {
   let cm = getCM('◊func{data}|');
   let state = cm.getStateAfter(0);
   expect(state.braceStack.length).toBe(0);
-  let token = cm.getTokenAt({line: 0, ch:11});
+  let token = cm.getTokenAt({line: 0, ch:12});
   expect(token.string).toEqual("|");
 });
 
@@ -116,7 +125,7 @@ test('|{ in { is not a block-brace, part1', () => {
   let cm = getCM('◊func{ |{ eh');
   let state = cm.getStateAfter(0);
   expect(state.braceStack.length).toBe(2);
-
+  expect(state.braceStack.topBrace()).toEqual("{");
 });
 
 test('|{ in { is not a block-brace, part2', () => {
@@ -152,6 +161,11 @@ test('|{ can contain {. syntax okay', () => {
   expect(state.braceStack.length).toBe(0);
 });
 
+test('} does not close |{', () => {
+  let cm = getCM('◊func|{data} ');
+  let state = cm.getStateAfter(0);
+  expect(state.braceStack.length).toBe(1);
+});
 
 test('get tag', () => {
   let cm = getCM('◊func|{data}|');
@@ -190,29 +204,61 @@ test('; without brace', () => {
 test('; without brace shouldnot affect other lines', () => {
   let cm = getCM(`◊; data  } } } }|
 line2`);
+
+  let state = cm.getStateAfter(1);
+  expect(state.braceStack.length).toBe(0);
+
   let token = cm.getTokenAt({line: 0, ch: 2});
   expect(token.type).toEqual("comment");
 
   token = cm.getTokenAt({line: 1, ch: 2});
-  expect(token.string).toEqual("i");
   expect(token.type).toEqual(null);
 });
 
-test('; followed by |{ is comment', () => {
+
+test('; followed by |{ starts comment', () => {
   let cm = getCM('◊;|{data  } } } }|');
-  let token = cm.getTokenAt({line: 0, ch: 4})
+  let token = cm.getTokenAt({line: 0, ch: 5});
   expect(token.type).toEqual("comment");
 });
 
-test('; followed by { is comment', () => {
+test('; followed by { starts comment', () => {
   let cm = getCM('◊;{data |{');
   let state = cm.getStateAfter(0)
   expect(state.braceStack.length).toEqual(2);
+
+  let token = cm.getTokenAt({line: 0, ch: 9});
+  expect(token.string).toEqual('|');
+  expect(token.type).toEqual("comment");
 });
 
-test('; followed by { is comment', () => {
+test('|{ in ; is just simple left brace', () => {
   let cm = getCM('◊;{data |{ } }| good');
-  let token = cm.getTokenAt({line: 0, ch: 14})
+  let token = cm.getTokenAt({line: 0, ch: 15})
+  // the | in }| should be normal text
   expect(token.string).toEqual('|');
   expect(token.type).toEqual(null);
+
+  token = cm.getTokenAt({line: 0, ch: 12})
+  // the } in the middle should be a comment
+  expect(token.string).toEqual('}');
+  expect(token.type).toEqual("comment");
 });
+
+test('tag in comments should not be a keyword', () => {
+  let cm = getCM('◊;{◊foo{hello}}');
+  let token = cm.getTokenAt({line: 0, ch: 5})
+  // racket runtime completely ignores the inside tag
+  expect(token.string).toEqual('foo');
+  expect(token.type).toEqual("comment");
+});
+
+
+test('regression: left brace in comments', () => {
+  let cm = getCM('◊;|{}}|');
+  let token = cm.getTokenAt({line: 0, ch: 3})
+  expect(token.string).toEqual('|{');
+  expect(token.type).toEqual("comment");
+});
+
+//◊;{h |{ }  }
