@@ -40,7 +40,7 @@ function mode(config) {
     return false;
   }
 
-
+  /// an item on stack contains left brace with an optional tagName
   class Stack {
     constructor() {
       this.stack = []
@@ -48,44 +48,52 @@ function mode(config) {
     get length() {
       return this.stack.length;
     }
+    /// tag can be null, brace shouldn't be null
     push(tag, brace) {
+      if (! brace) {
+        throw new Error("Brace should not be null");
+      }
+
       this.stack.push({
         tag: tag,
         brace: brace
       })
     }
-    matchAndPop(rightBrace) {
-      let tag = this.currentTag();
-      if (! tag) {
-        return null;
-      }
-      if (leftRightBraceMatch(tag.brace, rightBrace)) {
+    pop() {
+      let top = this.top();
+      if (top) {
         this.stack.pop();
       }
+      return top;
     }
-    currentTag() {
-      if (this.stack.length === 0) {
-        return null;
-      }
-      return this.stack[this.stack.length - 1];
+    top() {
+      let item = this.stack[this.stack.length - 1];
+      return item || null;
     }
-    currentBrace() {
-      let tag = this.stack[this.stack.length - 1];
-      if (! tag) {
-        return null;
-      }
-      return tag.brace;
+    topTag() {
+      let item = this.top();
+      return item ? item.tag : null;
+    }
+    topBrace() {
+      let item = this.top();
+      return item ? item.brace : null;
     }
   };
 
   function startState() {
     return {
       braceStack: new Stack(),
-      // a cache for looking back
-      currentTagName: null,
-      // remember the end pos of <cmd> (because syntax does not allow
-      // space between cmd components)
-      cmdEnds: -1,
+      immediateTag : null,
+    };
+  }
+
+  function copyState(state) {
+    let {braceStack, immediateTag} = state;
+    let newStack = new Stack();
+    newStack.stack = braceStack.stack.slice();
+    return {
+      immediateTag,
+      braceStack: newStack,
     };
   }
 
@@ -104,89 +112,105 @@ function mode(config) {
     return matched[0];
   }
 
-  function _eatBrace(stream, brace) {
-    let matched = stream.match(brace);
-    if (matched !== null) {
-      return matched[0];
+  function stateInComments(state) {
+    let stack = state.braceStack;
+    if (stack.topTag() === commentTag) {
+      return true;
     }
-    return null;
-  }
-
-  function eatLeftSimpleBrace(stream) {
-    return _eatBrace(stream, /\{/);
-  }
-  function eatRightSimpleBrace(stream) {
-    return _eatBrace(stream, /\}/);
-  }
-  function eatLeftBlockBrace(stream) {
-    return _eatBrace(stream, /\|\{/);
-  }
-  function eatRightBlockBrace(stream) {
-    return _eatBrace(stream, /\|\}/);
+    if (state.immediateTag === commentTag) {
+      return true;
+    }
+    for (let item of stack.stack) {
+      if (item.tag === commentTag) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function token(stream, state) {
     let stack = state.braceStack;
-    let inComments = false;
-    if (state.currentTagName === commentTag) {
-      inComments = true;
-    }
+    let inComments = stateInComments(state);
+    let tokenType = inComments ? "comment" : null;
 
-    if (! inComments && eatTag(stream)) {
+    if (!inComments && eatTag(stream)) {
       let tag = stream.current();
-      state.currentTagName = tag;
-      state.cmdEnds = stream.column() + tag.length;
+      let brace = stream.match(/\|?\{/, false);
+      if (brace !== null) {
+        state.immediateTag = tag;
+      }
+
       if (tag === commentTag) {
+        if (brace === null) {
+          stream.skipToEnd();
+        }
         return 'comment';
       }
 
       return 'keyword';
     }
 
-    if (eatLeftSimpleBrace(stream)) {
-      let brace = '{';
-      // test case ◊func[...]{
-      if (state.cmdEnds === stream.column() || stack.currentBrace() === '{') {
-        stack.push(state.currentTagName, brace);
-      }
-
-      return inComments ? "comment" : null;
-    }
-
-    if (eatLeftBlockBrace(stream)) {
+    // we can simplify the body of this if condition, but
+    // I prefer leave all cases here as a reminder
+    if (stream.match(/\|?\{/)) {
       let brace = stream.current();
-      // test case ◊func[...]|{
-      if (state.cmdEnds === stream.column() || stack.currentBrace() === '|{') {
-        stack.push(state.currentTagName, brace);
-        return inComments ? "comment" : null;
-      } else {
-        // backup the stream to treat the first char of '|{' similarly
-        // to other chars
-        stream.backUp(brace.length);
+      // if brace is { and we're in |{ scope, ignore
+      if (brace === '{' && stack.topBrace() === '|{') {
+        return tokenType;
       }
+
+      // if brace is |{ and we're in { scope, fix it to be {
+      if (brace === '|{' && stack.topBrace() === '{') {
+        stream.backUp(1);
+        return tokenType;
+      }
+
+      // track the left brace only when this is not top level scope or
+      // about to open a new scope
+      if (stack.top() || state.immediateTag) {
+        stack.push(state.immediateTag, brace);
+        state.immediateTag = null;
+      }
+      return tokenType;
     }
 
-    let currentBrace = stack.currentBrace();
-    if ((currentBrace === '{' && _eatBrace(stream, /\}/))
-        || (currentBrace === '|{' && _eatBrace(stream, /\}\|/))) {
+    // we can simplify the body of this if condition, but
+    // I prefer leave all cases here as a reminder
+    if (stream.match(/\}\|?/)) {
       let brace = stream.current();
-      stack.matchAndPop(brace);
-      // go out of scope, sync currentTagName now
-      state.currentTagName = null;
-      let tag = stack.currentTag();
-      if (tag) {
-        state.currentTagName = tag.tag;
+      // if brace is } and we're in scope |{, ignore
+      if (brace === '}' && stack.topBrace() === '|{') {
+        return tokenType;
       }
-      return inComments ? "comment" : null;
+
+      // if brace is }| and we're in scope {, update it to be }
+      if (brace === '}|' && stack.topBrace() === '{') {
+        brace = '}';
+        stream.backUp(1);
+      }
+
+      let top = stack.pop();
+      if (! leftRightBraceMatch(top.brace, brace)) {
+        console.error("left Brace does not match the right one");
+      }
+
+      return tokenType;
     }
 
-    stream.next();
-    return inComments ? "comment" : null;
+    // if none of the pattern matches, we just eat
+    state.immediateTag = null;
+    let chars = `[^(\\|?{)|(}\\|?)|${cmdChar}]`;
+    if (stream.eatWhile(new RegExp(chars)) === false) {
+      stream.next();
+    }
+
+    return tokenType;
   }
 
   return {
     startState,
     token,
+    copyState,
   };
 }
 
