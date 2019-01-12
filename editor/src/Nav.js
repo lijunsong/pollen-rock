@@ -86,12 +86,18 @@ class NavEntries extends Component {
 
   /// render a single file entry
   renderFile(parentPath, fileName) {
+    let clsNames = ["isFile", "entry"];
     const fullPath = Path.join(parentPath, fileName);
-    const activeClass = (
-      this.state.selectedPath === fullPath ? "selectedEntry" : ""
-    );
+    if (this.state.selectedPath === fullPath) {
+      clsNames.push("selectedEntry");
+    }
 
-    return <div className={`isFile entry ${activeClass}`} key={fullPath}
+    if (fullPath.endsWith(".html")) {
+      clsNames.push("pollenDestFile");
+    }
+
+    let className = clsNames.join(" ");
+    return <div className={className} key={fullPath}
                 onClick={this.onClickFile.bind(this, fullPath)}>
              {fileName}
            </div>;

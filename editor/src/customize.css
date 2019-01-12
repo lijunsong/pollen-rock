@@ -72,6 +72,12 @@ body {
     display: inline-block;
     min-width: 100%;
 }
+.pollenDestFile {
+    color: #DDD;
+}
+.pollenDestFile:hover {
+    color: inherit;
+}
 
 /* Because SplitPane uses absolution position */
 #Editor {
