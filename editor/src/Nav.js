@@ -53,7 +53,7 @@ class NavEntries extends Component {
   renderFolder(parentPath, folderName) {
     const fullPath = Path.join(parentPath, folderName);
 
-    let arrow = Icons.arrowRight;
+    let arrow = <Icons.IconArrowRight className="textSizedIcons"/>;
     let childrenView = "";
 
     // render all children if this folder is expanded
@@ -67,7 +67,7 @@ class NavEntries extends Component {
         </div>
       );
 
-      arrow = Icons.arrowDown;
+      arrow = <Icons.IconArrowDown className="textSizedIcons" />;
     }
 
     const folder = (
