@@ -1,25 +1,29 @@
 import React from 'react';
-import 'material-design-icons/iconfont/material-icons.css';
+import { ReactComponent as SvgArrowDown } from './icons/keyboard_arrow_down.svg';
+import { ReactComponent as SvgArrowRight } from './icons/keyboard_arrow_right.svg';
+import { ReactComponent as SvgFullscreen } from './icons/fullscreen.svg';
+import { ReactComponent as SvgHSplit } from './icons/horizontal_split.svg';
+import { ReactComponent as SvgVSplit } from './icons/vertical_split.svg';
 
-/// This file contains Icons used in the editor
-function iconGen(name) {
-  return (props) => (
-    <span key={name} id={name}
-          className="icons clickable"
-          onClick={props.onClick}></span>
-  );
+/// Do not use material icon packages. The maintainers haven't updated
+/// for a few years; it doesn't have latest icons.
+
+function makeComponent(Comp) {
+  return (props) => {
+    let className = "icons";
+    if (props.className) {
+      className += ` ${props.className}`;
+    }
+    return <Comp {...props} className={className}/>;
+  };
 }
 
-export const arrowRight = (
-  <i className="material-icons md18">keyboard_arrow_right</i>
-);
+export const IconArrowDown = makeComponent(SvgArrowDown);
 
-export const arrowDown = (
-  <i className="material-icons md18">keyboard_arrow_down</i>
-);
+export const IconArrowRight = makeComponent(SvgArrowRight);
 
-export const HorizontalSplitIcon = iconGen("HorizontalSplitIcon");
+export const IconHSplit = makeComponent(SvgHSplit);
 
-export const VerticalSplitIcon = iconGen("VerticalSplitIcon");
+export const IconVSplit = makeComponent(SvgVSplit);
 
-export const FullscreenIcon = iconGen("FullscreenIcon");
+export const IconFullscreen = makeComponent(SvgFullscreen);

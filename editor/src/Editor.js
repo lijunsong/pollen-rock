@@ -359,7 +359,7 @@ class Editor extends Component {
     }
     return <div id="EditingArea" className={className}>
              <EditorHeader path={this.props.path} >
-               <Icons.FullscreenIcon onClick={this.props.onClickFullscreen} />
+               <Icons.IconFullscreen onClick={this.props.onClickFullscreen} />
              </EditorHeader>
              <EditorBody path={this.props.path}
                          key={this.props.path}

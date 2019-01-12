@@ -137,13 +137,18 @@ iframe.previewIframe {
 }
 
 /* Size and vertical align everything */
-.material-icons {
+.icons {
     align-items: center;
     justify-content: center;
     vertical-align: middle;
+}
+.textSizedIcons {
     /* keep the font size the same in skeleton */
     font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
 }
+
 
 /* CodeMirror customized css */
 .CodeMirror {
@@ -178,25 +183,4 @@ iframe.previewIframe {
 .previewTextFound {
     background-color: #ff8585;
     border-radius: 4px;
-}
-
-
-/* Last, all of our icons */
-
-#HorizontalSplitIcon {
-    background-image: url(./icons/horizontal_split.svg);
-    height: 24px;
-    width: 24px;
-}
-
-#VerticalSplitIcon {
-    background-image: url(./icons/vertical_split.svg);
-    height: 24px;
-    width: 24px;
-}
-
-#FullscreenIcon {
-    background-image: url(./icons/fullscreen.svg);
-    height: 24px;
-    width: 24px;
 }

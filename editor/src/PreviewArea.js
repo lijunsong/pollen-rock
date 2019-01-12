@@ -57,8 +57,8 @@ class PreviewArea extends Component {
   renderHeader(location) {
     return <div id="PreviewHeader">
              <span id="PreviewPath">{location}</span>
-             <Icons.HorizontalSplitIcon onClick={this.onClickViewRow} />
-             <Icons.VerticalSplitIcon onClick={this.onClickViewColumn} />
+             <Icons.IconHSplit onClick={this.onClickViewRow} />
+             <Icons.IconVSplit onClick={this.onClickViewColumn} />
            </div>;
   }
 
