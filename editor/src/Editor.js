@@ -20,6 +20,14 @@ function EditorHeader(props) {
   );
 }
 
+function EditorFooter(props) {
+  return (
+    <div id="EditorFooter">
+      {props.children}
+    </div>
+  );
+}
+
 
 class EditorBody extends Component {
   constructor(props) {
@@ -210,7 +218,7 @@ class EditorBody extends Component {
     };
 
     return (
-      <div id="editorBody">
+      <div id="EditorBody">
         <ReactCodeMirror
           value={this.initContents}
           options={options}
@@ -378,6 +386,9 @@ class Editor extends Component {
                          key={this.props.path}
                          onSyntaxCheck={this.onSyntaxCheck}
                          ref={r => this.editorBody = r} />
+             <EditorFooter>
+               <div>tag tree</div>
+             </EditorFooter>
            </div>;
   }
 
@@ -418,7 +429,7 @@ class Editor extends Component {
       <div id="Editor" className={className}>
         <SplitPane split={direction}
                    primary="second"
-                   paneStyle={{overflow: "auto"}}
+                   pane2Style={{overflow: "auto"}}
                    onDragFinished={this.onDragFinished}
                    onDragStarted={this.onDragStarted}
                    size={previewSize}>
