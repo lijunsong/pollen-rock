@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import * as Api from './Api';
 import * as Icons from './Icons';
+import { notify } from './Notify';
 import PropTypes from 'prop-types';
 
 
@@ -9,12 +10,24 @@ class PreviewArea extends Component {
     super(props);
     this.onClickViewColumn = () => this.props.onClickDirection("vertical");
     this.onClickViewRow = () => this.props.onClickDirection("horizontal");
+    this.onClickRefresh = this.onClickRefresh.bind(this);
     this.onLoad = this.onLoad.bind(this);
   }
 
   onLoad() {
     if (this.iframe) {
       this.installSelectHandler(this.iframe.contentWindow);
+    }
+  }
+
+  onClickRefresh() {
+    if (this.iframe) {
+      let location = this.props.location;
+      Api.render(location).then(() => {
+        this.iframe.contentWindow.location.reload(true);
+      }).catch((e) => {
+        notify.error("Failed to refresh ${location}");
+      });
     }
   }
 
@@ -57,6 +70,8 @@ class PreviewArea extends Component {
   renderHeader(location) {
     return <div id="PreviewHeader">
              <span id="PreviewPath">{location}</span>
+             <Icons.IconRefresh className="clickable"
+                                onClick={this.onClickRefresh} />
              <Icons.IconHSplit className="clickable"
                                onClick={this.onClickViewRow} />
              <Icons.IconVSplit className="clickable"
