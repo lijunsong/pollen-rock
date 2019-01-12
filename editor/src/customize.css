@@ -86,6 +86,14 @@ body {
     flex: 1 1 auto;
 }
 
+#EditorHeader .docStatus-saved {
+    color: #DDD;
+}
+#EditorHeader .docStatus-error {
+    color: red;
+}
+
+
 .Resizer.vertical {
     background-color: #EEE;
     width: 10px;

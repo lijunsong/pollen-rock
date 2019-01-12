@@ -86,10 +86,11 @@ class EditorBody extends Component {
     }
   }
 
+  /// save contents to remote. This method returns true
+  /// when contents are sync on both sides; false otherwise
   async saveToDisk(path, cm) {
     if (cm.isClean(this.savedGeneration)) {
-      console.log("No need to save the doc");
-      return;
+      return true;
     }
 
     let thisGen = cm.changeGeneration();
@@ -97,14 +98,33 @@ class EditorBody extends Component {
     let res = await Api.saveContents(path, contents);
     if (res.data.errno !== 0) {
       console.log(`Failed to save contents: ${res.data.message}`);
-      return;
+      return false;
     }
 
-    console.log(`Saved ${path}`);
     this.savedGeneration = thisGen;
+    return true;
   }
 
-  handleOnChanges(path, cm, changes) {
+  async saveAndPreview(path, cm) {
+    this.props.onDocStatusChanged("saving");
+    try {
+      let saved = await this.saveToDisk(path, cm);
+      this.props.onDocStatusChanged("saved");
+      // check syntax error and call synxtax check callback
+      let doc = cm.doc;
+      let mode = doc.getMode();
+      let checkFunc = CodeMirror.syntaxCheck[mode.name];
+      let checkResult = true;
+      if (checkFunc) {
+        checkResult = checkFunc(cm, doc.lastLine());
+      }
+      this.props.onSyntaxCheck(checkResult);
+    } catch (err) {
+      this.props.onDocStatusChanged("error");
+    }
+  }
+
+  handleOnChanges(path, cm) {
     if (! path) {
       return;
     }
@@ -118,20 +138,8 @@ class EditorBody extends Component {
       // cancel previous timer and schedule a new one
       window.clearTimeout(this.saveTimer);
       this.saveTimer = window.setTimeout(() => {
-        this.saveToDisk(path, cm).then(() => {
-          // check syntax error and call synxtax check callback
-          let doc = cm.doc;
-          let mode = doc.getMode();
-          let checkFunc = CodeMirror.syntaxCheck[mode.name];
-          let checkResult = true;
-          if (checkFunc) {
-            checkResult = checkFunc(cm, doc.lastLine());
-          }
-          this.props.onSyntaxCheck(checkResult);
-        }).catch(() => {
-          throw new Error("Save to disk failed");
-        });
-      }, 500);
+        this.saveAndPreview(path, cm);
+      }, 1000);
     }
   }
 
@@ -265,6 +273,7 @@ class EditorBody extends Component {
 EditorBody.propTypes = {
   path: PropTypes.string.isRequired,
   onSyntaxCheck: PropTypes.func.isRequired,
+  onDocStatusChanged: PropTypes.func.isRequired,
 };
 
 
@@ -283,6 +292,8 @@ class Editor extends Component {
       dragging: false,
       /// file location to send to preview to load
       location: null,
+      /// autosave status: saving, saved, error
+      saveStatus: "saved",
     };
 
     this.onDragStarted = this.onDragStarted.bind(this);
@@ -290,6 +301,7 @@ class Editor extends Component {
     this.onClickDirection = this.onClickDirection.bind(this);
     this.onPreviewSelected = this.onPreviewSelected.bind(this);
     this.onSyntaxCheck = this.onSyntaxCheck.bind(this);
+    this.onDocStatusChanged = this.onDocStatusChanged.bind(this);
   }
   onClickDirection(newDirection) {
     if (this.state.splitDirection !== newDirection) {
@@ -321,6 +333,12 @@ class Editor extends Component {
       this.previewArea.reload();
     } else {
       console.log("Syntax error. No preview reload");
+    }
+  }
+
+  onDocStatusChanged(status) {
+    if (this.state.saveStatus != status) {
+      this.setState({saveStatus: status});
     }
   }
 
@@ -357,13 +375,21 @@ class Editor extends Component {
     if (this.state.dragging) {
       className = "hidePointerEvents";
     }
+
+    // the area showing doc saving status
+    let status = this.state.saveStatus;
+    let statusText = status == "saving" ? "" : status;
+    let statusCls = `docStatus-${status}`;
     return <div id="EditingArea" className={className}>
              <EditorHeader path={this.props.path} >
-               <Icons.IconFullscreen onClick={this.props.onClickFullscreen} />
+               <div className={statusCls}>{statusText}</div>
+               <Icons.IconFullscreen className="clickable"
+                                     onClick={this.props.onClickFullscreen} />
              </EditorHeader>
              <EditorBody path={this.props.path}
                          key={this.props.path}
                          onSyntaxCheck={this.onSyntaxCheck}
+                         onDocStatusChanged={this.onDocStatusChanged}
                          ref={r => this.editorBody = r} />
            </div>;
   }
