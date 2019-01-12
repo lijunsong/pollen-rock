@@ -192,3 +192,7 @@ iframe.previewIframe {
     background-color: #ff8585;
     border-radius: 4px;
 }
+
+.toast {
+    border-radius: 10px;
+}

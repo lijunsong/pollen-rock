@@ -7,6 +7,7 @@ import 'codemirror/mode/meta';
 import SplitPane from 'react-split-pane';
 import * as Icons from './Icons';
 import PreviewArea from './PreviewArea';
+import { notify } from './Notify';
 import PropTypes from 'prop-types';
 
 
@@ -97,7 +98,7 @@ class EditorBody extends Component {
     let contents = cm.getValue();
     let res = await Api.saveContents(path, contents);
     if (res.data.errno !== 0) {
-      console.log(`Failed to save contents: ${res.data.message}`);
+      notify.error(`Failed to save contents: ${res.data.message}`);
       return false;
     }
 
@@ -106,22 +107,22 @@ class EditorBody extends Component {
   }
 
   async saveAndPreview(path, cm) {
-    this.props.onDocStatusChanged("saving");
     try {
-      let saved = await this.saveToDisk(path, cm);
-      this.props.onDocStatusChanged("saved");
-      // check syntax error and call synxtax check callback
-      let doc = cm.doc;
-      let mode = doc.getMode();
-      let checkFunc = CodeMirror.syntaxCheck[mode.name];
-      let checkResult = true;
-      if (checkFunc) {
-        checkResult = checkFunc(cm, doc.lastLine());
-      }
-      this.props.onSyntaxCheck(checkResult);
-    } catch (err) {
-      this.props.onDocStatusChanged("error");
+      await this.saveToDisk(path, cm);
+    } catch (e) {
+      notify.error(`Failed to save ${path}: ${e}`);
+      return;
     }
+
+    // check syntax error and call synxtax check callback
+    let doc = cm.doc;
+    let mode = doc.getMode();
+    let checkFunc = CodeMirror.syntaxCheck[mode.name];
+    let checkResult = true;
+    if (checkFunc) {
+      checkResult = checkFunc(cm, doc.lastLine());
+    }
+    this.props.onSyntaxCheck(checkResult);
   }
 
   handleOnChanges(path, cm) {
@@ -228,7 +229,7 @@ class EditorBody extends Component {
     this._loadContents(path).then(e => {
       console.log(`Successfully loaded config of ${path}`);
     }).catch(e => {
-      console.log(`Failed to load ${path}: ${e}`);
+      notify.error(`Failed to load ${path}: ${e}`);
     });
 
     // reference to the timeout for autosave
@@ -248,19 +249,21 @@ class EditorBody extends Component {
       contents = await waitContents;
       config = await waitConfig;
     } catch (err) {
-      throw new Error(`Error occurs when sending requests`);
+      notify.error(`Error occurs when sending requests`);
+      return;
     }
 
     if (contents.data.errno === 0 && 'contents' in contents.data) {
       this.initContents = contents.data.contents;
     } else {
-      throw new Error(`${path} contents are not available`);
+      notify.error(`${path} contents are not available`);
+      return;
     }
 
     if (config.data.errno === 0) {
       this.setState({tags : config.data.tags});
     } else {
-      throw new Error(`${path} tags are not available`);
+      notify.error(`${path} tags are not available`);
     }
 
   }
@@ -273,7 +276,6 @@ class EditorBody extends Component {
 EditorBody.propTypes = {
   path: PropTypes.string.isRequired,
   onSyntaxCheck: PropTypes.func.isRequired,
-  onDocStatusChanged: PropTypes.func.isRequired,
 };
 
 
@@ -292,8 +294,6 @@ class Editor extends Component {
       dragging: false,
       /// file location to send to preview to load
       location: null,
-      /// autosave status: saving, saved, error
-      saveStatus: "saved",
     };
 
     this.onDragStarted = this.onDragStarted.bind(this);
@@ -301,7 +301,6 @@ class Editor extends Component {
     this.onClickDirection = this.onClickDirection.bind(this);
     this.onPreviewSelected = this.onPreviewSelected.bind(this);
     this.onSyntaxCheck = this.onSyntaxCheck.bind(this);
-    this.onDocStatusChanged = this.onDocStatusChanged.bind(this);
   }
   onClickDirection(newDirection) {
     if (this.state.splitDirection !== newDirection) {
@@ -324,7 +323,7 @@ class Editor extends Component {
       if (textOrClear === false) {
         this.editorBody.clearSyncText();
       }
-        this.editorBody.markSyncText(textOrClear);
+      this.editorBody.markSyncText(textOrClear);
     }
   }
 
@@ -333,12 +332,6 @@ class Editor extends Component {
       this.previewArea.reload();
     } else {
       console.log("Syntax error. No preview reload");
-    }
-  }
-
-  onDocStatusChanged(status) {
-    if (this.state.saveStatus != status) {
-      this.setState({saveStatus: status});
     }
   }
 
@@ -376,20 +369,14 @@ class Editor extends Component {
       className = "hidePointerEvents";
     }
 
-    // the area showing doc saving status
-    let status = this.state.saveStatus;
-    let statusText = status == "saving" ? "" : status;
-    let statusCls = `docStatus-${status}`;
     return <div id="EditingArea" className={className}>
              <EditorHeader path={this.props.path} >
-               <div className={statusCls}>{statusText}</div>
                <Icons.IconFullscreen className="clickable"
                                      onClick={this.props.onClickFullscreen} />
              </EditorHeader>
              <EditorBody path={this.props.path}
                          key={this.props.path}
                          onSyntaxCheck={this.onSyntaxCheck}
-                         onDocStatusChanged={this.onDocStatusChanged}
                          ref={r => this.editorBody = r} />
            </div>;
   }
