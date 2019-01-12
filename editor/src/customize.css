@@ -34,9 +34,12 @@ body {
     height: 100vh;
 }
 
-#NavHeader, #EditorHeader, #PreviewHeader {
+#NavHeader, #EditorHeader, #EditorFooter, #PreviewHeader {
     display: flex;
+    flex-shrink: 0;
+    flex-grow: 0;
     color: #555;
+    border-top: 2px solid #EEE;
     border-bottom: 2px solid #EEE;
     padding: 0rem 0.5rem 0 0.5rem;
     font-size: 85%;
@@ -92,13 +95,6 @@ body {
     flex: 1 1 auto;
 }
 
-#EditorHeader .docStatus-saved {
-    color: #DDD;
-}
-#EditorHeader .docStatus-error {
-    color: red;
-}
-
 
 .Resizer.vertical {
     background-color: #EEE;
@@ -133,6 +129,12 @@ iframe.previewIframe {
 }
 
 #EditingArea {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+#EditorBody {
+    flex: 1 1 auto;
     overflow: auto;
 }
 
