@@ -4,6 +4,7 @@ import * as Icons from './Icons';
 import { Map, Set, List } from 'immutable';
 import * as Api from './Api';
 import PropTypes from 'prop-types';
+import {notify} from './Notify';
 
 
 function NavHeader(props) {
@@ -115,7 +116,7 @@ class NavEntries extends Component {
     if (renderedList.isEmpty()) {
       renderedList = "No files";
     }
-     return <div id="NavEntries">{renderedList}</div>;
+    return <div id="NavEntries">{renderedList}</div>;
   }
 
   async fetchFileList(folderPath) {
@@ -123,12 +124,13 @@ class NavEntries extends Component {
     try {
       res = await Api.getContents(folderPath);
     } catch (err) {
-      throw new Error(`Couldn't fetch files under ${folderPath}: ${err}`);
+      notify.error(`Couldn't fetch files under ${folderPath}: ${err}`);
+      return;
     }
 
     let errno = res.data.errno;
     if (errno !== 0) {
-      throw new Error(
+      notify.error(
         `Error occurred on folder ${folderPath}: errno = ${errno}`
       );
     }
@@ -142,7 +144,7 @@ class NavEntries extends Component {
       let entries = this.state.entries.set(folderPath, list);
       this.setState({entries});
     } else {
-      throw new Error(`${folderPath} is not a folder`);
+      notify.error(`${folderPath} is not a folder`);
     }
   }
 
