@@ -224,7 +224,7 @@ test('; followed by |{ starts comment', () => {
 
 test('; followed by { starts comment', () => {
   let cm = getCM('◊;{data |{');
-  let state = cm.getStateAfter(0)
+  let state = cm.getStateAfter(0);
   expect(state.braceStack.length).toEqual(2);
 
   let token = cm.getTokenAt({line: 0, ch: 9});
@@ -234,12 +234,12 @@ test('; followed by { starts comment', () => {
 
 test('|{ in ; is just simple left brace', () => {
   let cm = getCM('◊;{data |{ } }| good');
-  let token = cm.getTokenAt({line: 0, ch: 15})
+  let token = cm.getTokenAt({line: 0, ch: 15});
   // the | in }| should be normal text
   expect(token.string).toEqual('|');
   expect(token.type).toEqual(null);
 
-  token = cm.getTokenAt({line: 0, ch: 12})
+  token = cm.getTokenAt({line: 0, ch: 12});
   // the } in the middle should be a comment
   expect(token.string).toEqual('}');
   expect(token.type).toEqual("comment");
@@ -247,7 +247,7 @@ test('|{ in ; is just simple left brace', () => {
 
 test('tag in comments should not be a keyword', () => {
   let cm = getCM('◊;{◊foo{hello}}');
-  let token = cm.getTokenAt({line: 0, ch: 5})
+  let token = cm.getTokenAt({line: 0, ch: 5});
   // racket runtime completely ignores the inside tag
   expect(token.string).toEqual('foo');
   expect(token.type).toEqual("comment");
@@ -256,9 +256,14 @@ test('tag in comments should not be a keyword', () => {
 
 test('regression: left brace in comments', () => {
   let cm = getCM('◊;|{}}|');
-  let token = cm.getTokenAt({line: 0, ch: 3})
+  let token = cm.getTokenAt({line: 0, ch: 3});
   expect(token.string).toEqual('|{');
   expect(token.type).toEqual("comment");
 });
 
-//◊;{h |{ }  }
+
+test('cmd has [] form', () => {
+  let cm = getCM('◊tag1[datum]{test1}');
+  let token = cm.getTokenAt({line: 0, ch: 15});
+  expect(token.state.braceStack.top()).not.toBeFalsy();
+});
