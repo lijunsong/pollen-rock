@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Navigation from './Nav';
-import { Editor } from './Editor';
+import EditorAndPreview from './EditorAndPreview';
 import logo from './icons/logo.svg';
 import {ToastContainer} from './Notify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -57,7 +57,7 @@ class App extends Component {
     return (
       <div id="App" className={className}>
         {nav}
-        <Editor
+        <EditorAndPreview
           path={path}
           fullscreen={this.state.fullscreen}
           onClickFullscreen={this.onClickFullscreen.bind(this)}/>
