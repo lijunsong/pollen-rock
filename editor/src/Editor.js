@@ -20,13 +20,24 @@ function EditorHeader(props) {
   );
 }
 
+EditorHeader.propTypes = {
+  path: PropTypes.string.isRequired,
+};
+
+
 function EditorFooter(props) {
+  let stack = props.tagStack || [];
+  let tree = stack.map(tag => tag.tag).join(" > ");
   return (
     <div id="EditorFooter">
-      {props.children}
+      {tree}
     </div>
   );
 }
+
+EditorFooter.propTypes = {
+  tagStack: PropTypes.array.isRequired,
+};
 
 
 class EditorBody extends Component {
@@ -201,6 +212,14 @@ class EditorBody extends Component {
     this.syncMarkers = [];
   }
 
+  getState(pos) {
+    if (! this.editor) {
+      return null;
+    }
+    let token = this.editor.editor.getTokenAt(pos);
+    return token.state;
+  }
+
   render() {
     if (this.initContents === null) {
       return <p>Loading...</p>;
@@ -223,6 +242,7 @@ class EditorBody extends Component {
           value={this.initContents}
           options={options}
           onChanges={this.handleOnChanges.bind(this, path)}
+          onCursorActivity={this.props.onCursorActivity}
           ref={r => this.editor = r}
         />
       </div>
@@ -284,6 +304,7 @@ class EditorBody extends Component {
 EditorBody.propTypes = {
   path: PropTypes.string.isRequired,
   onSyntaxCheck: PropTypes.func.isRequired,
+  onCursorActivity: PropTypes.func.isRequired,
 };
 
 
@@ -302,6 +323,8 @@ class Editor extends Component {
       dragging: false,
       /// file location to send to preview to load
       location: null,
+      /// tag depth
+      tagStack: [],
     };
 
     this.onDragStarted = this.onDragStarted.bind(this);
@@ -309,6 +332,7 @@ class Editor extends Component {
     this.onClickDirection = this.onClickDirection.bind(this);
     this.onPreviewSelected = this.onPreviewSelected.bind(this);
     this.onSyntaxCheck = this.onSyntaxCheck.bind(this);
+    this.onCursorActivity = this.onCursorActivity.bind(this);
   }
   onClickDirection(newDirection) {
     if (this.state.splitDirection !== newDirection) {
@@ -341,6 +365,17 @@ class Editor extends Component {
     } else {
       console.log("Syntax error. No preview reload");
     }
+  }
+
+  onCursorActivity(cm) {
+    let pos = cm.getCursor();
+    let state = this.editorBody.getState(pos);
+    if (! state) {
+      return;
+    }
+
+    const stack = state.braceStack.stack;
+    this.setState({tagStack: stack});
   }
 
   async fetchLocation(path) {
@@ -385,10 +420,9 @@ class Editor extends Component {
              <EditorBody path={this.props.path}
                          key={this.props.path}
                          onSyntaxCheck={this.onSyntaxCheck}
+                         onCursorActivity={this.onCursorActivity}
                          ref={r => this.editorBody = r} />
-             <EditorFooter>
-               <div>tag tree</div>
-             </EditorFooter>
+             <EditorFooter tagStack={this.state.tagStack} />
            </div>;
   }
 
