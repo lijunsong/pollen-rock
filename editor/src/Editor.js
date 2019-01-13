@@ -143,7 +143,7 @@ class EditorBody extends Component {
     this.props.onSyntaxCheck(checkResult);
   }
 
-  handleOnChanges(path, cm) {
+  onChanges(path, cm) {
     if (! path) {
       return;
     }
@@ -226,16 +226,21 @@ class EditorBody extends Component {
         "'@'": this.insertCommandCharHandler.bind(this)
       }
     };
+    let props = {
+      value: this.initContents,
+      options: options,
+      onChanges: this.onChanges.bind(this, path),
+      ref: r => this.editor = r,
+    };
+    if (modeName.includes("pollen")) {
+      props.onCursorActivity = this.props.onCursorActivity;
+    } else {
+      console.warn("cursorActivity is available only for pollen mode");
+    }
 
     return (
       <div id="EditorBody">
-        <ReactCodeMirror
-          value={this.initContents}
-          options={options}
-          onChanges={this.handleOnChanges.bind(this, path)}
-          onCursorActivity={this.props.onCursorActivity}
-          ref={r => this.editor = r}
-        />
+        <ReactCodeMirror {...props} />
       </div>
     );
   }
@@ -366,6 +371,10 @@ class Editor extends Component {
   /// is too expensive (performance slows down quite a bit if holding down
   /// down key), we delay the actual action to avoid unnecessary parsing
   onCursorActivity(cm) {
+    // XXX: cm here initially might be pollen mode and then later
+    // changes to the correct mode. So the best bet here is to prevent
+    // this handler from being passed to CodeMirror at parent
+    // component
     window.clearTimeout(this.cursorTokenTimer);
     this.cursorTokenTimer = window.setTimeout(() => {
       let pos = cm.getCursor();
