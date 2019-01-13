@@ -26,7 +26,7 @@ class PreviewArea extends Component {
       Api.render(location).then(() => {
         this.iframe.contentWindow.location.reload(true);
       }).catch((e) => {
-        notify.error("Failed to refresh ${location}");
+        notify.error(`Failed to refresh ${location}`);
       });
     }
   }

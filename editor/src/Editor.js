@@ -50,7 +50,6 @@ class EditorBody extends Component {
     this.initContents = null;
   }
 
-
   findMode(path) {
     let modeName = 'pollen';
     if (! path) {
@@ -212,14 +211,6 @@ class EditorBody extends Component {
     this.syncMarkers = [];
   }
 
-  getState(pos) {
-    if (! this.editor) {
-      return null;
-    }
-    let token = this.editor.editor.getTokenAt(pos);
-    return token.state;
-  }
-
   render() {
     if (this.initContents === null) {
       return <p>Loading...</p>;
@@ -298,6 +289,7 @@ class EditorBody extends Component {
 
   componentWillUnmount() {
     window.clearTimeout(this.saveTimer);
+    window.clearTimeout(this.cursorTokenTimer);
   }
 }
 
@@ -333,7 +325,10 @@ class Editor extends Component {
     this.onPreviewSelected = this.onPreviewSelected.bind(this);
     this.onSyntaxCheck = this.onSyntaxCheck.bind(this);
     this.onCursorActivity = this.onCursorActivity.bind(this);
+
+    this.cursorTokenTimer = null;
   }
+
   onClickDirection(newDirection) {
     if (this.state.splitDirection !== newDirection) {
       this.setState({splitDirection: newDirection});
@@ -367,15 +362,20 @@ class Editor extends Component {
     }
   }
 
+  /// On every cursor move, compare tagStack. Because calling getTokenAt
+  /// is too expensive (performance slows down quite a bit if holding down
+  /// down key), we delay the actual action to avoid unnecessary parsing
   onCursorActivity(cm) {
-    let pos = cm.getCursor();
-    let state = this.editorBody.getState(pos);
-    if (! state) {
-      return;
-    }
-
-    const stack = state.braceStack.stack;
-    this.setState({tagStack: stack});
+    window.clearTimeout(this.cursorTokenTimer);
+    this.cursorTokenTimer = window.setTimeout(() => {
+      let pos = cm.getCursor();
+      let token = cm.getTokenAt(pos);
+      const newStack = token.state.braceStack.stack;
+      const oldStack = this.state.tagStack;
+      if (oldStack.map(e=>e.tag).join(",") !== newStack.map(e=>e.tag).join(",")) {
+        this.setState({tagStack: newStack});
+      }
+    }, 1000);
   }
 
   async fetchLocation(path) {
@@ -393,14 +393,14 @@ class Editor extends Component {
     this.fetchLocation(this.props.path);
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     let path = this.props.path;
     if (path !== prevProps.path) {
       this.fetchLocation(path);
     }
-    // all props change will cause editor view change, so
-    // we call code mirror refresh for all cases
-    if (this.editorBody) {
+
+    // refresh the editor only when we're dragging
+    if (prevState.dragging !== this.state.dragging && this.editorBody) {
       console.log("refresh the editor for window change");
       this.editorBody.refresh();
     }
