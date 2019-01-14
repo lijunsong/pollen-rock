@@ -45,7 +45,8 @@ class EditorAndPreview extends Component {
   }
   onDragFinished() {
     this.setState({dragging: false});
-
+    /// FIXME: this usually doesn't take effect so I'll have to
+    /// refresh it in componentDidUpdate
     if (this.editorBody) {
       this.editorBody.refresh();
     }
@@ -109,8 +110,12 @@ class EditorAndPreview extends Component {
       this.fetchLocation(path);
     }
 
-    // refresh the editor only when we're dragging
-    if (prevState.dragging !== this.state.dragging && this.editorBody) {
+    let needsRefresh = false;
+    needsRefresh |= prevState.dragging !== this.state.dragging;
+    needsRefresh |= prevState.splitDirection !== this.state.splitDirection;
+    needsRefresh |= prevProps.fullscreen !== this.props.fullscreen;
+
+    if (needsRefresh && this.editorBody) {
       console.log("refresh the editor for window change");
       this.editorBody.refresh();
     }
