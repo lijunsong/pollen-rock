@@ -122,17 +122,25 @@ class EditorAndPreview extends Component {
       className = "hidePointerEvents";
     }
 
+    let signature;
+    if (this.editorBody) {
+      let closingTag = this.state.tagStack[this.state.tagStack.length-1];
+      signature = this.editorBody.getTag(closingTag);
+    }
     return <div id="EditingArea" className={className}>
              <Editor.EditorHeader path={this.props.path} >
                <Icons.IconFullscreen className="clickable"
                                      onClick={this.props.onClickFullscreen} />
              </Editor.EditorHeader>
              <Editor.EditorBody path={this.props.path}
-                         key={this.props.path}
-                         onSyntaxCheck={this.onSyntaxCheck}
-                         onCursorActivity={this.onCursorActivity}
-                         ref={r => this.editorBody = r} />
-             <Editor.EditorFooter tagStack={this.state.tagStack} />
+                                key={this.props.path}
+                                onSyntaxCheck={this.onSyntaxCheck}
+                                onCursorActivity={this.onCursorActivity}
+                                ref={r => this.editorBody = r} />
+             <Editor.EditorFooter
+               tagStack={this.state.tagStack}
+               closingTagSignature={signature}
+             />
            </div>;
   }
 

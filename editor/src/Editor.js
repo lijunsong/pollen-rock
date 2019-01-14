@@ -27,13 +27,14 @@ function EditorFooter(props) {
   let tree = stack.map(tag => tag.tag).join(" > ");
   return (
     <div id="EditorFooter">
-      {tree}
+      {tree} {props.closingTagSignature}
     </div>
   );
 }
 
 EditorFooter.propTypes = {
   tagStack: PropTypes.array.isRequired,
+  closingTagSignature: PropTypes.string,
 };
 
 
@@ -79,11 +80,11 @@ class EditorBody extends Component {
   }
 
   getCommandChar() {
-    for (var tag of this.state.tags) {
-      if (tag.name === 'default-command-char') {
-        return tag.value;
-      }
+    let val = this.state.tags['default-command-char'];
+    if (val) {
+      return val.value;
     }
+
     return '@';
   }
 
@@ -208,6 +209,10 @@ class EditorBody extends Component {
     this.syncMarkers = [];
   }
 
+  getTag(name) {
+    return this.state.tags[name] || null;
+  }
+
   render() {
     if (this.initContents === null) {
       return <p>Loading...</p>;
@@ -282,7 +287,12 @@ class EditorBody extends Component {
     }
 
     if (config.data.errno === 0) {
-      this.setState({tags : config.data.tags});
+      // construct tag map from the list
+      let tags = {};
+      for (let tag of config.data.tags) {
+        tags[tag.name] = tag;
+      }
+      this.setState({tags,});
     } else {
       notify.error(`${path} tags are not available`);
     }
