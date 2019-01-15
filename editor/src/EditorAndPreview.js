@@ -186,7 +186,8 @@ class EditorAndPreview extends Component {
       <div id="Editor" className={className}>
         <SplitPane split={direction}
                    primary="second"
-                   pane2Style={{overflow: "auto"}}
+                   paneStyle={{overflow: "auto"}}
+                   maxSize={-200} // minSize of the editor is 200px
                    onDragFinished={this.onDragFinished}
                    onDragStarted={this.onDragStarted}
                    size={previewSize}>

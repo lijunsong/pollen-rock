@@ -12,13 +12,6 @@ if (process.env.NODE_ENV === "development") {
   remote = "/devremote";
 }
 
-function get(urlStr) {
-  return Axios({
-    method: 'GET',
-    url: urlStr,
-  });
-}
-
 function post(urlStr, data) {
   let str = [];
   for (var key in data) {
@@ -37,13 +30,13 @@ function post(urlStr, data) {
 
 export function getContents(path) {
   const url = `${remote}/rest/fs/${path}`;
-  return get(url);
+  return Axios.get(url);
 }
 
 export function getConfig(path) {
   path = path || "";
   const url = `${remote}/rest/config/${path}`;
-  return get(url);
+  return Axios.get(url);
 }
 
 export function saveContents(path, contents) {
@@ -58,7 +51,7 @@ export function saveContents(path, contents) {
 /// render the path. The path can be destination or source
 export function render(path) {
   const url = `${remote}/rest/render/${path}`;
-  return get(url);
+  return Axios.get(url);
 }
 
 /// Long polling the path

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Navigation from './Nav';
 import EditorAndPreview from './EditorAndPreview';
 import logo from './icons/logo.svg';
-import {ToastContainer} from './Notify';
+import * as Notify from './Notify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function Splash(props) {
@@ -42,7 +42,7 @@ class App extends Component {
       <div id="App">
         {this.renderNavigation()}
         <Splash />
-        <ToastContainer/>
+        <Notify.ToastContainer/>
       </div>
     );
   }
@@ -61,7 +61,7 @@ class App extends Component {
           path={path}
           fullscreen={this.state.fullscreen}
           onClickFullscreen={this.onClickFullscreen.bind(this)}/>
-        <ToastContainer/>
+        <Notify.ToastContainer/>
       </div>
     );
   }
