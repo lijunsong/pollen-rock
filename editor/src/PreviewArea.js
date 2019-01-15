@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as Api from './Api';
 import * as Icons from './Icons';
-import { notify } from './Notify';
+import * as Notify from './Notify';
 import PropTypes from 'prop-types';
 
 
@@ -26,7 +26,7 @@ class PreviewArea extends Component {
       Api.render(location).then(() => {
         this.iframe.contentWindow.location.reload(true);
       }).catch((e) => {
-        notify.error(`Failed to refresh ${location}`);
+        Notify.error(`Failed to refresh ${location}`);
       });
     }
   }

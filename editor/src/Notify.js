@@ -11,4 +11,16 @@ function ToastContainer(props) {
          />;
 }
 
-export {ToastContainer, toast as notify}
+
+function info() {
+  console.log({...arguments});
+  toast.info({...arguments});
+}
+
+function error() {
+  console.error({...arguments});
+  toast.error({...arguments});
+}
+
+
+export {ToastContainer, info, error}

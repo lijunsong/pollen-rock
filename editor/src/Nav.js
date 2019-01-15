@@ -4,7 +4,7 @@ import * as Icons from './Icons';
 import { Map, Set, List } from 'immutable';
 import * as Api from './Api';
 import PropTypes from 'prop-types';
-import {notify} from './Notify';
+import * as Notify from './Notify';
 
 
 function NavHeader(props) {
@@ -130,17 +130,16 @@ class NavEntries extends Component {
     try {
       res = await Api.getContents(folderPath);
     } catch (err) {
-      notify.error(`Couldn't fetch files under ${folderPath}: ${err}`);
+      let msg = `Couldn't fetch files under ${folderPath}: ${err}`;
+      Notify.error(msg);
       return;
     }
-
     let errno = res.data.errno;
     if (errno !== 0) {
-      notify.error(
-        `Error occurred on folder ${folderPath}: errno = ${errno}`
-      );
+      let msg = `Error occurred on folder ${folderPath}: errno = ${errno}`;
+      Notify.error(msg);
+      return;
     }
-
     if ('items' in res.data) {
       console.log(`set ${folderPath} in the entries map`);
       let list = List(res.data.items);
@@ -150,7 +149,8 @@ class NavEntries extends Component {
       let entries = this.state.entries.set(folderPath, list);
       this.setState({entries});
     } else {
-      notify.error(`${folderPath} is not a folder`);
+      Notify.error(`${folderPath} is not a folder`);
+      return;
     }
   }
 

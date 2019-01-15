@@ -4,7 +4,7 @@ import * as Api from './Api';
 import './mode/pollen';
 import CodeMirror from 'codemirror';
 import 'codemirror/mode/meta';
-import { notify } from './Notify';
+import * as Notify from './Notify';
 import PropTypes from 'prop-types';
 
 
@@ -114,7 +114,7 @@ class EditorBody extends Component {
     let contents = cm.getValue();
     let res = await Api.saveContents(path, contents);
     if (res.data.errno !== 0) {
-      notify.error(`Failed to save contents: ${res.data.message}`);
+      Notify.error(`Failed to save contents: ${res.data.message}`);
       return false;
     }
 
@@ -126,7 +126,7 @@ class EditorBody extends Component {
     try {
       await this.saveToDisk(path, cm);
     } catch (e) {
-      notify.error(`Failed to save ${path}: ${e}`);
+      Notify.error(`Failed to save ${path}: ${e}`);
       return;
     }
 
@@ -255,7 +255,7 @@ class EditorBody extends Component {
     this._loadContents(path).then(e => {
       console.log(`Successfully loaded config of ${path}`);
     }).catch(e => {
-      notify.error(`Failed to load ${path}: ${e}`);
+      Notify.error(`Failed to load ${path}: ${e}`);
     });
 
     // reference to the timeout for autosave
@@ -275,14 +275,14 @@ class EditorBody extends Component {
       contents = await waitContents;
       config = await waitConfig;
     } catch (err) {
-      notify.error(`Error occurs when sending requests`);
+      Notify.error(`Error occurs when sending requests`);
       return;
     }
 
     if (contents.data.errno === 0 && 'contents' in contents.data) {
       this.initContents = contents.data.contents;
     } else {
-      notify.error(`${path} contents are not available`);
+      Notify.error(`${path} contents are not available`);
       return;
     }
 
@@ -294,7 +294,7 @@ class EditorBody extends Component {
       }
       this.setState({tags,});
     } else {
-      notify.error(`${path} tags are not available`);
+      Notify.error(`${path} tags are not available`);
     }
 
   }
