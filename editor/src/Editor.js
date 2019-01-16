@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import ReactCodeMirror from '@uiw/react-codemirror';
+import ReactCodeMirror from './ReactCodeMirror';
 import * as Api from './Api';
 import './mode/pollen';
 import CodeMirror from 'codemirror';
@@ -70,8 +70,8 @@ class EditorBody extends Component {
     }
 
     const mode = CodeMirror.findModeByExtension(ext);
-    // Use name here because ReactCodeMirror looks for mode by name
-    // (name is defined in codemirror/mode/meta.js), not the mode string
+    // don't use mode.mode. Many names may share the same mode (e.g. html uses
+    // htmlmixed mode)
     if (mode && mode.name) {
       modeName = mode.name;
     }
@@ -228,21 +228,21 @@ class EditorBody extends Component {
         "'@'": this.insertCommandCharHandler.bind(this)
       }
     };
-    let props = {
-      value: this.initContents,
-      options: options,
-      onChanges: this.onChanges.bind(this, path),
-      ref: r => this.editor = r,
+    let events = {
+      "changes": this.onChanges.bind(this, path)
     };
     if (modeName.includes("pollen")) {
-      props.onCursorActivity = this.props.onCursorActivity;
+      events["cursorActivity"] = this.props.onCursorActivity;
     } else {
       console.warn("cursorActivity is available only for pollen mode");
     }
 
     return (
       <div id="EditorBody">
-        <ReactCodeMirror {...props} />
+        <ReactCodeMirror value={this.initContents}
+                         ref={r => this.editor = r}
+                         options={options}
+                         events={events}/>
       </div>
     );
   }
@@ -275,7 +275,7 @@ class EditorBody extends Component {
       contents = await waitContents;
       config = await waitConfig;
     } catch (err) {
-      Notify.error(`Error occurs when sending requests`);
+      Notify.error(`Error occurs when sending requests: ${err}`);
       return;
     }
 
