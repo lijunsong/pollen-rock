@@ -29,7 +29,7 @@
                        (build-path ".")
                        (apply build-path url-parts)))
   (define bindings (request-bindings/raw req))
-  (define fs-keys (list #"op" #"data"))
+  (define fs-keys (list #"op" #"data" #"mtime"))
   (define binding-assoc (map (lambda (k)
                               (cons k
                                     (get-binding-value k bindings)))
@@ -39,16 +39,21 @@
   (handle-filesystem-op url-path binding-hash op-hash))
 
 
+(define IGNORE-MTIME 0)
+
 (define/contract (handle-filesystem-op url-path binding-hash op-hash)
   (-> (and/c path? relative-path?) (hash/c bytes? (or/c false? bytes?))
       (hash/c bytes? procedure?) jsexpr?)
   (define opname (hash-ref binding-hash #"op" false))
   (define op (hash-ref op-hash opname false))
   (define data (hash-ref binding-hash #"data" false))
+  (define mtime (hash-ref binding-hash #"mtime" IGNORE-MTIME))
   (cond [(not op)
          (fs-answer 1 (format "unknown op ~a" opname))]
         [(and (= (procedure-arity op) 2) (not data))
          (fs-answer 1 (format "~a: data parameter not found" opname))]
+        [(= (procedure-arity op) 3)
+         ((op-sanity-checker op) url-path data mtime)]
         [(= (procedure-arity op) 2)
          ;; data sometimes is a path, sometimes is real data.
          ;; let ops decide whether to convert bytes to path
@@ -56,7 +61,7 @@
         [(= (procedure-arity op) 1)
          ((op-sanity-checker op) url-path)]
         [else
-          (fs-answer 1 "internal error. arity isn't 1 or 2")]))
+          (fs-answer 1 "internal error. arity isn't 1, 2 or 3")]))
 
 
 ;; Sanity check all arguments passed to the given function
@@ -72,11 +77,11 @@
           (if (void? ret)
               (fs-answer 0)
               (fs-answer 0 ret))))))
-  (lambda (src-path . data)
+  (lambda (src-path . data-mtime)
     (cond [(not (relative-path? src-path))
            (fs-answer 1 (format "src must be relative path: ~s" src-path))]
           [else
-           (apply (fs-op-with-handlers func) (cons src-path data))])))
+           (apply (fs-op-with-handlers func) (cons src-path data-mtime))])))
 
 
 (define/contract (mkdir-op src)
@@ -98,9 +103,28 @@
   (rename-file-or-directory src dst))
 
 
-(define/contract (write-op src data)
-  (-> relative-path? bytes? void?)
-  (log-rest-debug "write-op ~a [text of length ~s]" src (bytes-length data))
+(define/contract (consistency-check mtime filepath)
+  (-> integer? (or/c path? string?) boolean?)
+  (cond [(= mtime 0)
+         ;; mtime is 0, meaning no need to check
+         true]
+        [(not (file-exists? filepath))
+         ;; mtime exist, so filepath must exist
+         false]
+        [else
+         ;; compare mtime of the file
+         (= mtime (file-or-directory-modify-seconds filepath))]))
+
+
+(define/contract (write-op src data mtime)
+  (-> relative-path? bytes? void? integer?)
+  (log-rest-debug
+   "write-op ~a [text of length ~s]. Original mtime is ~a"
+   src (bytes-length data) mtime)
+  ;; check mtime
+  (when (not (consistency-check mtime src))
+    (raise (exn:fail:filesystem "stale file" (current-continuation-marks))))
+  ;; otherwise write the file
   (call-with-atomic-output-file src
     (lambda (out path)
       (display data out))))
@@ -191,6 +215,23 @@
                   (raise (make-exn:fail:filesystem
                           "s"
                           (current-continuation-marks)))))))
+
+  ;; test consistency-check logic
+  (check-equal? (consistency-check 0 "file-not-found") #t)
+
+  (check-equal? (consistency-check 155028 "file-being-removed") #f)
+
+  (let [(tmp (make-temporary-file))]
+    (let [(f-mtime (file-or-directory-modify-seconds tmp))]
+      (check-equal? (consistency-check f-mtime tmp) #t)
+      ;; mtime is smaller, the tmp is updated
+      (check-equal? (consistency-check (- f-mtime 1) tmp) #f)
+      ;; time fast forward
+      (check-equal? (consistency-check (+ f-mtime 1) tmp) #f)
+      ;; now remove the file and check again
+      (check-equal? (consistency-check f-mtime tmp) #t)
+      (delete-file tmp)
+      (check-equal? (consistency-check f-mtime tmp) #f)))
 
   ;; test handle-filesystem-op always returns error 1
   (check-equal?
