@@ -39,15 +39,13 @@
   (handle-filesystem-op url-path binding-hash op-hash))
 
 
-(define IGNORE-MTIME 0)
-
 (define/contract (handle-filesystem-op url-path binding-hash op-hash)
   (-> (and/c path? relative-path?) (hash/c bytes? (or/c false? bytes?))
       (hash/c bytes? procedure?) jsexpr?)
   (define opname (hash-ref binding-hash #"op" false))
   (define op (hash-ref op-hash opname false))
   (define data (hash-ref binding-hash #"data" false))
-  (define mtime (hash-ref binding-hash #"mtime" IGNORE-MTIME))
+  (define mtime (hash-ref binding-hash #"mtime" false))
   (cond [(not op)
          (fs-answer 1 (format "unknown op ~a" opname))]
         [(and (= (procedure-arity op) 2) (not data))
@@ -116,11 +114,15 @@
          (= mtime (file-or-directory-modify-seconds filepath))]))
 
 
-(define/contract (write-op src data mtime)
-  (-> relative-path? bytes? void? integer?)
+(define/contract (write-op src data mtime-bytes)
+  (-> relative-path? bytes? (or/c bytes? false?) void?)
   (log-rest-debug
-   "write-op ~a [text of length ~s]. Original mtime is ~a"
-   src (bytes-length data) mtime)
+   "write-op ~a [text of length ~s]. mtime is ~a"
+   src (bytes-length data) mtime-bytes)
+  (define mtime-string  (if mtime-bytes
+                            (bytes->string/utf-8 mtime-bytes)
+                            "0"))
+  (define mtime (string->number mtime-string))
   ;; check mtime
   (when (not (consistency-check mtime src))
     (raise (exn:fail:filesystem "stale file" (current-continuation-marks))))
