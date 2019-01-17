@@ -82,12 +82,16 @@ class PreviewArea extends Component {
   /// Render Preview using iframe
   renderPreview(location) {
     let url = `${Api.remote}/${location}`;
+    // add previewIframe div and set overflow-scrolling touch there
+    // to let small device scroll the iframe
     return <div id="PreviewArea">
              {this.renderHeader(location)}
-             <iframe className="previewIframe"
-                     src={url}
-                     title="preview"
-                     ref={r => this.iframe = r } />
+             <div className="previewIframe">
+               <iframe className="preview"
+                       src={url}
+                       title="preview"
+                       ref={r => this.iframe = r } />
+             </div>
            </div>;
   }
 
