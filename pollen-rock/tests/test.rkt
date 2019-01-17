@@ -111,28 +111,103 @@
              (lambda (res)
                (check-errno res 1))))
 
-(test-case
- "write when src doesn't exist"
- (check-post-request conn-post "/rest/fs/file1.html.pm"
-             `((op . "write")
-               (data . "test string"))
-             (lambda (res)
-               (check-errno res 0)))
- (check-true (file-exists? "file1.html.pm"))
- (check-equal? (file->string "file1.html.pm")
-               "test string"))
+;;; a simple checkflow for write test. prerun will be running before
+;;; anything (can be false), and postrun will run after the server has
+;;; done the work.
+(define/contract (write-test description data mtime-or-false prerun postrun)
+  (-> string? string? (or/c false? string?)
+      (or/c (-> string? void?) false?)
+      (-> string? jsexpr? void?)
+      void?)
+  (test-case
+   description
+   (let [(tmppath (make-temporary-file
+                   "pollen-test~a.html.pm" #f "."))]
+     (delete-file tmppath) ; remove it, we just need the name
+     (define tmpfile (path->string (file-name-from-path tmppath)))
+     (when prerun
+       (prerun tmpfile))
+     (define url (format "/rest/fs/~a" tmpfile))
+     (define post `((op . "write") (data . ,data)))
+     (define fullpost (if (eq? mtime-or-false false)
+                          post
+                          (cons `(mtime . ,mtime-or-false) post)))
+     (check-post-request conn-post url fullpost
+                         (lambda (res)
+                           (postrun tmpfile res))))))
 
-;; test write: src exists. overwrite
+(write-test
+ "write when src doesn't exist and mtime is empty"
+ "test string"
+ false
+ false
+ (lambda (tmpfile res)
+   (check-errno res 0)
+   (check-true (file-exists? tmpfile))
+   (check-equal? (file->string tmpfile) "test string")))
+
+(write-test
+ "write when src doesn't exist and mtime is 0"
+ "test string"
+ "0"
+ false
+ (lambda (tmpfile res)
+   (check-errno res 0)
+   (check-true (file-exists? tmpfile))
+   (check-equal? (file->string tmpfile) "test string")))
+
+(write-test
+ "write when src doesn't exist but mtime is not 0"
+ "test string"
+ "1"
+ false
+ (lambda (tmpfile res)
+   (check-errno res 1)
+   (check-false (file-exists? tmpfile))))
+
+(write-test
+ "write when src exists and mtime is 0"
+ "6789"
+ "0"
+ (lambda (f)
+   (call-with-atomic-output-file
+    f
+    (lambda (out path)
+      (display #"12345" out))))
+ (lambda (tmpfile res)
+   (check-errno res 0)
+   (check-true (file-exists? tmpfile))
+   (check-equal? (file->string tmpfile) "6789")))
+
+(write-test
+ "write when src exists but mtime is smaller"
+ "should not be in file"
+ "12"
+ (lambda (f)
+   (create-file f "12345"))
+ (lambda (tmpfile res)
+   (check-errno res 1)
+   (check-equal? (file->string tmpfile) "12345")))
+
+
 (test-case
- "write when src exists (overwrite)"
- (check-post-request conn-post "/rest/fs/file1.html.pm"
-             `((op . "write")
-               (data . ,CODE))
-             (lambda (res)
-               (check-errno res 0)))
- (check-true (file-exists? "file1.html.pm"))
- (check-equal? (file->string "file1.html.pm")
-               CODE))
+ "write when src exists, and mtime is smaller"
+ (define tmpfile "file-write-mtime-file-exist.html.pm")
+ (create-file tmpfile "12345")
+
+ (define mtime (file-or-directory-modify-seconds tmpfile))
+ (check-equal? (file->string tmpfile) "12345")
+ (check-post-request conn-post
+                     (format "/rest/fs/~a" tmpfile)
+                     `((op . "write")
+                       (data . "6789")
+                       (mtime . ,(number->string mtime)))
+                     (lambda (res)
+                       (check-errno res 0)))
+ (check-true (file-exists? tmpfile))
+ (check-equal? (file->string tmpfile)
+               "6789"))
+
 
 ;; test write: src is a directory.
 (test-case
@@ -141,10 +216,7 @@
              `((op . "write")
                (data . "second pass"))
              (lambda (res)
-               (check-errno res 1)))
- (check-true (file-exists? "file1.html.pm"))
- (check-equal? (file->string "file1.html.pm")
-               CODE))
+               (check-errno res 1))))
 
 ;; test mv: src folder exists; dst does not. equivalent to rename
 (test-case
@@ -160,6 +232,7 @@
 ;; test mv: src file exists; dst does not. equivalent to rename
 (test-case
  "mv file when src eixsts and dest doesn't"
+ (create-file "file1.html.pm" "data")
  (check-post-request conn-post "/rest/fs/file1.html.pm"
              `((op . "mv")
                (data . "file2.html.pm"))
@@ -420,6 +493,7 @@ TODO: implement front end and see what the result is supposed to be.
                             (create-file "file1.html.pm" CODE))))
  (define ans (get-request/timeout conn "/rest/watch/file1.html.pm" 4))
  (check-not-false ans))
+
 
 
 ;; Clean the test folder
