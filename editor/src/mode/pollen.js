@@ -189,7 +189,7 @@ function mode(config) {
       }
 
       let top = stack.pop();
-      if (!top || ! leftRightBraceMatch(top.brace, brace)) {
+      if (top && ! leftRightBraceMatch(top.brace, brace)) {
         console.error("left Brace does not match the right one");
       }
 

@@ -308,14 +308,13 @@ class EditorBody extends Component {
     if (contents.data.errno === 0 && 'contents' in contents.data) {
       this.initContents = contents.data.contents;
       /// mtime for consistency checking
-      if (! 'mtime' in contents.data) {
+      if (! ('mtime' in contents.data)) {
         Notify.warning(
           "Consistency check is unavailable. Other clients " +
             "can silently overwrite this document."
         );
       }
       this.mtime = contents.data.mtime || 0;
-      console.log(this.mtime);
     } else {
       Notify.error(`${path} contents are not available`);
       return;
