@@ -109,7 +109,7 @@
  (check-post-request conn-post "rest/fs/folder1"
              `((op . "mkdir"))
              (lambda (res)
-               (check-errno res 1))))
+               (check-errno res 17))))
 
 ;;; a simple checkflow for write test. prerun will be running before
 ;;; anything (can be false), and postrun will run after the server has
@@ -162,7 +162,7 @@
  "1"
  false
  (lambda (tmpfile res)
-   (check-errno res 1)
+   (check-errno res 116)
    (check-false (file-exists? tmpfile))))
 
 (write-test
@@ -186,24 +186,29 @@
  (lambda (f)
    (create-file f "12345"))
  (lambda (tmpfile res)
-   (check-errno res 1)
+   (check-errno res 116)
    (check-equal? (file->string tmpfile) "12345")))
 
 
 (test-case
- "write when src exists, and mtime is smaller"
+ "write when src exists, and mtime matches"
  (define tmpfile "file-write-mtime-file-exist.html.pm")
  (create-file tmpfile "12345")
 
  (define mtime (file-or-directory-modify-seconds tmpfile))
  (check-equal? (file->string tmpfile) "12345")
+ (sleep 1)
  (check-post-request conn-post
                      (format "/rest/fs/~a" tmpfile)
                      `((op . "write")
                        (data . "6789")
                        (mtime . ,(number->string mtime)))
                      (lambda (res)
-                       (check-errno res 0)))
+                       (check-errno res 0)
+                       (define new-mtime (file-or-directory-modify-seconds tmpfile))
+                       (check-not-equal? new-mtime mtime)
+                       (check-equal? (hash-ref res 'message false)
+                                     new-mtime)))
  (check-true (file-exists? tmpfile))
  (check-equal? (file->string tmpfile)
                "6789"))
@@ -216,7 +221,7 @@
              `((op . "write")
                (data . "second pass"))
              (lambda (res)
-               (check-errno res 1))))
+               (check-errno res 21))))
 
 ;; test mv: src folder exists; dst does not. equivalent to rename
 (test-case
@@ -249,7 +254,7 @@
              `((op . "mv")
                (data . "unknown-folder2"))
              (lambda (res)
-               (check-errno res 1))))
+               (check-errno res 2))))
 
 (test-case
  "mv when src and dst both exist"
@@ -262,14 +267,14 @@
              `((op . "mv")
                (data . "folder2"))
              (lambda (res)
-               (check-errno res 1))))
+               (check-errno res 17))))
 
 (test-case
  "rm when src doesn't exist"
  (check-post-request conn-post "/rest/fs/folder3"
              `((op . "rm"))
              (lambda (res)
-               (check-errno res 1))))
+               (check-errno res -1))))
 
 ;; test rm: src exists
 (test-case

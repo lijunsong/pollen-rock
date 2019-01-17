@@ -19,6 +19,8 @@
   (hasheq 'errno errno
           'message message))
 
+(define CUSTOMIZED-ERRNO -1)
+
 ;; select matched handler from `handler-map` to respond to the `req`.
 ;; the value of handler-map must be taking one or two positional
 ;; arguments. If it takes one argument, url-parts will be converted to
@@ -47,9 +49,9 @@
   (define data (hash-ref binding-hash #"data" false))
   (define mtime (hash-ref binding-hash #"mtime" false))
   (cond [(not op)
-         (fs-answer 1 (format "unknown op ~a" opname))]
+         (fs-answer CUSTOMIZED-ERRNO (format "unknown op ~a" opname))]
         [(and (= (procedure-arity op) 2) (not data))
-         (fs-answer 1 (format "~a: data parameter not found" opname))]
+         (fs-answer CUSTOMIZED-ERRNO (format "~a: data parameter not found" opname))]
         [(= (procedure-arity op) 3)
          ((op-sanity-checker op) url-path data mtime)]
         [(= (procedure-arity op) 2)
@@ -59,7 +61,7 @@
         [(= (procedure-arity op) 1)
          ((op-sanity-checker op) url-path)]
         [else
-          (fs-answer 1 "internal error. arity isn't 1, 2 or 3")]))
+          (fs-answer CUSTOMIZED-ERRNO "internal error. arity isn't 1, 2 or 3")]))
 
 
 ;; Sanity check all arguments passed to the given function
@@ -70,14 +72,24 @@
   (define (fs-op-with-handlers op)
     (lambda args
       (with-handlers
-          ([exn:fail:filesystem? (lambda (e) (fs-answer 1 (exn-message e)))])
+          ([exn:fail:filesystem:errno?
+            (lambda (e)
+              (let [(errno-pair (exn:fail:filesystem:errno-errno e))]
+                (fs-answer (car errno-pair) (exn-message e))))]
+           [exn:fail:filesystem:exists?
+            (lambda (e)
+              (fs-answer 17 (exn-message e)))]
+           [exn:fail:filesystem?
+            (lambda (e)
+              (fs-answer CUSTOMIZED-ERRNO (exn-message e)))])
         (let [(ret (apply op args))]
           (if (void? ret)
               (fs-answer 0)
               (fs-answer 0 ret))))))
   (lambda (src-path . data-mtime)
     (cond [(not (relative-path? src-path))
-           (fs-answer 1 (format "src must be relative path: ~s" src-path))]
+           (fs-answer CUSTOMIZED-ERRNO
+                      (format "src must be relative path: ~s" src-path))]
           [else
            (apply (fs-op-with-handlers func) (cons src-path data-mtime))])))
 
@@ -115,7 +127,7 @@
 
 
 (define/contract (write-op src data mtime-bytes)
-  (-> relative-path? bytes? (or/c bytes? false?) void?)
+  (-> relative-path? bytes? (or/c bytes? false?) integer?)
   (log-rest-debug
    "write-op ~a [text of length ~s]. mtime is ~a"
    src (bytes-length data) mtime-bytes)
@@ -123,13 +135,17 @@
                             (bytes->string/utf-8 mtime-bytes)
                             "0"))
   (define mtime (string->number mtime-string))
-  ;; check mtime
+  ;; consistency check; check mtime
   (when (not (consistency-check mtime src))
-    (raise (exn:fail:filesystem "stale file" (current-continuation-marks))))
+    (raise (exn:fail:filesystem:errno "Stale file"
+                                      (current-continuation-marks)
+                                      '(116 . posix))))
   ;; otherwise write the file
   (call-with-atomic-output-file src
     (lambda (out path)
-      (display data out))))
+      (display data out)))
+  ;; return mtime
+  (file-or-directory-modify-seconds src))
 
 (define/contract (ls-op src)
   (-> relative-path? jsexpr?)
@@ -162,7 +178,7 @@
 
   ;; test it will return fs-answer when bindings are missing
   (check-fs-answer-errno-equal?
-   (fs-answer 1 "")
+   (fs-answer CUSTOMIZED-ERRNO "")
    (handle-filesystem-op
     (string->path "hello/go")
     (hash #"op" #"mv")
@@ -170,7 +186,7 @@
                   (void)))))
 
   (check-fs-answer-errno-equal?
-   (fs-answer 1 "")
+   (fs-answer CUSTOMIZED-ERRNO "")
    (handle-filesystem-op
     (string->path "hello/go")
     (hash #"unknown" #"unknown")
@@ -209,7 +225,7 @@
   ;; test whether handle-filesystem-op would return fs-answer when
   ;; the actual op throws exceptions
   (check-equal?
-   (fs-answer 1 "s")
+   (fs-answer CUSTOMIZED-ERRNO "s")
    (handle-filesystem-op
     (string->path "src")
     (hash #"op" #"ls")
@@ -235,9 +251,9 @@
       (delete-file tmp)
       (check-equal? (consistency-check f-mtime tmp) #f)))
 
-  ;; test handle-filesystem-op always returns error 1
+  ;; test handle-filesystem-op return errno
   (check-equal?
-   (fs-answer 1 "s")
+   (fs-answer 129 "s")
    (handle-filesystem-op
     (string->path "src")
     (hash #"op" #"ls")

@@ -8,6 +8,17 @@ import * as Notify from './Notify';
 import PropTypes from 'prop-types';
 
 
+/// This map lists commocommon errno and it's message
+const errnoMsg = {
+  1: "Operation not permitted",
+  2: "No such file or directory",
+  17: "File exists",
+  20: "Not a directory",
+  21: "Is a directory",
+  30: "Read-only file system",
+  116: "The file has been changed on disk",
+};
+
 function EditorHeader(props) {
   return (
     <div id="EditorHeader">
@@ -46,6 +57,7 @@ class EditorBody extends Component {
       tags: [],
     };
     this.initContents = null;
+    this.mtime = 0;
   }
 
   findMode(path) {
@@ -112,21 +124,35 @@ class EditorBody extends Component {
 
     let thisGen = cm.changeGeneration();
     let contents = cm.getValue();
-    let res = await Api.saveContents(path, contents);
+    let res = await Api.saveContents(path, contents, this.mtime);
     if (res.data.errno !== 0) {
-      Notify.error(`Failed to save contents: ${res.data.message}`);
+      let errno = res.data.errno;
+      let msg;
+      if (errno in errnoMsg) {
+        let errmsg = errnoMsg[errno];
+        msg = `Failed to save ${path}: ${errmsg}`;
+      } else {
+        msg = res.data.message;
+      }
+      Notify.error(msg);
       return false;
+    } else {
+      this.mtime = res.data.message;
     }
-
     this.savedGeneration = thisGen;
     return true;
   }
 
   async saveAndPreview(path, cm) {
+    let saved = false;
     try {
-      await this.saveToDisk(path, cm);
+      saved = await this.saveToDisk(path, cm);
     } catch (e) {
-      Notify.error(`Failed to save ${path}: ${e}`);
+      Notify.error(`Failed to save ${path}: ${e}. Server might have terminated.`);
+      return;
+    }
+
+    if (! saved) {
       return;
     }
 
@@ -281,6 +307,15 @@ class EditorBody extends Component {
 
     if (contents.data.errno === 0 && 'contents' in contents.data) {
       this.initContents = contents.data.contents;
+      /// mtime for consistency checking
+      if (! 'mtime' in contents.data) {
+        Notify.warning(
+          "Consistency check is unavailable. Other clients " +
+            "can silently overwrite this document."
+        );
+      }
+      this.mtime = contents.data.mtime || 0;
+      console.log(this.mtime);
     } else {
       Notify.error(`${path} contents are not available`);
       return;
