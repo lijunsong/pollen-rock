@@ -128,10 +128,23 @@ body {
 #PreviewPath {
     flex: 1 1 auto;
 }
-iframe.previewIframe {
-    border: 0;
+.previewIframe {
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    overflow: auto;
     width: 100%;
+    height: 100%;
     flex: 1 1 auto;
+}
+iframe.preview {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border: 0;
+    height: 100%;
+    widtH: 100%
 }
 
 #EditingArea {
