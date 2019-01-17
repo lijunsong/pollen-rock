@@ -12,8 +12,8 @@
 
 
 ;; return spec for file operation
-(define/contract (get-contents-answer errno [items false] [contents false])
-  (->* (integer?) ((or/c list? false) (or/c string? false)) jsexpr?)
+(define/contract (get-contents-answer errno [mtime 0] [items false] [contents false])
+  (->* (integer?) (integer? (or/c list? false) (or/c string? false)) jsexpr?)
   (cond [(and (eq? items false) (eq? contents false) (= errno 0))
          (error 'get-contents-answer
                 "items and contents must not be empty at the same time")]
@@ -22,9 +22,11 @@
 
         [(eq? items false)
          (hasheq 'errno errno
+                 'mtime mtime
                  'contents contents)]
         [else
          (hasheq 'errno errno
+                 'mtime mtime
                  'items items)]))
 
 ;; select matched handler from `handler-map` to respond to the `req`.
@@ -46,10 +48,12 @@
                                   (string-append (path->string n) "/")
                                   (path->string n)))
                             items))
-         (get-contents-answer 0 names)]
+         (define mtime (file-or-directory-modify-seconds file-path))
+         (get-contents-answer 0 mtime names)]
         [(file-exists? file-path)
          (log-rest-debug "get contents of file ~a" file-path)
          (define contents (file->string file-path))
-         (get-contents-answer 0 false contents)]
+         (define mtime (file-or-directory-modify-seconds file-path))
+         (get-contents-answer 0 mtime false contents)]
         [else
          (get-contents-answer 1)]))

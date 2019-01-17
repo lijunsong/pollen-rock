@@ -13,14 +13,19 @@ function ToastContainer(props) {
 
 
 function info() {
-  console.log({...arguments});
-  toast.info({...arguments});
+  console.log(...arguments);
+  toast.info(...arguments);
+}
+
+function warning() {
+  console.warn(...arguments);
+  toast.warning(...arguments);
 }
 
 function error() {
-  console.error({...arguments});
-  toast.error({...arguments});
+  console.error(...arguments);
+  toast.error(...arguments);
 }
 
 
-export {ToastContainer, info, error}
+export {ToastContainer, info, warning, error}

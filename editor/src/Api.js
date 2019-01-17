@@ -39,11 +39,12 @@ export function getConfig(path) {
   return Axios.get(url);
 }
 
-export function saveContents(path, contents) {
+export function saveContents(path, contents, mtime) {
   const url = `${remote}/rest/fs/${path}`;
   const postData = {
     op: "write",
     data: contents,
+    mtime: mtime || 0,
   };
   return post(url, postData);
 }
