@@ -27,13 +27,13 @@
   (let ((path (build-path scribble-root "images" name)))
     (image path #:scale scale)))
 
-@title{Pollen-rock: an improved Pollen server}
+@title{Pollen-rock: a RESTful Pollen Server}
 
-Pollen-rock improves Pollen web server by providing an interface for querying project configuration and file information. It also comes with a convenient in-browser editor that helps you compose and typeset your prose.
+Pollen-rock is a Pollen web server with a RESTful API. It comes with a convenient in-browser editor that integrates the RESTful API to maximize the editing experience of Pollen project.
 
 @;other-doc['(lib "pollen/scribblings/pollen.scrbl") #:indirect "Pollen"]
 
-Pollen-rock is simply an add-on of Pollen rendering server. This new rendering server does not change Pollen language's semantics. Hate Pollen being silent on your undefined tag functions? You'll find the same behavior in Pollen-rock as well, because Pollen-rock uses Pollen to render your file. But Pollen-rock's built-in editor has the ability to inform you about that undefined tag, and you can make the decision what to do about it.
+Pollen-rock does not change Pollen language's semantics. If you hate Pollen being silent on your undefined tag functions, You'll find Pollen-rock rendering engine has the same behavior because Pollen-rock renders source file using the same functions as Pollen server does. However, Pollen-rock's built-in editor has the ability to inform you about undefined tags, so Pollen-rock is more than "just another server."
 
 Internally, Pollen-rock provides a RESTful web API for querying various information of a Pollen project and source files. If you're interested in writing your tools using the RESTful API, continue to @secref["server-spec"]. If you're interested in Pollen-rock built-in editor, continue to @secref["installation"].
 
@@ -49,7 +49,7 @@ Pollen-rock is an add-on of Pollen. Installing pollen-rock is as simple as runni
 
 Racket will handle package dependencies for you.
 
-For those who haven't installed Pollen before, you can follow the complete guide @secref["How_to_install" #:doc '(lib "pollen/scribblings/pollen.scrbl")] of Pollen to install Racket and Pollen, and then follow the above step.
+For those who haven't installed Racket before, you can follow the complete guide @secref["How_to_install" #:doc '(lib "pollen/scribblings/pollen.scrbl")] of Pollen to install Racket and Pollen, and then follow the above step.
 
 @section[#:tag "use-server"]{Use Pollen-rock}
 
@@ -66,32 +66,32 @@ $ raco pollen-rock --start-dir ~/workspace/blog
 And you'll see the following output
 
 @verbatim{
-Welcome to Pollen Rock 0.6.0 (Racket 6.8)
-Project root is /home/user/workspace/blog/
-Pollen Editor is running at http://localhost:8000/dashboard (accessible by all machines on your network)
+Welcome to Pollen Rock 0.7.0 (Racket 6.12)
+Project root is /Users/user/workspace/blog/
+Pollen Editor is running at http://localhost:8000/editor (accessible by all machines on your network)
 Ctrl-C at any time to terminate Pollen Rock.
 }
 
 If @code{--start-dir} argument is not specified, the project root will be current working directory.
 
-@margin-note{All machines on your network will be accessible to your project directory. This is dangerous; other people who know your IP can issue HTTP POST request remotely to remove your project data. To limit the access scope to your own machine, specify @code{--local} in the argument.}
+@margin-note{All machines on your network will be able to access your project directory. This is dangerous; other people who know your IP can remotely issue HTTP POST request to remove your project data. To limit the access scope to your own machine, specify @code{--local} in the argument.}
 
 @subsection{Dashboard}
 
-The dashboard is at @code{http://localhost:8000/dashboard}.
+The dashboard is at @code{http://localhost:8000/editor}.
 
 On the dashboard, you can
 
 @itemlist[
-@item{Navigate in directories}
+@item{Navigate among directories}
+@item{Open the in-browser editor to edit files}
 @item{Render Pollen source files}
-@item{Open an in-browser editor to edit files}
 @item{Change editor settings}
 ]
 
 @subsection{Render}
 
-On the dashboard, you can click Render to render a Pollen source file.
+On the dashboard page, you can click refresh button to force render the opened source file.
 
 When Pollen-rock starts to render a file, it actually does two things: It renders and shows the rendered page in the browser, and it watches the source code changes and reloads the rendered page.
 
@@ -110,18 +110,21 @@ There are a few things you should be aware of:
 
 @subsection{Use the Editor}
 
-On the dashboard, you can also click "Edit" to edit a file.
+The dashboard page has a sidebar listing files and folders under the project root. Clicking an entry will open it in the editor.
 
-Pollen-rock editor currently supports syntax highlight of only a few common file types. The dashboard shows "Edit" only for supported files.
-
-The editor saves your change automatically, and the header area shows the saving status. Once the saving status has become @emph{saved}, it's safe to close the browser. It will warn you when you close the browser if there are unsaved contents.
-
-In the header area, you can also see
+Pollen-rock editor has many supports on source code editing:
 
 @itemlist[
-@item{@tt{Render}: split the view. It can cycle through horizontal and vertical split view, and automatically render the file and reload the rendered page when the source code syntax is correct}
-@item{@tt{Settings}: open settings page. Any changes to the setting will take effect immediately}
+ @item{Supports syntax highlight of 100+ languages}
+ @item{Shows tag function signatures in Pollen source files}
+ @item{Reloads preview only when the syntax of Pollen source file is correct}
+ @item{Prevents multiple clients from editing the same document}
+ @item{Has focus mode built in}
 ]
+
+The editor saves your change automatically. It's always safe to close the browser -- the editor saves all changes before exiting (Different browsers will have different preference on force closing a tab, so what's likely to happen is to pop up a window to warn you there are unsaved changes, if there is any).
+
+In the preview header, you can split the view horizontally or vertically.
 
 @;(image (build-path scribble-root "images" "auto-render.gif") #:style "width:100%; height:100%")
 @(use-image "auto-render.gif" 0.8)
