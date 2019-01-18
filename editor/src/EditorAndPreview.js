@@ -92,12 +92,15 @@ class EditorAndPreview extends Component {
   async fetchLocation(path) {
     console.log("Fetch location of " + path);
     let res = await Api.render(path);
+
+    // set the location anyway because the server always returns
+    // location to us
+    this.setState({location: res.data.location});
+
     if (res.data.errno !== 0) {
       console.error(`Render failed on ${path}`);
-      return;
     }
 
-    this.setState({location: res.data.location});
   }
 
   componentDidMount() {
