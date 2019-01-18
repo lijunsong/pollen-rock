@@ -29,13 +29,13 @@
 
 @title{Pollen-rock: a RESTful Pollen Server}
 
-Pollen-rock is a Pollen web server with a RESTful API. It comes with a convenient in-browser editor that integrates the RESTful API to maximize the editing experience of Pollen project.
+Pollen-rock is a Pollen web server with a set of RESTful APIs. It comes with a convenient in-browser editor that integrates the RESTful API to maximize the editing experience of Pollen project.
 
 @;other-doc['(lib "pollen/scribblings/pollen.scrbl") #:indirect "Pollen"]
 
-Pollen-rock does not change Pollen language's semantics. If you hate Pollen being silent on your undefined tag functions, You'll find Pollen-rock rendering engine has the same behavior because Pollen-rock renders source file using the same functions as Pollen server does. However, Pollen-rock's built-in editor has the ability to inform you about undefined tags, so Pollen-rock is more than "just another server."
+Pollen-rock does not change Pollen language's semantics. If you hate Pollen being silent on your undefined tag functions, You'll find Pollen-rock's rendering engine has the same behavior because Pollen-rock reuses Pollen's render functions. However, Pollen-rock's built-in editor has the ability to inform you about undefined tags, so Pollen-rock is more than "just another server."
 
-Internally, Pollen-rock provides a RESTful web API for querying various information of a Pollen project and source files. If you're interested in writing your tools using the RESTful API, continue to @secref["server-spec"]. If you're interested in Pollen-rock built-in editor, continue to @secref["installation"].
+Internally, Pollen-rock provides RESTful web APIs for querying various information of a Pollen project. If you're interested in writing your tools using the RESTful API, continue to @secref["server-spec"]. If you're interested in Pollen-rock built-in editor, continue to @secref["installation"].
 
 @local-table-of-contents[]
 
@@ -49,7 +49,7 @@ Pollen-rock is an add-on of Pollen. Installing pollen-rock is as simple as runni
 
 Racket will handle package dependencies for you.
 
-For those who haven't installed Racket before, you can follow the complete guide @secref["How_to_install" #:doc '(lib "pollen/scribblings/pollen.scrbl")] of Pollen to install Racket and Pollen, and then follow the above step.
+For those who haven't installed Racket before, you can follow the complete Pollen guide @secref["How_to_install" #:doc '(lib "pollen/scribblings/pollen.scrbl")] to install Racket and Pollen, and then follow the above step.
 
 @section[#:tag "use-server"]{Use Pollen-rock}
 
@@ -72,62 +72,51 @@ Pollen Editor is running at http://localhost:8000/editor (accessible by all mach
 Ctrl-C at any time to terminate Pollen Rock.
 }
 
-If @code{--start-dir} argument is not specified, the project root will be current working directory.
+If @code{--start-dir} argument is not specified, the project root is the current working directory.
 
 @margin-note{All machines on your network will be able to access your project directory. This is dangerous; other people who know your IP can remotely issue HTTP POST request to remove your project data. To limit the access scope to your own machine, specify @code{--local} in the argument.}
 
-@subsection{Dashboard}
+@subsection{The Editor Overview}
 
-The dashboard is at @code{http://localhost:8000/editor}.
-
-On the dashboard, you can
-
-@itemlist[
-@item{Navigate among directories}
-@item{Open the in-browser editor to edit files}
-@item{Render Pollen source files}
-@item{Change editor settings}
-]
-
-@subsection{Render}
-
-On the dashboard page, you can click refresh button to force render the opened source file.
-
-When Pollen-rock starts to render a file, it actually does two things: It renders and shows the rendered page in the browser, and it watches the source code changes and reloads the rendered page.
+By defeault, the editor is at @code{http://localhost:8000/editor}. You can change the port with @code{-p}.
 
 
-This is convenient when you open your editor and the browser side by side
+@(use-image "side-by-side.png" 0.5)
 
-@(use-image "side-by-side.png" 0.4)
-
-There are a few things you should be aware of:
+In the editor, you can
 
 @itemlist[
-@item{Pollen-rock doesn't know the dependencies of your rendered result; if Pollen-rock watches source file @tt{file1.html.pm}, who specifies link src @tt{style.css}. Your change to @tt{style.css} is not going to trigger the reload.}
-@item{Pollen-rock watches the file content as well as file attributes.}
+@item{Browse project files and directories}
+@item{Edit files in the in-browser editor}
+@item{Preview rendered Pollen source files}
 ]
 
 
 @subsection{Use the Editor}
 
-The dashboard page has a sidebar listing files and folders under the project root. Clicking an entry will open it in the editor.
+The editor page has a sidebar listing files of the project. Clicking a file will open the file in the editor.
 
 Pollen-rock editor has many supports on source code editing:
 
 @itemlist[
  @item{Supports syntax highlight of 100+ languages}
  @item{Shows tag function signatures in Pollen source files}
- @item{Reloads preview only when the syntax of Pollen source file is correct}
+ @item{Reloads preview only when the Pollen syntax is correct}
  @item{Prevents multiple clients from editing the same document}
  @item{Has focus mode built in}
 ]
 
-The editor saves your change automatically. It's always safe to close the browser -- the editor saves all changes before exiting (Different browsers will have different preference on force closing a tab, so what's likely to happen is to pop up a window to warn you there are unsaved changes, if there is any).
+The editor saves your changes automatically; it's always safe to close the browser because the editor saves all changes before exiting (Different browsers will have different preference on force closing a tab, so what's likely to happen is that your browser would pop up a window to warn you there are unsaved changes, if there are any).
 
-In the preview header, you can split the view horizontally or vertically.
+@(use-image "focus-mode.png" 0.5)
 
-@;(image (build-path scribble-root "images" "auto-render.gif") #:style "width:100%; height:100%")
-@(use-image "auto-render.gif" 0.8)
+@subsection{Render}
+
+In the preview header, you can split the view horizontally or vertically. There is also a refresh button for sending force refresh to the server, and reloading the page.
+
+When Pollen-rock starts to render a file, it actually does two things: It renders and shows the rendered page in the browser, and it watches the source code changes and reloads the rendered page.
+
+There is one thing you should be aware of. Pollen-rock doesn't know the dependencies of your rendered result; if the opened file @tt{file1.html.pm} depends on @tt{style.css}. Any changes behind the scene made to @tt{style.css} are not going to trigger a reload.
 
 
 @section[#:tag "server-spec"]{Pollen-rock Server Specification}
@@ -135,7 +124,7 @@ In the preview header, you can split the view horizontally or vertically.
 Pollen-rock server provides
 a set of RESTful APIs for the front end to query project information.
 
-@margin-note{Note: these APIs and this doc are still under construction. They are subject to change at this point.}
+@margin-note{Note: these APIs and this doc are still under construction. They are subject to changes at this point.}
 
 @subsection[#:tag "working-example"]{Query the Server}
 
@@ -177,15 +166,15 @@ In another terminal, we can start querying the server. Let's list the project ro
 @verbatim|{
 $ curl http://localhost:8000/rest/fs
 {
-  "errno": 0,
-  "items": [
-    "compiled/",
-    "dir1/",
-    "dir2/",
-    "file1.html.pm",
-    "file2.html.pm",
-    "pollen.rkt"
-  ]
+    "errno": 0,
+    "items": [
+        "dir1/",
+        "dir2/",
+        "file1.html.pm",
+        "file2.html.pm",
+        "pollen.rkt"
+    ],
+    "mtime": 1547790867
 }
 }|
 
@@ -194,10 +183,11 @@ What about the @code{dir1} directory
 @verbatim|{
 $ curl http://localhost:8000/rest/fs/dir1
 {
-  "errno": 0,
-  "items": [
-    "file3.html.pm"
-  ]
+    "errno": 0,
+    "items": [
+        "file3.html.pm"
+    ],
+    "mtime": 1547790866
 }
 }|
 
@@ -215,8 +205,9 @@ Let's read the contents of @code{file3.html.pm}
 @verbatim|{
 $ curl http://localhost:8000/rest/fs/dir1/file3.html.pm
 {
-  "errno": 0,
-  "contents": "#lang pollen\n\nfile3 contents\n"
+    "contents": "#lang pollen\n\nfile3 contents\n\n",
+    "errno": 0,
+    "mtime": 1547791032
 }
 }|
 
@@ -292,12 +283,13 @@ Request parameter:
  @param[#:name "data" #:type "string" #:optional #t]{
    extra data
  }
+ @param[#:name "mtime" #:type "integer" #:optional #t]{the server always writes the given data if mtime is 0 or not provided. The server rejects the request if the on-disk mtime does not match the given one.}
  ]
 
 Response parameter:
 @paramlist[
- @param[#:name "errno" #:type "int"]{0 means no error}
- @param[#:name "message" #:type "string"]{Extra message from server. Usually this contains error messages if @tt{errno} is not 0}
+ @param[#:name "errno" #:type "int"]{0 means no error. Negative number means Pollen-rock internal error. Positive errno matches the Linux errno}
+ @param[#:name "message" #:type "string"]{Extra message from the server. Usually this contains error messages if @tt{errno} is not 0}
  ]
 
 Examples: create directory @code{dir3}, and move @code{dir3} to @code{dir4}.
@@ -312,14 +304,14 @@ $ curl http://localhost:8000/rest/fs/
 {
     "errno": 0,
     "items": [
-        "compiled/",
         "dir1/",
         "dir2/",
         "dir3/",
         "file1.html.pm",
         "file2.html.pm",
         "pollen.rkt"
-    ]
+    ],
+    "mtime": 1547791126
 }
 $ curl -X POST -d "op=mv&data=dir4" http://localhost:8000/rest/fs/dir3
 {
@@ -339,6 +331,7 @@ Response parameter:
  @param-errno{0 means success. non-zero means the operation has failed}
  @param[#:name "items" #:type "string array"]{If @tt{$path} is a directory, @tt{items} contains the directory contents. All subdirectory names have @tt{/} suffix.}
  @param[#:name "contents" #:type "string"]{If @tt{$path} is a regular text file, @tt{contents} is the contents of that file.}
+ @param[#:name "mtime" #:type "integer"]{The last modification seconds of this file.}
  ]
 
 Examples: get the contents of @tt{file3.html.pm}
@@ -347,7 +340,8 @@ Examples: get the contents of @tt{file3.html.pm}
 $ curl http://localhost:8000/rest/fs/dir1/file3.html.pm
 {
     "contents": "#lang pollen\n\nfile3 contents\n",
-    "errno": 0
+    "errno": 0,
+    "mtime": 1547791032
 }
 }|
 
@@ -356,16 +350,14 @@ List the project root
 {
     "errno": 0,
     "items": [
-        "compiled/",
         "dir1/",
         "dir2/",
-        "dir3/",
         "dir4/",
-        "file1.html",
         "file1.html.pm",
         "file2.html.pm",
         "pollen.rkt"
-    ]
+    ],
+    "mtime": 1547791190
 }
 }|
 
@@ -526,9 +518,9 @@ $ curl http://localhost:8000/rest/render/dir1/file3.html.pm
 @section[#:tag "dev"]{Development}
 Pollen-rock's development is on @hyperlink["http://github.com/lijunsong/pollen-rock" "github"].
 
-Pollen-rock contains server code written in Racket and editor code written in Elm.
+Pollen-rock contains server code written in Racket and editor code written in React.
 
-Once you've cloned the Pollen-rock source, you're ready to work on the server. If you're going to work on the server code, make sure you can pass all tests at any time.
+Once you've cloned the Pollen-rock source, you're ready to work on the server. If you're going to work on the server code, make sure you can pass all tests before sending out pull request.
 
 @verbatim|{
 raco test pollen-rock/pollen-rock
@@ -577,6 +569,5 @@ raco setup --doc-index -l pollen-rock
 
 @subsection{The Editor}
 
-Elm development envionrment needs a bit setup. Follow steps described
-in @tt{README.md} in the @tt{editor} folder.
+Follow steps described in @tt{README.md} in the @tt{editor} folder.
 
