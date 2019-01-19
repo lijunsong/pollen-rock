@@ -131,9 +131,9 @@ class EditorAndPreview extends Component {
     }
 
     let signature;
-    if (this.editorBody) {
+    if (this.editorBody && this.state.tagStack.length) {
       let closingTag = this.state.tagStack[this.state.tagStack.length-1];
-      signature = this.editorBody.getTag(closingTag);
+      signature = this.editorBody.getTag(closingTag.tag);
     }
     return <div id="EditingArea" className={className}>
              <Editor.EditorHeader path={this.props.path} >

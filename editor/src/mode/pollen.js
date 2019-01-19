@@ -215,3 +215,4 @@ function mode(config) {
 
 
 CodeMirror.defineMode("pollen", mode);
+CodeMirror.defineMIME("text/x-pollen", "pollen");

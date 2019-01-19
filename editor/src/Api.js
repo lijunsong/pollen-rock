@@ -39,6 +39,13 @@ export function getConfig(path) {
   return Axios.get(url);
 }
 
+export function getTags(path) {
+  path = path || "";
+  const url = `${remote}/rest/tags/${path}`;
+  return Axios.get(url);
+}
+
+
 export function saveContents(path, contents, mtime) {
   const url = `${remote}/rest/fs/${path}`;
   const postData = {
