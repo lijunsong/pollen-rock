@@ -32,20 +32,28 @@ EditorHeader.propTypes = {
   path: PropTypes.string.isRequired,
 };
 
-
 function EditorFooter(props) {
   let stack = props.tagStack || [];
   let tree = stack.map(tag => tag.tag).join(" > ");
+  let sig = props.closingTagSignature;
+  let lastTag = stack[stack.length - 1];
+  let sigText;
+  if (lastTag) {
+    sigText = `(${lastTag.tag} . args)`;
+  } else {
+    sigText = "";
+  }
   return (
     <div id="EditorFooter">
-      {tree} {props.closingTagSignature}
+      {tree}
+      <span>{sigText}</span>
     </div>
   );
 }
 
 EditorFooter.propTypes = {
   tagStack: PropTypes.array.isRequired,
-  closingTagSignature: PropTypes.string,
+  closingTagSignature: PropTypes.object.isRequired,
 };
 
 
@@ -236,6 +244,9 @@ class EditorBody extends Component {
   }
 
   getTag(name) {
+    if (name && name.startsWith(this.getCommandChar())) {
+      name = name.substring(1);
+    }
     return this.state.tags[name] || null;
   }
 
@@ -279,7 +290,7 @@ class EditorBody extends Component {
     const path = this.props.path;
 
     this._loadContents(path).then(e => {
-      console.log(`Successfully loaded config of ${path}`);
+      console.log(`Successfully fetched ${path}`);
     }).catch(e => {
       Notify.error(`Failed to load ${path}: ${e}`);
     });
@@ -293,13 +304,16 @@ class EditorBody extends Component {
   async _loadContents (path) {
     let contents;
     let config;
+    let tags;
 
     try {
       let waitContents = Api.getContents(path);
       let waitConfig = Api.getConfig(path);
+      let waitTags = Api.getTags(path);
 
       contents = await waitContents;
       config = await waitConfig;
+      tags = await waitTags;
     } catch (err) {
       Notify.error(`Error occurs when sending requests: ${err}`);
       return;
@@ -320,17 +334,25 @@ class EditorBody extends Component {
       return;
     }
 
-    if (config.data.errno === 0) {
-      // construct tag map from the list
-      let tags = {};
-      for (let tag of config.data.tags) {
-        tags[tag.name] = tag;
+    // construct tag map from the list
+    let allTags = {};
+
+    if (tags.data.errno === 0) {
+      for (let tag of tags.data.tags) {
+        allTags[tag.name] = tag;
       }
-      this.setState({tags,});
-    } else {
-      Notify.error(`${path} tags are not available`);
     }
 
+    if (config.data.errno === 0) {
+      for (let tag of config.data.tags) {
+        allTags[tag.name] = tag;
+      }
+    }
+    if (tags.data.errno !== 0 && config.data.errno !== 0) {
+      Notify.error(`${path} config and tags are not available`);
+      return;
+    }
+    this.setState({tags: allTags});
   }
 
   componentWillUnmount() {
