@@ -36,40 +36,39 @@ function debugTokens(cm, line) {
   let tokens = cm.getLineTokens(line);
   for (let t of tokens) {
     console.log(t);
-    console.log(t.state.braceStack);
+    console.log(JSON.stringify(t.state));
   }
 }
 
 test('stack tracks {. syntax error.', () => {
-  let cm = getCM('◊func{data');
+  let cm = getCM('◊func{data data2');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(1);
+  expect(state.braceCount).toBe(1);
 });
 
-/*
 test('stack tracks }. syntax okay', () => {
   let cm = getCM('◊func{data}');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.braceCount).toBe(0);
 });
 
 
 test('{ as normal text. syntax okay', () => {
   let cm = getCM('◊func {data');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.braceCount).toBe(0);
 });
 
 test('{ in context. syntax error', () => {
   let cm = getCM('◊func{data { }');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(1);
+  expect(state.braceCount).toBe(1);
 });
 
 test('{ matches only with }. syntax okay', () => {
   let cm = getCM('◊func{data}|');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.braceCount).toBe(0);
   let token = cm.getTokenAt({line: 0, ch:12});
   expect(token.string).toEqual("|");
 });
@@ -106,65 +105,71 @@ test('eat partial stream', () => {
 test('stack tracks |{. syntax error.', () => {
   let cm = getCM('◊func|{data');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(1);
+  expect(state.braceCount).toBe(0);
+  expect(state.blockBraceCount).toBe(1);
 });
 
 test('simple { in |{ is not a nest context', () => {
   let cm = getCM('◊func|{data {text');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(1);
+  expect(state.braceCount).toBe(0);
+  expect(state.blockBraceCount).toBe(1);
 });
 
 test('simple { in |{ is not a nest context', () => {
   let cm = getCM('◊func|{data {text }|');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.blockBraceCount).toBe(0);
+  expect(state.braceCount).toBe(0);
 });
 
 test('|{ in { is not a block-brace, part1', () => {
   let cm = getCM('◊func{ |{ eh');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(2);
-  expect(state.braceStack.topBrace()).toEqual("{");
+  expect(state.braceCount).toBe(2);
+  expect(state.blockBraceCount).toBe(0);
 });
 
 test('|{ in { is not a block-brace, part2', () => {
   let cm = getCM('◊func{ |{ eh }');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(1);
+  expect(state.braceCount).toBe(1);
 
 });
 
 test('|{ in { is not a block-brace, part3', () => {
   let cm = getCM('◊func{ |{ eh } }');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.braceCount).toBe(0);
 
 });
 
 test('stack tracks }|. syntax okay', () => {
   let cm = getCM('◊func|{data}|');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.blockBraceCount).toBe(0);
+  expect(state.braceCount).toBe(0);
 });
 
 
 test('|{ as normal text. syntax okay', () => {
   let cm = getCM('◊func |{data');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.braceCount).toBe(0);
+  expect(state.blockBraceCount).toBe(0);
 });
 
 test('|{ can contain {. syntax okay', () => {
   let cm = getCM('◊func|{data { }|');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.blockBraceCount).toBe(0);
+  expect(state.braceCount).toBe(0);
 });
 
 test('} does not close |{', () => {
   let cm = getCM('◊func|{data} ');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(1);
+  expect(state.blockBraceCount).toBe(1);
 });
 
 test('get tag', () => {
@@ -185,13 +190,15 @@ test('; is comment style', () => {
 test('; followed by |{ allows {', () => {
   let cm = getCM('◊;|{data { { { }|');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.braceCount).toBe(0);
+  expect(state.blockBraceCount).toBe(0);
 });
 
 test('; followed by |{ allows }', () => {
   let cm = getCM('◊;|{data  } } } }|');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.blockBraceCount).toBe(0);
+  expect(state.braceCount).toBe(0);
 });
 
 
@@ -206,7 +213,7 @@ test('; without brace shouldnot affect other lines', () => {
 line2`);
 
   let state = cm.getStateAfter(1);
-  expect(state.braceStack.length).toBe(0);
+  expect(state.blockBraceCount).toBe(0);
 
   let token = cm.getTokenAt({line: 0, ch: 2});
   expect(token.type).toEqual("comment");
@@ -225,7 +232,7 @@ test('; followed by |{ starts comment', () => {
 test('; followed by { starts comment', () => {
   let cm = getCM('◊;{data |{');
   let state = cm.getStateAfter(0);
-  expect(state.braceStack.length).toEqual(2);
+  expect(state.braceCount).toEqual(2);
 
   let token = cm.getTokenAt({line: 0, ch: 9});
   expect(token.string).toEqual('|');
@@ -245,12 +252,14 @@ test('|{ in ; is just simple left brace', () => {
   expect(token.type).toEqual("comment");
 });
 
-test('tag in comments should not be a keyword', () => {
+test('tag in comments should be in tagStack', () => {
   let cm = getCM('◊;{◊foo{hello}}');
   let token = cm.getTokenAt({line: 0, ch: 5});
-  // racket runtime completely ignores the inside tag
-  expect(token.string).toEqual('foo');
+  debugTokens(cm, 0);
+  // should be comment
   expect(token.type).toEqual("comment");
+  // the tagStack should contain foo
+  expect(token.state.tagStack.length).toBe(2);
 });
 
 
@@ -261,10 +270,13 @@ test('regression: left brace in comments', () => {
   expect(token.type).toEqual("comment");
 });
 
+test('nested comments', () => {
+  let cm = getCM('◊;{abc ◊;{def} ghi}');
+});
+
 
 test('cmd has [] form', () => {
   let cm = getCM('◊tag1[datum]{test1}');
   let token = cm.getTokenAt({line: 0, ch: 15});
-  expect(token.state.braceStack.top()).not.toBeFalsy();
+  expect(token.state.braceCount).toBe(1);
 });
-*/

@@ -71,9 +71,11 @@ function saveContext(state, newToken) {
 ///                 | <cmd>
 function mode(config) {
   const cmdChar = config['command-char'] || '◊';
+  // NOTE: racketId does not include cmdChar
   const racketId = `[^ \\n(){}\\[\\]",'\`;#|\\\\${cmdChar}]+`;
   const racketIdRegex = new RegExp(racketId);
   const commentTag = `${cmdChar};`;
+  const nonScopeRegex = new RegExp(`[^${cmdChar}]`);
 
   function startState() {
     return {
@@ -84,25 +86,39 @@ function mode(config) {
       // the brace { count of CURRENT tag (tag is opened by {)
       braceCount: 0,
       // the block brace |{ count of CURRENT tag (tag is opened by |{)
-      BlockBraceCount: 0,
+      blockBraceCount: 0,
       // tag stack from top level text
       tagStack: [],
+      // in a block comment (comments start with { or |{)
+      inComment: false
     };
   }
 
-  /// consume the tag if a tag is at the parse position. Return tag
-  /// style or null
-  function gotoCmd(stream, state) {
-    if (stream.peak(cmdChar)) {
-      state.token = inCmd;
-      return inCmd(stream, state);
+  function copyState(state) {
+    let newState = {...state};
+    newState.context = state.context.slice();
+    newState.tagStack = state.tagStack.slice();
+    return newState;
+  }
+
+  // it needs this method to decide whether to revert current state's
+  // inComment to false from true
+  function inComments(state) {
+    for (let tag of state.tagStack) {
+      if (tag === ';') {
+        return true;
+      }
     }
-    return null;
+    return false;
   }
 
   /// parse anything that's not in a cmd
   function inTopText(stream, state) {
-    stream.next();
+    if (stream.eatSpace()) {
+      return null;
+    }
+
+    stream.eatWhile(nonScopeRegex);
     return null;
   }
 
@@ -122,10 +138,18 @@ function mode(config) {
         if (state.braceCount === 0) {
           // this } closes a tag, so we need to pop context and tag
           restoreContext(state);
+          let tag = state.tagStack.pop();
+          if (tag === ';') {
+            state.inComment = inComments(state);
+          }
         }
         return 'close brace';
       }
       return 'brace';
+    }
+    let eaten = nextChar === ' ' || stream.eatSpace();
+    if (! eaten) {
+      stream.eatWhile(/[^\s{}]/);
     }
 
     return null;
@@ -142,40 +166,66 @@ function mode(config) {
         if (state.blockBraceCount === 0) {
           // this }| closes a tag, pop context and tag
           restoreContext(state);
+          let tag = state.tagStack.pop();
+          if (tag === ';') {
+            state.inComment = inComments(state);
+          }
         }
         return 'close blockBrace';
       }
       return 'blockBrace';
     }
-    stream.next();
+    let eaten = stream.eatWhile(/[^\s{}]/);
+    if (! eaten) {
+      stream.next();
+    }
     return null;
   }
 
   /// inCmd transition the state to other Nonterminals. i.e. it
   /// opereates on the margin of components of a cmd.
   function inCmd(stream, state) {
+    if (stream.peek() === cmdChar) {
+      throw new Error("the caller of inCmd must eat cmdChar");
+    }
+
+    if (stream.eat(';')) {
+      if (! stream.match(/\|?\{/, false)) {
+        stream.skipToEnd();
+        restoreContext(state);
+      } else {
+        state.tagStack.push(';');
+        state.inComment = true;
+      }
+      return 'comment';
+    }
+
     if (stream.match(racketIdRegex)) {
-      let tag = stream.current();
+      let tag = stream.current().substring(1);
       state.tagStack.push(tag);
       return 'keyword';
     }
 
     let nextToken = null;
-    if (stream.eat('[')) {
+    let nextChar = stream.peek();
+    if (nextChar === '[') {
       nextToken = inDatum;
     }
 
-    if (stream.eat("{")) {
+    if (nextChar === '{') {
       nextToken = inBrace;
     }
 
-    if (stream.match(/\|\{/)) {
+    if (stream.match(/\|\{/, false)) {
       nextToken = inBlockBrace;
     }
 
     if (nextToken) {
-      saveContext(nextToken);
+      saveContext(state, nextToken);
     } else {
+      // not in Cmd anymore, restore previous
+      restoreContext(state);
+      state.tagStack.pop();
       stream.next();
     }
 
@@ -200,13 +250,22 @@ function mode(config) {
   }
 
   function token(stream, state) {
-    let tokenStyle = gotoCmd();
-    if (tokenStyle) {
-      return tokenStyle;
+    // all states transit to <cmd> if next char is cmdChar
+    if (stream.eat(cmdChar)) {
+      saveContext(state, inCmd);
+      let tokenStyle = inCmd(stream, state);
+      return state.inComment ? 'comment' : tokenStyle;
     }
-    tokenStyle = state.token(stream, state);
-    return tokenStyle;
+
+    let tokenStyle = state.token(stream, state);
+    return state.inComment ? 'comment' : tokenStyle;
   }
+
+  return {
+    token,
+    startState,
+    copyState,
+  };
 }
 
 CodeMirror.defineMode("pollen", mode);
