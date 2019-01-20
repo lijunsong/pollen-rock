@@ -1,10 +1,58 @@
 import CodeMirror from 'codemirror';
 
+// this file does not export anything
 
 CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
   let state = cm.getStateAfter(line, true);
   return state.braceStack.length === 0;
 });
+
+
+
+const braces = {
+  "{": "}",
+  "|{": "}|",
+  "}": "{",
+  "}|": "|{",
+  "[": "]",
+  "]": "[",
+};
+
+
+function last(arr) {
+  return arr[arr.length - 1] || null;
+}
+
+function context(token, braceCount, blockBraceCount) {
+  return {
+    token: token,
+    braceCount: braceCount,
+    blockBraceCount: blockBraceCount,
+  };
+}
+
+/// restore the
+function restoreContext(state) {
+  /// invariance check
+  if (state.braceCount !== 0 || state.blockBraceCount !== 0) {
+    throw new Error("pop context, but current context has braces not closed");
+  }
+
+  let {token, braceCount, blockBraceCount} = state.context.pop();
+  state.token = token;
+  state.braceCount = braceCount;
+  state.blockBraceCount = blockBraceCount;
+}
+
+function saveContext(state, newToken) {
+  let {token, braceCount, blockBraceCount} = state;
+  let thisCtx = context(token, braceCount, blockBraceCount);
+  state.context.push(thisCtx);
+  state.token = newToken;
+  state.braceCount = 0;
+  state.blockBraceCount = 0;
+}
+
 
 /// BNF:
 ///
@@ -22,197 +70,144 @@ CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
 ///        <text> ::= <char> <text>
 ///                 | <cmd>
 function mode(config) {
-  let cmdChar = config['command-char'] || '◊';
-  let racketId = `[^ \\n(){}\\[\\]",'\`;#|\\\\${cmdChar}]+`;
-  let racketIdRegex = new RegExp(racketId);
-  let commentTag = `${cmdChar};`;
-
-  function leftRightBraceMatch(left, right) {
-    if (left === '{' && right === '}') {
-      return true;
-    }
-
-    if (left === '|{' && right === '}|') {
-      return true;
-    }
-
-    return false;
-  }
-
-  /// an item on stack contains left brace with an optional tagName
-  class Stack {
-    constructor() {
-      this.stack = [];
-    }
-    get length() {
-      return this.stack.length;
-    }
-    /// tag can be null, brace shouldn't be null
-    push(tag, brace) {
-      if (! brace) {
-        throw new Error("Brace should not be null");
-      }
-
-      this.stack.push({
-        tag: tag,
-        brace: brace
-      });
-    }
-    pop() {
-      let top = this.top();
-      if (top) {
-        this.stack.pop();
-      }
-      return top;
-    }
-    top() {
-      let item = this.stack[this.stack.length - 1];
-      return item || null;
-    }
-    topTag() {
-      let item = this.top();
-      return item ? item.tag : null;
-    }
-    topBrace() {
-      let item = this.top();
-      return item ? item.brace : null;
-    }
-  };
+  const cmdChar = config['command-char'] || '◊';
+  const racketId = `[^ \\n(){}\\[\\]",'\`;#|\\\\${cmdChar}]+`;
+  const racketIdRegex = new RegExp(racketId);
+  const commentTag = `${cmdChar};`;
 
   function startState() {
     return {
-      braceStack: new Stack(),
-      immediateTag : null,
+      // context contains the rest of the state in previous context
+      context: [],
+      // the parser for the next token
+      token: inTopText,
+      // the brace { count of CURRENT tag (tag is opened by {)
+      braceCount: 0,
+      // the block brace |{ count of CURRENT tag (tag is opened by |{)
+      BlockBraceCount: 0,
+      // tag stack from top level text
+      tagStack: [],
     };
   }
 
-  function copyState(state) {
-    let {braceStack, immediateTag} = state;
-    let newStack = new Stack();
-    newStack.stack = braceStack.stack.slice();
-    return {
-      immediateTag,
-      braceStack: newStack,
-    };
+  /// consume the tag if a tag is at the parse position. Return tag
+  /// style or null
+  function gotoCmd(stream, state) {
+    if (stream.peak(cmdChar)) {
+      state.token = inCmd;
+      return inCmd(stream, state);
+    }
+    return null;
   }
 
-  /// call this function to match the tag and advance the
-  /// position. Return the tag or null
-  function eatTag(stream) {
-    let tag = undefined;
-    if (! stream.eat(cmdChar)) {
-      return null;
-    }
-    let matched = stream.match(racketIdRegex);
-    if (matched === null) {
-      tag = stream.eat(";");
-      return tag || null;
-    }
-    return matched[0];
+  /// parse anything that's not in a cmd
+  function inTopText(stream, state) {
+    stream.next();
+    return null;
   }
 
-  function stateInComments(state) {
-    let stack = state.braceStack;
-    if (stack.topTag() === commentTag) {
-      return true;
+  /// inBrace keeps track of { (i.e. to count |{ as a simple brace,
+  /// not a blockBrace)
+  function inBrace(stream, state) {
+    let nextChar = stream.next();
+    if (nextChar === '{') {
+      // this { has no tag in front of it, just track
+      state.braceCount += 1;
+      return 'open brace';
     }
-    if (state.immediateTag === commentTag) {
-      return true;
-    }
-    for (let item of stack.stack) {
-      if (item.tag === commentTag) {
-        return true;
-      }
-    }
-    return false;
-  }
 
-  function token(stream, state) {
-    let stack = state.braceStack;
-    let inComments = stateInComments(state);
-    let tokenType = inComments ? "comment" : null;
-
-    if (!inComments && eatTag(stream)) {
-      let tag = stream.current();
-      let brace = stream.match(/\|?\{/, false);
-      if (brace !== null) {
-        state.immediateTag = tag;
-      }
-
-      if (tag === commentTag) {
-        if (brace === null) {
-          stream.skipToEnd();
+    if (nextChar === '}') {
+      if (state.braceCount > 0) {
+        state.braceCount -= 1;
+        if (state.braceCount === 0) {
+          // this } closes a tag, so we need to pop context and tag
+          restoreContext(state);
         }
-        return 'comment';
+        return 'close brace';
       }
+      return 'brace';
+    }
 
+    return null;
+  }
+
+  function inBlockBrace(stream, state) {
+    if (stream.match(/\|\{/)) {
+      state.blockBraceCount += 1;
+      return 'open blockBrace';
+    }
+    if (stream.match(/\}\|/)) {
+      if (state.blockBraceCount > 0) {
+        state.blockBraceCount -= 1;
+        if (state.blockBraceCount === 0) {
+          // this }| closes a tag, pop context and tag
+          restoreContext(state);
+        }
+        return 'close blockBrace';
+      }
+      return 'blockBrace';
+    }
+    stream.next();
+    return null;
+  }
+
+  /// inCmd transition the state to other Nonterminals. i.e. it
+  /// opereates on the margin of components of a cmd.
+  function inCmd(stream, state) {
+    if (stream.match(racketIdRegex)) {
+      let tag = stream.current();
+      state.tagStack.push(tag);
       return 'keyword';
     }
 
-    // we can simplify the body of this if condition, but
-    // I prefer leave all cases here as a reminder
-    if (stream.match(/\|?\{/)) {
-      let brace = stream.current();
-      // if brace is { and we're in |{ scope, ignore
-      if (brace === '{' && stack.topBrace() === '|{') {
-        return tokenType;
-      }
-
-      // if brace is |{ and we're in { scope, fix it to be {
-      if (brace === '|{' && stack.topBrace() === '{') {
-        stream.backUp(1);
-        return tokenType;
-      }
-
-      // track the left brace only when this is not top level scope or
-      // about to open a new scope
-      if (stack.top() || state.immediateTag) {
-        stack.push(state.immediateTag, brace);
-        state.immediateTag = null;
-      }
-      return tokenType;
+    let nextToken = null;
+    if (stream.eat('[')) {
+      nextToken = inDatum;
     }
 
-    // we can simplify the body of this if condition, but
-    // I prefer leave all cases here as a reminder
-    if (stream.match(/\}\|?/)) {
-      let brace = stream.current();
-      // if brace is } and we're in scope |{, ignore
-      if (brace === '}' && stack.topBrace() === '|{') {
-        return tokenType;
-      }
-
-      // if brace is }| and we're in scope {, update it to be }
-      if (brace === '}|' && stack.topBrace() === '{') {
-        brace = '}';
-        stream.backUp(1);
-      }
-
-      let top = stack.pop();
-      if (top && ! leftRightBraceMatch(top.brace, brace)) {
-        console.error("left Brace does not match the right one");
-      }
-
-      return tokenType;
+    if (stream.eat("{")) {
+      nextToken = inBrace;
     }
 
-    // if none of the pattern matches, we just eat
-    state.immediateTag = null;
-    let chars = `[^(\\|?{)|(}\\|?)|${cmdChar}]`;
-    if (stream.eatWhile(new RegExp(chars)) === false) {
+    if (stream.match(/\|\{/)) {
+      nextToken = inBlockBrace;
+    }
+
+    if (nextToken) {
+      saveContext(nextToken);
+    } else {
       stream.next();
     }
 
-    return tokenType;
+    return null;
   }
 
-  return {
-    startState,
-    token,
-    copyState,
-  };
-}
+  function inDatum(stream, state) {
+    let ch = stream.next();
 
+    if (ch === '[') {
+      return 'open bracket';
+    }
+
+    if (ch === "]") {
+      // close this datum, pop context, keep the tag so previous
+      // token can decide what to do
+      restoreContext(state);
+      return 'close bracket';
+    }
+
+    return null;
+  }
+
+  function token(stream, state) {
+    let tokenStyle = gotoCmd();
+    if (tokenStyle) {
+      return tokenStyle;
+    }
+    tokenStyle = state.token(stream, state);
+    return tokenStyle;
+  }
+}
 
 CodeMirror.defineMode("pollen", mode);
 CodeMirror.defineMIME("text/x-pollen", "pollen");
