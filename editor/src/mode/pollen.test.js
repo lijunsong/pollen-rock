@@ -46,7 +46,7 @@ test('stack tracks {. syntax error.', () => {
   expect(state.braceStack.length).toBe(1);
 });
 
-
+/*
 test('stack tracks }. syntax okay', () => {
   let cm = getCM('◊func{data}');
   let state = cm.getStateAfter(0);
@@ -267,3 +267,4 @@ test('cmd has [] form', () => {
   let token = cm.getTokenAt({line: 0, ch: 15});
   expect(token.state.braceStack.top()).not.toBeFalsy();
 });
+*/
