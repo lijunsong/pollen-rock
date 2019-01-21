@@ -225,7 +225,9 @@ function mode(config) {
     // not in Cmd anymore, restore previous context
     restoreContext(state);
     state.tagStack.pop();
-    stream.next();
+    // Don't call stream.next(), consider cases like
+    // @em{@p} where after p, inCmd must yield to
+    // previous context to see the last }
 
     return null;
   }
