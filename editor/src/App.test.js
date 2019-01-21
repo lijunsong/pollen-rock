@@ -43,5 +43,5 @@ it('render entry list', async () => {
   entryWrapper = wrapper.find("#NavEntries");
   expect(entryWrapper.find(".isFile").length).toBe(3);
   expect(entryWrapper.find(".isDir").length).toBe(2);
-  wrapper.umount();
+  wrapper.unmount();
 });
