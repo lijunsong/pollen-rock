@@ -8,6 +8,10 @@ import PropTypes from 'prop-types';
 class PreviewArea extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      location: null,
+      loading: true,
+    };
     this.onClickViewColumn = () => this.props.onClickDirection("vertical");
     this.onClickViewRow = () => this.props.onClickDirection("horizontal");
     this.onClickRefresh = this.onClickRefresh.bind(this);
@@ -16,12 +20,20 @@ class PreviewArea extends Component {
 
   onLoad() {
     if (this.iframe) {
-      this.installSelectHandler(this.iframe.contentWindow);
+      console.log("Install select handler in iframe");
+      let contentWindow = this.iframe.contentWindow;
+      contentWindow.addEventListener("mouseup", event => {
+        let selected = contentWindow.getSelection().toString();
+        // contract here is that false means no selection
+        this.props.onTextSelected(selected || false);
+      });
     }
+    this.setState({loading: false});
   }
 
   onClickRefresh() {
     if (this.iframe) {
+      this.setState({loading: true});
       let location = this.props.location;
       Api.render(location).then(() => {
         this.iframe.contentWindow.location.reload(true);
@@ -39,6 +51,7 @@ class PreviewArea extends Component {
     }
 
     try {
+      this.setState({loading: true});
       this.iframe.contentWindow.location.reload(true);
     } catch (err) {
       console.warn("Failed to reload, likely caused by same-origin policy");
@@ -46,31 +59,43 @@ class PreviewArea extends Component {
     }
   }
 
+  async fetchLocation(path) {
+    this.setState({loading: true});
+
+    let res = await Api.render(path);
+
+    // set the location anyway because the server always returns
+    // location to us
+    this.setState({location: res.data.location});
+
+    if (res.data.errno !== 0) {
+      console.error(`Render failed on ${path}`);
+    }
+  }
+
   componentDidUpdate(prevProps) {
+    if (prevProps.path !== this.props.path) {
+      this.setState({location: null});
+      this.fetchLocation(this.props.path);
+    }
+
     if (this.iframe) {
       this.iframe.onload = this.onLoad;
     }
   }
 
-  installSelectHandler(contentWindow) {
-    console.log("Install select handler in iframe");
-    contentWindow.addEventListener("mouseup", event => {
-      let selected = contentWindow.getSelection().toString();
-      // contract here is that false means no selection
-      this.props.onTextSelected(selected || false);
-    });
-  }
-
-  renderLoading() {
-    return <div id="PreviewArea">
-             "Loading";
-           </div>;
+  componentDidMount() {
+    this.fetchLocation(this.props.path);
   }
 
   renderHeader(location) {
+    if (! location) {
+      location = "Loading...";
+    }
+    let refreshClass = this.state.loading ? "spin" : "";
     return <div id="PreviewHeader">
              <span id="PreviewPath">{location}</span>
-             <Icons.IconRefresh className="clickable"
+             <Icons.IconRefresh className={`clickable ${refreshClass}`}
                                 onClick={this.onClickRefresh} />
              <Icons.IconHSplit className="clickable"
                                onClick={this.onClickViewRow} />
@@ -80,33 +105,33 @@ class PreviewArea extends Component {
   }
 
   /// Render Preview using iframe
-  renderPreview(location) {
-    let url = `${Api.remote}/${location}`;
+  renderIframe() {
+    if (! this.state.location) {
+      return <div className="Loading"></div>;
+    }
+
+    let url = `${Api.remote}/${this.state.location}`;
     // add previewIframe div and set overflow-scrolling touch there
     // to let small device scroll the iframe
-    return <div id="PreviewArea">
-             {this.renderHeader(location)}
-             <div className="previewIframe">
+    return <div className="previewIframe">
                <iframe className="preview"
                        src={url}
                        title="preview"
                        ref={r => this.iframe = r } />
-             </div>
            </div>;
   }
 
   render() {
-    if (this.props.location) {
-      return this.renderPreview(this.props.location);
-    } else {
-      return this.renderLoading();
-    }
+    return <div id="PreviewArea">
+             {this.renderHeader(this.state.location)}
+             {this.renderIframe()}
+           </div>;
   }
 }
 
 
 PreviewArea.propTypes = {
-  location: PropTypes.string,
+  path: PropTypes.string.isRequired,
   onTextSelected: PropTypes.func.isRequired,
   onClickDirection: PropTypes.func.isRequired,
 };

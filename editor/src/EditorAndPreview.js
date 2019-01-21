@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import * as Api from './Api';
 import SplitPane from 'react-split-pane';
 import PreviewArea from './PreviewArea';
 import * as Icons from './Icons';
@@ -19,8 +18,6 @@ class EditorAndPreview extends Component {
       /// set it on dragging here. Making it in state may not be
       /// necessary.
       dragging: false,
-      /// file location to send to preview to load
-      location: null,
       /// tag names from the top level to the cursor position
       tagStack: [],
     };
@@ -89,30 +86,7 @@ class EditorAndPreview extends Component {
     }, 1000);
   }
 
-  async fetchLocation(path) {
-    console.log("Fetch location of " + path);
-    let res = await Api.render(path);
-
-    // set the location anyway because the server always returns
-    // location to us
-    this.setState({location: res.data.location});
-
-    if (res.data.errno !== 0) {
-      console.error(`Render failed on ${path}`);
-    }
-
-  }
-
-  componentDidMount() {
-    this.fetchLocation(this.props.path);
-  }
-
   componentDidUpdate(prevProps, prevState) {
-    let path = this.props.path;
-    if (path !== prevProps.path) {
-      this.fetchLocation(path);
-    }
-
     let needsRefresh = false;
     needsRefresh |= prevState.dragging !== this.state.dragging;
     needsRefresh |= prevState.splitDirection !== this.state.splitDirection;
@@ -166,7 +140,7 @@ class EditorAndPreview extends Component {
     };
     return (
       <div className={className} style={style}>
-        <PreviewArea location={this.state.location}
+        <PreviewArea path={this.props.path}
                      ref={r => this.previewArea = r}
                      onClickDirection={this.onClickDirection}
                      onTextSelected={this.onPreviewSelected} />
