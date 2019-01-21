@@ -23,6 +23,10 @@ document.body.createTextRange = function() {
   };
 };
 
+function last(arr) {
+  return arr[arr.length - 1] || null;
+}
+
 function getCM(text) {
   let div = document.createElement('div');
   let cm = CodeMirror(div,{
@@ -36,9 +40,30 @@ function debugTokens(cm, line) {
   let tokens = cm.getLineTokens(line);
   for (let t of tokens) {
     console.log(t);
+    console.log(t.state.context);
     console.log(JSON.stringify(t.state));
   }
 }
+
+test('check after tag position', () => {
+  let cm = getCM('abc ◊p{◊tag2[datum2]{◊i{i} def} ghi} jkl');
+  let token = cm.getTokenAt({line: 0, ch: 1});
+  expect(token.state.tagStack.length).toBe(0);
+
+  // check def tag stack
+  token = cm.getTokenAt({line: 0, ch: 28});
+  expect(last(token.state.tagStack)).toEqual('tag2');
+
+  // check ghi
+  token = cm.getTokenAt({line: 0, ch: 34});
+  expect(last(token.state.tagStack)).toEqual('p');
+
+  // check jkl
+  token = cm.getTokenAt({line: 0, ch: 40});
+  expect(token.state.tagStack.length).toEqual(0);
+
+});
+
 
 test('stack tracks {. syntax error.', () => {
   let cm = getCM('◊func{data data2');
@@ -243,11 +268,16 @@ test('|{ in ; is just simple left brace', () => {
   let cm = getCM('◊;{data |{ } }| good');
   let token = cm.getTokenAt({line: 0, ch: 15});
   // the | in }| should be normal text
-  expect(token.string).toEqual('|');
+  expect(token.string.startsWith("|")).toBe(true);
   expect(token.type).toEqual(null);
 
   token = cm.getTokenAt({line: 0, ch: 12});
   // the } in the middle should be a comment
+  expect(token.string).toEqual('}');
+  expect(token.type).toEqual("comment");
+
+  token = cm.getTokenAt({line: 0, ch: 14});
+  // the } at the last should still be a comment
   expect(token.string).toEqual('}');
   expect(token.type).toEqual("comment");
 });
@@ -255,7 +285,6 @@ test('|{ in ; is just simple left brace', () => {
 test('tag in comments should be in tagStack', () => {
   let cm = getCM('◊;{◊foo{hello}}');
   let token = cm.getTokenAt({line: 0, ch: 5});
-  debugTokens(cm, 0);
   // should be comment
   expect(token.type).toEqual("comment");
   // the tagStack should contain foo
@@ -272,6 +301,14 @@ test('regression: left brace in comments', () => {
 
 test('nested comments', () => {
   let cm = getCM('◊;{abc ◊;{def} ghi}');
+  let token = cm.getTokenAt({line: 0, ch: 5});
+  expect(token.type).toEqual('comment');
+
+  token = cm.getTokenAt({line: 0, ch: 11});
+  expect(token.type).toEqual('comment');
+
+  token = cm.getTokenAt({line: 0, ch: 17});
+  expect(token.type).toEqual('comment');
 });
 
 
@@ -279,4 +316,49 @@ test('cmd has [] form', () => {
   let cm = getCM('◊tag1[datum]{test1}');
   let token = cm.getTokenAt({line: 0, ch: 15});
   expect(token.state.braceCount).toBe(1);
+});
+
+test('nested cmd in [] form', () => {
+  let cm = getCM('◊tag1[◊tag2{data1}]{test1}');
+  let token = cm.getTokenAt({line: 0, ch: 5});
+  expect(last(token.state.tagStack)).toEqual('tag1');
+
+  token = cm.getTokenAt({line: 0, ch: 14});
+  expect(last(token.state.tagStack)).toEqual('tag2');
+
+  token = cm.getTokenAt({line: 0, ch: 23});
+  expect(last(token.state.tagStack)).toEqual('tag1');
+
+});
+
+test('nested cmd in {} form', () => {
+  let cm = getCM('◊tag1[datum1]{◊tag2[datum2]{text2}}');
+  let token = cm.getTokenAt({line: 0, ch: 9});
+  expect(last(token.state.tagStack)).toEqual('tag1');
+
+  token = cm.getTokenAt({line: 0, ch: 17});
+  expect(last(token.state.tagStack)).toEqual('tag2');
+
+  token = cm.getTokenAt({line: 0, ch: 22});
+  expect(last(token.state.tagStack)).toEqual('tag2');
+
+});
+
+test('check after tag position', () => {
+  let cm = getCM('abc ◊p{◊tag2[datum2]{◊i{i} def} ghi} jkl');
+  let token = cm.getTokenAt({line: 0, ch: 1});
+  expect(token.state.tagStack.length).toBe(0);
+
+  // check def tag stack
+  token = cm.getTokenAt({line: 0, ch: 28});
+  expect(last(token.state.tagStack)).toEqual('tag2');
+
+  // check ghi
+  token = cm.getTokenAt({line: 0, ch: 34});
+  expect(last(token.state.tagStack)).toEqual('p');
+
+  // check jkl
+  token = cm.getTokenAt({line: 0, ch: 40});
+  expect(token.state.tagStack.length).toEqual(0);
+
 });

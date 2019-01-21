@@ -21,7 +21,7 @@ class EditorAndPreview extends Component {
       dragging: false,
       /// file location to send to preview to load
       location: null,
-      /// tag depth
+      /// tag names from the top level to the cursor position
       tagStack: [],
     };
 
@@ -81,9 +81,9 @@ class EditorAndPreview extends Component {
     this.cursorTokenTimer = window.setTimeout(() => {
       let pos = cm.getCursor();
       let token = cm.getTokenAt(pos);
-      const newStack = token.state.braceStack.stack;
+      const newStack = token.state.tagStack;
       const oldStack = this.state.tagStack;
-      if (oldStack.map(e=>e.tag).join(",") !== newStack.map(e=>e.tag).join(",")) {
+      if (oldStack.join("") !== newStack.join("")) {
         this.setState({tagStack: newStack});
       }
     }, 1000);
@@ -130,10 +130,10 @@ class EditorAndPreview extends Component {
       className = "hidePointerEvents";
     }
 
-    let signature;
+    let lastTagObj;
     if (this.editorBody && this.state.tagStack.length) {
-      let closingTag = this.state.tagStack[this.state.tagStack.length-1];
-      signature = this.editorBody.getTag(closingTag.tag);
+      let lastTagName = this.state.tagStack[this.state.tagStack.length-1];
+      lastTagObj = this.editorBody.getTag(lastTagName);
     }
     return <div id="EditingArea" className={className}>
              <Editor.EditorHeader path={this.props.path} >
@@ -147,7 +147,7 @@ class EditorAndPreview extends Component {
                                 ref={r => this.editorBody = r} />
              <Editor.EditorFooter
                tagStack={this.state.tagStack}
-               closingTagSignature={signature}
+               lastTagObj={lastTagObj}
              />
            </div>;
   }

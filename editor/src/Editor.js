@@ -32,28 +32,58 @@ EditorHeader.propTypes = {
   path: PropTypes.string.isRequired,
 };
 
-function EditorFooter(props) {
-  let stack = props.tagStack || [];
-  let tree = stack.map(tag => tag.tag).join(" > ");
-  let sig = props.closingTagSignature;
-  let lastTag = stack[stack.length - 1];
-  let sigText;
-  if (lastTag) {
-    sigText = `(${lastTag.tag} . args)`;
-  } else {
-    sigText = "";
+
+/// generate tag1 > tag2 > tag3 > (tag4 signature)
+class EditorFooter extends Component {
+  renderTagContext() {
+    let stack = this.props.tagStack || [];
+    let tagNames;
+    // push a placeholder at the end if we have lastTagObj
+    if (this.props.lastTagObj) {
+      tagNames = stack.slice(0, stack.length - 1);
+      tagNames.push("");
+    } else {
+      tagNames = stack.slice();
+    }
+    let path = tagNames.join(" > ");
+    return <span id="tagContext">{path}</span>;
   }
-  return (
-    <div id="EditorFooter">
-      {tree}
-      <span>{sigText}</span>
-    </div>
-  );
+  renderSignature(tag) {
+    let sig;
+    let {name, kind} = tag;
+    if (kind === 'variable') {
+      let {type, value} = tag;
+      sig = `${type}: ${value}`;
+    } else {
+      let args= [];
+      let rest = "";
+      for (let i = 0; i < tag.arity; ++i) {
+        args.push(`arg${i}`);
+      }
+      if (tag["arity-at-least"]) {
+        rest = ". rest";
+      }
+      sig = `(${name} ${args} ${rest})`;
+    }
+    return <span id="tagSignature">{sig}</span>;
+  }
+  render() {
+    let signature;
+    if (this.props.lastTagObj) {
+      signature = this.renderSignature(this.props.lastTagObj);
+    }
+    return (
+      <div id="EditorFooter">
+        {this.renderTagContext()}
+        {signature}
+      </div>
+    );
+  }
 }
 
 EditorFooter.propTypes = {
   tagStack: PropTypes.array.isRequired,
-  closingTagSignature: PropTypes.object.isRequired,
+  lastTagObj: PropTypes.object,
 };
 
 
