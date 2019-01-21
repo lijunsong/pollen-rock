@@ -135,22 +135,116 @@ class EditorBody extends Component {
       return val.value;
     }
 
-    return '@';
+    return '◊';
   }
 
-  insertCommandCharHandler(e) {
-    let pos = e.getCursor();
+
+  // return scope string or null
+  getScope(cm, pos) {
+    if (! CodeMirror.getScope) {
+      return null;
+    }
+
+    let mode = cm.doc.getMode();
+    let getScope = CodeMirror.getScope[mode.name];
+    return getScope ? getScope(cm, pos) : null;
+  }
+
+  insertCommandCharHandler(cm) {
+    let {line, ch} = cm.getCursor();
+    ch = ch - 1 >= 0 ? ch - 1 : ch;
+
+    let lineHandle = cm.getLineHandle(line);
+    let char = lineHandle.text.charAt(ch);
     let commandChar = this.getCommandChar();
-    if (pos.ch === 0) {
-      e.replaceSelection(commandChar);
+    if (char !== commandChar) {
+      cm.replaceSelection(commandChar);
     } else {
-      let lastPos = CodeMirror.Pos(pos.line, pos.ch-1);
-      if (e.getRange(lastPos, pos) === commandChar) {
-        e.replaceRange('@', lastPos, pos);
+      cm.replaceRange('@', {line, ch}, {line, ch: ch+1});
+    }
+  }
+
+
+  // insert balanced brace bracket only when current cursor is not in
+  // top scope
+  insertBraceHandler(cm) {
+    let {line, ch} = cm.getCursor();
+    /// make a copy here; directly changing the pos will change cursor pos
+    ch = ch - 1 >= 0 ? ch - 1 : ch;
+
+    if (this.getScope(cm, {line, ch}) === 'inTopText') {
+      cm.replaceSelection('{');
+      return;
+    }
+    // insert either {} or |{}| based on the char before this pos
+    let lineHandle = cm.getLineHandle(line);
+    let char = lineHandle.text.charAt(ch);
+    if (char === '|') {
+      cm.replaceSelection('{}|');
+    } else {
+      cm.replaceSelection('{}');
+    }
+    // set the cursor in the middle of the braces
+    cm.setCursor({line, ch: ch+2});
+  }
+
+
+  // insert [] only when the cursor is in command boundry
+  insertBracketHandler(cm) {
+    let {line, ch} = cm.getCursor();
+    ch = ch - 1 >= 0 ? ch - 1 : ch;
+
+    let scope = this.getScope(cm, {line, ch});
+    let text = '[';
+    if (scope === 'inCmd') {
+      text = '[]';
+    }
+    cm.replaceSelection(text);
+  }
+
+  // Backspace both {} or |{}| when the cursor is right before {
+  backSpaceHandler(cm) {
+    let {line, ch} = cm.getCursor();
+    if (ch === 0) {
+      return CodeMirror.Pass;
+    }
+
+    ch -= 1;
+    let text = cm.getLineHandle(line).text;
+    let char = text.charAt(ch);
+
+    if (char === '}') {
+      // if the char is part of command (the syntax needs this char),
+      // it's type will not be null. note: ch needs to +1 so
+      // getTokenAt can point at }
+      let token = cm.getTokenAt({line, ch: ch+1});
+      if (token.type) {
+        cm.setCursor({line, ch});
+        return null;
+      }
+      return CodeMirror.Pass;
+    } else if (char === '{' && text.charAt(ch + 1) === '}') {
+      let beg = ch;
+      let length = 2;
+
+      if (text.charAt(ch-1) === '|' && text.charAt(ch+2) === '|') {
+        beg -= 1;
+        length = 4;
+      }
+
+      cm.replaceRange('', {line, ch: beg}, {line, ch: beg + length});
+      return null;
+    } else if (char === "|" && text.charAt(ch-1) === "}") {
+      let token = cm.getTokenAt({line, ch});
+      if (token.type) {
+        cm.setCursor({line, ch: ch-1});
+        return null;
       } else {
-        e.replaceSelection(commandChar);
+        return CodeMirror.Pass;
       }
     }
+    // let the default backspace handle it
+    return CodeMirror.Pass;
   }
 
   /// save contents to remote. This method returns true
@@ -292,7 +386,10 @@ class EditorBody extends Component {
       lineNumbers: true,
       lineWrapping: true,
       extraKeys: {
-        "'@'": this.insertCommandCharHandler.bind(this)
+        "'@'": this.insertCommandCharHandler.bind(this),
+        "'{'": this.insertBraceHandler.bind(this),
+        "'['": this.insertBracketHandler.bind(this),
+        Backspace: this.backSpaceHandler.bind(this),
       }
     };
     let events = {

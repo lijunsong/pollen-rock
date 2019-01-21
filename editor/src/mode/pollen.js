@@ -7,6 +7,16 @@ CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
   return state.braceCount === 0 && state.blockBraceCount === 0;
 });
 
+
+/// get the name of the scope. Scopes are "inTopText", "inDatum", "inCmd"
+/// "inBrace", "inBlockBrace"
+CodeMirror.registerHelper("getScope", "pollen", function(cm, pos) {
+  let token = cm.getTokenAt(pos);
+  let state = token.state;
+  return state.token.name;
+});
+
+
 function context(token, braceCount, blockBraceCount) {
   return {
     token: token,
