@@ -53,7 +53,9 @@ class EditorFooter extends Component {
     let {name, kind} = tag;
     if (kind === 'variable') {
       let {type, value} = tag;
-      sig = `${type}: ${value}`;
+      value = value || "unknown value";
+      type = type || "unknown type";
+      sig = `${name}: ${type} (${value})`;
     } else {
       let args= [];
       let rest = "";
