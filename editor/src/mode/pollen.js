@@ -16,6 +16,12 @@ CodeMirror.registerHelper("getScope", "pollen", function(cm, pos) {
   return state.token.name;
 });
 
+/// get tags path from the top level scope to the given pos
+CodeMirror.registerHelper("getTagPath", "pollen", function(cm, pos) {
+  let token = cm.getTokenAt(pos);
+  return token.state.tagStack;
+});
+
 
 function context(token, braceCount, blockBraceCount) {
   return {

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import SplitPane from 'react-split-pane';
 import PreviewArea from './PreviewArea';
+import CodeMirror from 'codemirror';
 import * as Icons from './Icons';
 import * as Editor from './Editor';
 
@@ -76,9 +77,10 @@ class EditorAndPreview extends Component {
     // component
     window.clearTimeout(this.cursorTokenTimer);
     this.cursorTokenTimer = window.setTimeout(() => {
+      let mode = cm.doc.getMode();
+      let getTagPath = CodeMirror.getTagPath[mode.name];
       let pos = cm.getCursor();
-      let token = cm.getTokenAt(pos);
-      const newStack = token.state.tagStack;
+      const newStack = getTagPath(cm, pos);
       const oldStack = this.state.tagStack;
       if (oldStack.join("") !== newStack.join("")) {
         this.setState({tagStack: newStack});

@@ -1,35 +1,43 @@
 import CodeMirror from 'codemirror';
+import './pollen';
 import 'codemirror/mode/scheme/scheme';
 
 CodeMirror.registerHelper("syntaxCheck", "pollenMixed", function(cm, line) {
-  console.log("lint.pollenMixed");
   let state = cm.getStateAfter(line, true);
-  return (state.schemeState.indentStack == null
-          && state.pollenState.braceStack.length == 0);
+  return (state.schemeState.indentStack === null
+          && state.pollenState.braceCount === 0
+          && state.pollenState.blockBraceCount === 0);
 });
 
-CodeMirror.defineMode("pollenMixed", function(cmConfig, modeConfig) {
-  let schemeMode = CodeMirror.getMode(cmConfig, "scheme");
-  let pollenMode = CodeMirror.getMode(cmConfig, "pollen");
-  let cmdChar = cmConfig['command-char'] || '◊';
+/// get tags path from the top level scope to the given pos
+CodeMirror.registerHelper("getTagPath", "pollenMixed", function(cm, pos) {
+  let token = cm.getTokenAt(pos);
+  return token.state.pollenState.tagStack;
+});
+
+
+CodeMirror.defineMode("pollenMixed", function(config) {
+  let schemeMode = CodeMirror.getMode(config, "scheme");
+  let pollenMode = CodeMirror.getMode(config, "pollen");
+  let cmdChar = config['command-char'] || '◊';
+  let scopeChangeRegex = new RegExp(`${cmdChar}\\(`);
 
   function pollen(stream, state) {
-    let ch = stream.peek();
-    let style = pollenMode.token(stream, state.pollenState);
-    if (style == "keyword"
-        && ((ch  == cmdChar && stream.peek() == '(')
-            || stream.peek() == '[')) {
+    if (stream.match(scopeChangeRegex, false)) {
+      stream.eat(cmdChar);
       state.token = scheme;
       state.mode = "scheme";
+      return 'keyword';
+    } else {
+      return pollenMode.token(stream, state.pollenState);
     }
-    return style;
   }
 
   function scheme(stream, state) {
     let ch = stream.peek();
     let style = schemeMode.token(stream, state.schemeState);
     if (state.schemeState.indentStack == null
-        && (ch == "]" || ch == ")")) {
+        && (ch === "]" || ch === ")")) {
       // closed all bracket, ready to switch back to pollen
       state.token = pollen;
       state.mode = "pollen";
@@ -39,11 +47,10 @@ CodeMirror.defineMode("pollenMixed", function(cmConfig, modeConfig) {
 
   return {
     startState: function() {
-      let localState = pollenMode.startState();
       return {
         token: pollen,
         mode: "pollen",
-        pollenState: localState,
+        pollenState: pollenMode.startState(),
         schemeState: schemeMode.startState()
       };
     },
@@ -63,7 +70,7 @@ CodeMirror.defineMode("pollenMixed", function(cmConfig, modeConfig) {
 
     /* indent racket code */
     indent: function(state, textAfter) {
-      if (state.token == scheme) {
+      if (state.token === scheme) {
         return schemeMode.indent(state.schemeState, textAfter);
       } else {
         return 0;
@@ -73,7 +80,7 @@ CodeMirror.defineMode("pollenMixed", function(cmConfig, modeConfig) {
     /* For turnning on addModeClass option so racket code can use
      * fixed width font */
     innerMode: function(state) {
-      if (state.token == scheme) {
+      if (state.token === scheme) {
         return {
           state: state.schemeState,
           mode: schemeMode
