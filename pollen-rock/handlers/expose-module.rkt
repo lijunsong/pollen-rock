@@ -46,7 +46,9 @@
           [(and (symbol? val) (not (eq? val (json-null))))
            (list (symbol->string val) "symbol")]
           [else
-           (list (json-null) (json-null))]))
+           ;; null is from failure-thunk of namespace-variable-value
+           ;; being called when the variable is (imported) syntax
+           (list (json-null) "syntax")]))
   (hasheq 'name name
           'kind "variable"
           'value (first value-and-type)
