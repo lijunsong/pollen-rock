@@ -249,6 +249,20 @@ class EditorBody extends Component {
     return CodeMirror.Pass;
   }
 
+  tabHandler(cm) {
+    if (cm.somethingSelected()) {
+      cm.indentSelection("add");
+    } else {
+      let useTab = cm.getOption("indentWithTabs");
+      if (useTab) {
+        cm.replaceSelection("\t");
+      } else {
+        let text = Array(cm.getOption("indentUnit") + 1).join(" ");
+        cm.replaceSelection(text);
+      }
+    }
+  }
+
   /// save contents to remote. This method returns true
   /// when contents are sync on both sides; false otherwise
   async saveToDisk(path, cm) {
@@ -392,6 +406,7 @@ class EditorBody extends Component {
         "'{'": this.insertBraceHandler.bind(this),
         "'['": this.insertBracketHandler.bind(this),
         Backspace: this.backSpaceHandler.bind(this),
+        Tab: this.tabHandler.bind(this),
       }
     };
     let events = {
