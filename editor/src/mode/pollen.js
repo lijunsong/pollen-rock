@@ -4,24 +4,8 @@ import CodeMirror from 'codemirror';
 
 CodeMirror.registerHelper("syntaxCheck", "pollen", function(cm, line) {
   let state = cm.getStateAfter(line, true);
-  return state.braceStack.length === 0;
+  return state.braceCount === 0 && state.blockBraceCount === 0;
 });
-
-
-
-const braces = {
-  "{": "}",
-  "|{": "}|",
-  "}": "{",
-  "}|": "|{",
-  "[": "]",
-  "]": "[",
-};
-
-
-function last(arr) {
-  return arr[arr.length - 1] || null;
-}
 
 function context(token, braceCount, blockBraceCount) {
   return {
@@ -69,12 +53,15 @@ function saveContext(state, newToken) {
 ///       <datum> ::= <racket-expr>
 ///        <text> ::= <char> <text>
 ///                 | <cmd>
+///
+/// the important nonterminals are cmd, datum, text. In the implementation,
+/// those nonterminals are named inDatum, inCmd, inBlockBrace, inBrace. State
+/// transitions are controlled in state.token
 function mode(config) {
   const cmdChar = config['command-char'] || '◊';
   // NOTE: racketId does not include cmdChar
   const racketId = `[^ \\n(){}\\[\\]",'\`;#|\\\\${cmdChar}]+`;
   const racketIdRegex = new RegExp(racketId);
-  const commentTag = `${cmdChar};`;
   const nonScopeRegex = new RegExp(`[^${cmdChar}]`);
 
   function startState() {
@@ -103,7 +90,7 @@ function mode(config) {
 
   // it needs this method to decide whether to revert current state's
   // inComment to false from true
-  function inComments(state) {
+  function isInComments(state) {
     for (let tag of state.tagStack) {
       if (tag === ';') {
         return true;
@@ -122,8 +109,8 @@ function mode(config) {
     return null;
   }
 
-  /// inBrace keeps track of { (i.e. to count |{ as a simple brace,
-  /// not a blockBrace)
+  /// inBrace keeps track of { and }. This method tries its best to
+  /// produce token in space-separated words
   function inBrace(stream, state) {
     let nextChar = stream.next();
     if (nextChar === '{') {
@@ -140,7 +127,8 @@ function mode(config) {
           restoreContext(state);
           let tag = state.tagStack.pop();
           if (tag === ';') {
-            state.inComment = inComments(state);
+            state.inComment = isInComments(state);
+            return 'comment';
           }
         }
         return 'close brace';
@@ -155,6 +143,7 @@ function mode(config) {
     return null;
   }
 
+  /// inBlockBrace keeps track of |{ and }|
   function inBlockBrace(stream, state) {
     if (stream.match(/\|\{/)) {
       state.blockBraceCount += 1;
@@ -168,7 +157,8 @@ function mode(config) {
           restoreContext(state);
           let tag = state.tagStack.pop();
           if (tag === ';') {
-            state.inComment = inComments(state);
+            state.inComment = isInComments(state);
+            return 'comment';
           }
         }
         return 'close blockBrace';
@@ -183,7 +173,7 @@ function mode(config) {
   }
 
   /// inCmd transition the state to other Nonterminals. i.e. it
-  /// opereates on the margin of components of a cmd.
+  /// opereates on the boundries of components of a cmd.
   function inCmd(stream, state) {
     if (stream.peek() === cmdChar) {
       throw new Error("the caller of inCmd must eat cmdChar");
@@ -206,28 +196,26 @@ function mode(config) {
       return 'keyword';
     }
 
-    let nextToken = null;
     let nextChar = stream.peek();
     if (nextChar === '[') {
-      nextToken = inDatum;
+      saveContext(state, inDatum);
+      return null;
     }
 
     if (nextChar === '{') {
-      nextToken = inBrace;
+      state.token = inBrace;
+      return null;
     }
 
     if (stream.match(/\|\{/, false)) {
-      nextToken = inBlockBrace;
+      state.token = inBlockBrace;
+      return null;
     }
 
-    if (nextToken) {
-      saveContext(state, nextToken);
-    } else {
-      // not in Cmd anymore, restore previous
-      restoreContext(state);
-      state.tagStack.pop();
-      stream.next();
-    }
+    // not in Cmd anymore, restore previous context
+    restoreContext(state);
+    state.tagStack.pop();
+    stream.next();
 
     return null;
   }

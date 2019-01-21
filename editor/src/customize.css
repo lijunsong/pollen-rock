@@ -53,6 +53,14 @@ body {
 #EditorFooter {
     border-top: 2px solid #EEE;
 }
+#EditorFooter * {
+    font-size: 85%;
+}
+#EditorFooter #tagSignature {
+    margin-left: 1rem;
+    background-color: #EEE;
+    border-radius: 2px;
+}
 
 #NavEntries div {
     margin-bottom: 0.5rem;
