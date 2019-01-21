@@ -362,3 +362,11 @@ test('check after tag position', () => {
   expect(token.state.tagStack.length).toEqual(0);
 
 });
+
+test('check multiple line state', () => {
+  let cm = getCM(`◊em{◊e
+}`);
+  let state = cm.getStateAfter(1);
+  expect(state.braceCount).toBe(0);
+  expect(state.blockBraceCount).toBe(0);
+});
