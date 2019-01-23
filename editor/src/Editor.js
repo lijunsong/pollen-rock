@@ -97,7 +97,18 @@ class EditorBody extends Component {
       tags: [],
     };
     this.initContents = null;
+    // mtime is used for tracking the backend consistency
     this.mtime = 0;
+    // reference to the timeout for autosave
+    this.pendingSaveTimer = null;
+    // the codemirror generation of which contents have been saved to disk
+    this.savedGeneration = -1;
+    // pendingSaveAction is a function on which a timer is set. The
+    // null means nothing needs to save, or there is a pending save if
+    // it has a truthy value. It's used to warn the user about unsaved
+    // changes. We get a reference here because we'll need to manually
+    // run it if the contents are dirty when unmount
+    this.pendingSaveAction = null;
   }
 
   findMode(path) {
@@ -291,17 +302,18 @@ class EditorBody extends Component {
     return true;
   }
 
-  async saveAndPreview(path, cm) {
+  /// save contents and check the syntax. This method returns
+  /// true when contents are saved, false otherwise.
+  async saveAndCheckSyntax(path, cm) {
     let saved = false;
     try {
       saved = await this.saveToDisk(path, cm);
     } catch (e) {
       Notify.error(`Failed to save ${path}: ${e}. Server might have terminated.`);
-      return;
     }
 
     if (! saved) {
-      return;
+      return false;
     }
 
     // check syntax error and call synxtax check callback
@@ -313,6 +325,7 @@ class EditorBody extends Component {
       checkResult = checkFunc(cm, doc.lastLine());
     }
     this.props.onSyntaxCheck(checkResult);
+    return true;
   }
 
   onChanges(path, cm) {
@@ -327,10 +340,14 @@ class EditorBody extends Component {
       this.savedGeneration = cm.changeGeneration();
     } else {
       // cancel previous timer and schedule a new one
-      window.clearTimeout(this.saveTimer);
-      this.saveTimer = window.setTimeout(() => {
-        this.saveAndPreview(path, cm);
-      }, 1000);
+      window.clearTimeout(this.pendingSaveTimer);
+      this.pendingSaveAction = (async () => {
+        let saved = this.saveAndCheckSyntax(path, cm);
+        if (saved) {
+          this.pendingSaveAction = null;
+        }
+      });
+      this.pendingSaveTimer = window.setTimeout(this.pendingSaveAction, 1000);
     }
   }
 
@@ -428,23 +445,6 @@ class EditorBody extends Component {
     );
   }
 
-  /// Save a lot of data that are not needed in render.
-  /// This saves a lot of unnecessary render calls
-  componentDidMount() {
-    const path = this.props.path;
-
-    this._loadContents(path).then(e => {
-      console.log(`Successfully fetched ${path}`);
-    }).catch(e => {
-      Notify.error(`Failed to load ${path}: ${e}`);
-    });
-
-    // reference to the timeout for autosave
-    this.saveTimer = null;
-    // the codemirror generation of which contents have been saved to disk
-    this.savedGeneration = -1;
-  }
-
   async _loadContents (path) {
     let contents;
     let config;
@@ -499,9 +499,33 @@ class EditorBody extends Component {
     this.setState({tags: allTags});
   }
 
-  componentWillUnmount() {
-    window.clearTimeout(this.saveTimer);
+  componentDidMount() {
+    const path = this.props.path;
+
+    this._loadContents(path).then(e => {
+      console.log(`Successfully fetched ${path}`);
+    }).catch(e => {
+      Notify.error(`Failed to load ${path}: ${e}`);
+    });
+
+    // install handler to prevent the window from closing if contents are diry
+    window.onbeforeunload = e => {
+      if (this.pendingSaveAction) {
+        window.clearTimeout(this.pendingSaveTimer);
+        this.pendingSaveAction();
+
+        e.preventDefault();
+        e.returnValue = 'unsaved changes';
+      }
+    };
+  }
+
+  async componentWillUnmount() {
     window.clearTimeout(this.cursorTokenTimer);
+    if (this.pendingSaveAction) {
+      window.clearTimeout(this.pendingSaveTimer);
+      await this.pendingSaveAction();
+    }
   }
 }
 
