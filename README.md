@@ -19,15 +19,15 @@ See [pollen-rock](https://docs.racket-lang.org/pollen-rock/) for documentation.
 # ChangeLog
 ## 0.7.0
 Features
- - Server provides mtime on read and write of a file to detect multi-clients
- - A new design and rewrite of the front end editor. The editor provides a lot of exciting features
-   - Side bar for project navigation
+ - Server provides mtime on reads and writes of a file to detect modifictions from multiple clients
+ - A new design and rewrite of the front end editor. The editor provides a lot of handy features
+   - Sidebar for project navigation
    - Multi-client detection to avoid silent overwrite
-   - Cursor position tracking in the editor to provide tag path and tag signatures
-   - Enhanced editor to work better with pollen command boundries; inserting and deleting braces becomes smart
+   - Cursor position tracking in the editor to provide tag path and tag signature
+   - Enhanced editor to work better with pollen command boundaries; inserting and deleting braces become smart
    - Editor focus mode to remove UI cluster
    - Resizable vertical and horizontal preview split
-   - Syntax highlight for almost all languages (auto detected by file extentions)
+   - Syntax highlight for almost all languages (auto detected by file extensions)
  - The editor can highlight and jump to the corresponding position when a piece of searchable text in preview is selected
 
 ## 0.6.0
