@@ -23,7 +23,7 @@
 ;; TODO: make extract-module-bindings take non-list and return
 ;; another value to indicate if extraction succeeds.
 (define/contract (do-get-tags mod-path)
-  (-> path-string? (listof jsexpr?))
+  (-> (or/c path-string? symbol?) (listof jsexpr?))
   (extract-module-bindings (list mod-path)))
 
 
